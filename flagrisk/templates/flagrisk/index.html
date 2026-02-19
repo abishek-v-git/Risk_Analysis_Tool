@@ -1,410 +1,346 @@
 <!DOCTYPE html>
 <html lang="en">
-
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>FlagRisk - Data Upload</title>
+    
+    <!-- Bootstrap 5 CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <!-- Bootstrap Icons -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css" rel="stylesheet">
     <!-- Fonts -->
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet">
     <!-- DataTables CSS -->
-    <link rel="stylesheet" href="https://cdn.datatables.net/1.13.7/css/jquery.dataTables.min.css">
-    <link rel="stylesheet" href="https://cdn.datatables.net/buttons/2.4.2/css/buttons.dataTables.min.css">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <link rel="stylesheet" href="https://cdn.datatables.net/1.13.7/css/dataTables.bootstrap5.min.css">
+    <link rel="stylesheet" href="https://cdn.datatables.net/buttons/2.4.2/css/buttons.bootstrap5.min.css">
 
     <style>
-        :root {
-            --primary-color: #6366f1;
-            /* Indigo */
-            --primary-hover: #4f46e5;
-            --bg-color: #f8fafc;
-            --surface-color: #ffffff;
-            --text-primary: #1e293b;
-            --text-secondary: #64748b;
-            --border-color: #e2e8f0;
-            --accent-color: #ec4899;
-            /* Pink */
-        }
+:root {
+    --primary-color: #0d9488;     
+    --primary-hover: #0f766e;
+    --accent-color: #f59e0b;       
+    --success-color: #10b981;
+    --danger-color: #ef4444;
+    --warning-color: #f59e0b;
+    --bg-color: #f0fdf4;
+    --surface-color: #ffffff;
+    --text-primary: #064e3b;
+    --text-secondary: #047857;
+    --border-color: #d1fae5;
+    --gradient: linear-gradient(135deg, #0d9488 0%, #14b8a6 100%);
+}
 
-        body {
-            font-family: 'Inter', sans-serif;
-            background-color: var(--bg-color);
-            color: var(--text-primary);
-            margin: 0;
-            padding: 0;
-            line-height: 1.6;
-        }
+body { 
+    background: linear-gradient(135deg, #f0fdf4 0%, #ecfdf5 100%);
+    font-family: 'Inter', sans-serif;
+}
 
-        .container {
-            max-width: 1400px;
-            margin: 0 auto;
-            padding: 2rem;
-        }
+.card {
+    background: rgba(255,255,255,0.95);
+    border-radius: 20px;
+    box-shadow: 0 20px 40px -10px rgba(13,148,136,0.2);
+    border: 1px solid rgba(236,253,245,0.8);
+    transition: transform 0.2s, box-shadow 0.2s;
+}
 
-        /* Header */
-        header {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-bottom: 2rem;
-            animation: fadeInDown 0.6s ease-out;
-        }
+.card:hover {
+    box-shadow: 0 25px 50px -15px rgba(13,148,136,0.3);
+}
 
-        h1 {
-            font-weight: 600;
-            font-size: 2rem;
-            color: var(--text-primary);
-            margin: 0;
-        }
+.upload-area {
+    border: 2px dashed var(--border-color);
+    border-radius: 12px;
+    padding: 3rem;
+    text-align: center;
+    background: #f1f5f9;
+    cursor: pointer;
+    transition: all 0.3s;
+}
 
-        .brand {
-            display: flex;
-            align-items: center;
-            gap: 0.5rem;
-        }
+.upload-area:hover {
+    background: var(--gradient);
+    border-color: #14b8a6;
+    color: white;
+}
 
-        .brand i {
-            color: var(--primary-color);
-        }
+.upload-icon {
+    font-size: 3rem;
+    color: var(--text-secondary);
+    margin-bottom: 1rem;
+}
 
-        /* Card Styles */
-        .card {
-            background: var(--surface-color);
-            border-radius: 12px;
-            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
-            padding: 2rem;
-            margin-bottom: 2rem;
-            transition: transform 0.2s, box-shadow 0.2s;
-            animation: fadeInUp 0.6s ease-out 0.2s backwards;
-        }
+.btn-custom {
+    background: var(--gradient);
+    border: none;
+    font-weight: 500;
+    transition: all 0.2s;
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+}
 
-        .card:hover {
-            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
-        }
+.btn-custom:hover {
+    background: var(--primary-hover);
+    transform: translateY(-1px);
+    border-color: var(--primary-hover);
+}
 
-        /* Upload Area */
-        .upload-area {
-            border: 2px dashed var(--border-color);
-            border-radius: 8px;
-            padding: 3rem;
-            text-align: center;
-            background: #f1f5f9;
-            cursor: pointer;
-            transition: all 0.3s;
-        }
+.table-responsive {
+    border-radius: 8px;
+    border: 1px solid var(--border-color);
+}
 
-        .upload-area:hover {
-            border-color: var(--primary-color);
-            background: #eef2ff;
-        }
+.data-table th {
+    background-color: #f1f5f9;
+    color: var(--text-primary);
+    font-weight: 600;
+    border-bottom: 2px solid var(--border-color);
+    padding: 12px 16px !important;
+    white-space: nowrap;
+}
 
-        .upload-icon {
-            font-size: 3rem;
-            color: var(--text-secondary);
-            margin-bottom: 1rem;
-        }
+.data-table td {
+    padding: 8px 16px !important;
+    border-bottom: 1px solid var(--border-color);
+    color: var(--text-secondary);
+    line-height: 1.2 !important;
+    vertical-align: middle !important;
+    white-space: nowrap !important;
+}
 
-        /* Buttons */
-        .btn {
-            background: var(--primary-color);
-            color: white;
-            border: none;
-            padding: 0.75rem 1.5rem;
-            border-radius: 6px;
-            font-weight: 500;
-            cursor: pointer;
-            transition: all 0.2s;
-            display: inline-flex;
-            align-items: center;
-            gap: 0.5rem;
-        }
+.data-table tbody tr:hover {
+    background-color: #f8fafc !important;
+}
 
-        .btn:hover {
-            background: var(--primary-hover);
-            transform: translateY(-1px);
-        }
+.btn-circle {
+    border-radius: 50% !important;
+    width: 40px;
+    height: 40px;
+    padding: 0 !important;
+    display: inline-flex !important;
+    justify-content: center;
+    align-items: center;
+    font-size: 1.2rem !important;
+    line-height: 1 !important;
+    background: var(--primary-color) !important;
+    color: white !important;
+    border: none;
+    cursor: pointer;
+    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+    transition: all 0.2s;
+}
 
-        /* Table Styles - pgAdmin-like dense & clean */
-        .table-responsive {
-            margin-top: 1rem;
-            overflow-x: auto;
-            border-radius: 8px;
-            border: 1px solid var(--border-color);
-        }
+.btn-circle:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.2);
+    background: var(--primary-hover) !important;
+}
 
-        table.dataTable {
-            width: 100% !important;
-            border-collapse: collapse !important;
-            font-size: 0.875rem;
-            /* slightly smaller for density */
-        }
+.loading-overlay {
+    display: none;
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(255, 255, 255, 0.9);
+    z-index: 1000;
+    justify-content: center;
+    align-items: center;
+    flex-direction: column;
+}
 
-        table.dataTable thead th {
-            background-color: #f1f5f9;
-            color: var(--text-primary);
-            font-weight: 600;
-            border-bottom: 2px solid var(--border-color) !important;
-            padding: 12px 16px !important;
-            white-space: nowrap;
-        }
+.spinner {
+    width: 50px;
+    height: 50px;
+    border: 4px solid #f3f3f3;
+    border-top: 4px solid var(--primary-color);
+    border-radius: 50%;
+    animation: spin 1s linear infinite;
+}
 
-        table.dataTable tbody td {
-            padding: 8px 16px !important;
-            border-bottom: 1px solid var(--border-color);
-            color: var(--text-secondary);
-            line-height: 1.2 !important;
-            vertical-align: middle !important;
-            white-space: nowrap !important;
-            position: relative;
-        }
+@keyframes spin {
+    0% { transform: rotate(0deg); }
+    100% { transform: rotate(360deg); }
+}
 
-        table.dataTable tbody tr:hover {
-            background-color: #f8fafc !important;
-            /* Subtle hover */
-        }
+@keyframes fadeInDown {
+    from {
+        opacity: 0;
+        transform: translateY(-20px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
 
-        table.dataTable tbody tr.even {
-            background-color: #ffffff;
-        }
+@keyframes fadeInUp {
+    from {
+        opacity: 0;
+        transform: translateY(20px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
 
-        /* DataTables Controls Styling - pgAdmin Layout */
-        .dataTables_wrapper {
-            position: relative;
-        }
+header {
+    animation: fadeInDown 0.6s ease-out;
+}
 
-        /* Position controls at top in a row */
-        .dataTables_wrapper .dataTables_length {
-            float: left;
-            padding: 8px 0;
-        }
-
-        .dataTables_wrapper .dataTables_paginate {
-            float: left;
-            padding: 8px 0;
-            margin-left: 20px;
-        }
-
-        .dataTables_wrapper .dataTables_filter {
-            float: right;
-            padding: 8px 0;
-        }
-
-        .dataTables_wrapper .dataTables_info {
-            clear: both;
-            float: left;
-            padding: 8px 0;
-        }
-
-        .dataTables_wrapper .dataTables_filter input,
-        .dataTables_wrapper .dataTables_length select {
-            border: 1px solid var(--border-color);
-            border-radius: 4px;
-            padding: 4px 8px;
-            margin: 0 4px;
-        }
-
-        /* Animations */
-        @keyframes fadeInDown {
-            from {
-                opacity: 0;
-                transform: translateY(-20px);
-            }
-
-            to {
-                opacity: 1;
-                transform: translateY(0);
-            }
-        }
-
-        @keyframes fadeInUp {
-            from {
-                opacity: 0;
-                transform: translateY(20px);
-            }
-
-            to {
-                opacity: 1;
-                transform: translateY(0);
-            }
-        }
-
-        /* Loading overlay */
-        .loading-overlay {
-            display: none;
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            background: rgba(255, 255, 255, 0.8);
-            z-index: 1000;
-            justify-content: center;
-            align-items: center;
-            flex-direction: column;
-        }
-
-        .spinner {
-            width: 50px;
-            height: 50px;
-            border: 4px solid #f3f3f3;
-            border-top: 4px solid var(--primary-color);
-            border-radius: 50%;
-            animation: spin 1s linear infinite;
-        }
-
-        @keyframes spin {
-            0% {
-                transform: rotate(0deg);
-            }
-
-            100% {
-                transform: rotate(360deg);
-            }
-        }
-
-        .btn-circle {
-            border-radius: 50% !important;
-            width: 40px;
-            height: 40px;
-            padding: 0 !important;
-            display: inline-flex !important;
-            justify-content: center;
-            align-items: center;
-            font-size: 1.2rem !important;
-            line-height: 1 !important;
-            background: var(--primary-color) !important;
-            color: white !important;
-            border: none;
-            cursor: pointer;
-            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
-            transition: all 0.2s;
-        }
-
-        .btn-circle:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.2);
-            background: var(--primary-hover) !important;
-        }
+.card {
+    animation: fadeInUp 0.6s ease-out 0.2s backwards;
+}
     </style>
 </head>
 
 <body>
-
-    <div class="container">
-        <header>
-            <div class="brand">
-                <i class="fas fa-flag"></i>
-                <h1>FlagRisk</h1>
+    <div class="container-fluid py-4 px-3 px-md-4">
+        <header class="row mb-4">
+            <div class="col-12">
+                <div class="d-flex align-items-center gap-2">
+                    <i class="bi bi-flag-fill text-primary fs-1"></i>
+                    <h1 class="h3 mb-0 fw-bold text-dark">FlagRisk</h1>
+                </div>
             </div>
         </header>
 
         {% if not is_uploaded %}
-        <div class="card">
-            <h2>Upload Data</h2>
-            <p class="text-secondary">Select an Excel file to visualize and analyze.</p>
+        <div class="row justify-content-center">
+            <div class="col-12 col-lg-10 col-xl-8">
+                <div class="card p-4 p-md-5">
+                    <div class="text-center mb-4">
+                        <h2 class="h4 fw-semibold text-primary mb-2">Upload Data</h2>
+                        <p class="text-muted mb-0">Select an Excel file to visualize and perform risk analysis.</p>
+                    </div>
 
-            <form id="uploadForm" method="post" enctype="multipart/form-data" action="">
-                {% csrf_token %}
-                <div class="upload-area" onclick="document.getElementById('fileInput').click()">
-                    <i class="fas fa-cloud-upload-alt upload-icon"></i>
-                    <h3>Click to upload or drag and drop</h3>
-                    <p>XLS, XLSX files supported</p>
-                    <input type="file" name="excel_file" id="fileInput" style="display: none" accept=".xlsx, .xls"
-                        onchange="handleFileSelect(this)">
+                    <form id="uploadForm" method="post" enctype="multipart/form-data" action="">
+                        {% csrf_token %}
+                        <div class="upload-area" onclick="document.getElementById('fileInput').click()">
+                            <i class="bi bi-cloud-upload-fill upload-icon"></i>
+                            <h3 class="h5 mb-2">Click to upload or drag and drop</h3>
+                            <p class="text-muted mb-0">XLS, XLSX files supported</p>
+                            <input type="file" name="excel_file" id="fileInput" class="d-none" accept=".xlsx, .xls"
+                                onchange="handleFileSelect(this)">
+                        </div>
+                        <div id="file-info" class="mt-3 text-center d-none">
+                            <span id="filename" class="badge bg-primary me-2"></span>
+                            <button type="submit" class="btn btn-custom btn-lg">
+                                Process File <i class="bi bi-arrow-right"></i>
+                            </button>
+                        </div>
+                    </form>
                 </div>
-                <div id="file-info" style="margin-top: 1rem; display: none;">
-                    <span id="filename"></span>
-                    <button type="submit" class="btn">Process File <i class="fas fa-arrow-right"></i></button>
-                </div>
-            </form>
+            </div>
         </div>
         {% endif %}
 
         {% if error %}
-        <div class="alert"
-            style="background: #fee2e2; color: #b91c1c; padding: 1rem; border-radius: 8px; margin-bottom: 2rem;">
-            <i class="fas fa-exclamation-circle"></i> {{ error }}
+        <div class="alert alert-danger d-flex align-items-center" role="alert">
+            <i class="bi bi-exclamation-circle-fill me-2"></i>
+            {{ error }}
         </div>
         {% endif %}
 
         {% if is_uploaded %}
-        <div class="card" style="width: 100%; overflow: hidden;">
-            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem;">
-                <h3>Data Preview: {{ filename }}</h3>
-                <div style="display: flex; gap: 10px;">
-                    <button type="button" id="analyzeBtn" class="btn"
-                        style="background: var(--accent-color); font-size: 0.8rem;">
-                        <i class="fas fa-chart-line"></i> Perform Risk Analysis
-                    </button>
-                    <a href="/" class="btn" style="background: var(--text-secondary); font-size: 0.8rem;">Upload New
-                        File</a>
-                </div>
-            </div>
+        <div class="row">
+            <div class="col-12">
+                <div class="card">
+                    <div class="card-body p-4">
+                        <div class="d-flex justify-content-between align-items-center flex-wrap gap-2 mb-4">
+                            <h3 class="h5 mb-0 fw-semibold">Data Preview: <span class="text-primary">{{ filename }}</span></h3>
+                            <div class="d-flex gap-2">
+                                <button type="button" id="analyzeBtn" class="btn btn-warning btn-sm">
+                                    <i class="bi bi-graph-up"></i> Perform Risk Analysis
+                                </button>
+                                <a href="/" class="btn btn-success btn-sm">
+                                    <i class="bi bi-cloud-upload"></i> Upload New File
+                                </a>
+                            </div>
+                        </div>
 
-            <div class="table-responsive">
-                <table id="dataTable" class="table display" style="width:100%">
-                    <!-- Table content initialized via JavaScript -->
-                </table>
-            </div>
+                        <div class="table-responsive">
+                            <table id="dataTable" class="table table-striped table-hover data-table display" style="width:100%">
+                                <!-- Table content initialized via JavaScript -->
+                            </table>
+                        </div>
 
-            {{ columns|json_script:"table-columns" }}
-            {{ data|json_script:"table-data" }}
-        </div>
-
-        <div id="resultsCard" style="display: none; margin-top: 2rem;">
-            <div style="display: flex; gap: 2rem; flex-wrap: wrap;">
-                <!-- High Risk Table -->
-                <div class="card" style="flex: 1; min-width: 300px; border-top: 4px solid #ef4444;">
-                    <h3 style="color: #ef4444; margin-bottom: 1rem;">
-                        <i class="fas fa-exclamation-triangle"></i> High Risk (China/Taiwan)
-                    </h3>
-                    <div class="table-responsive">
-                        <table id="highRiskTable" class="table display" style="width:100%">
-                            <thead>
-                                <tr>
-                                    <th>Part Number</th>
-                                    <th>CPN</th>
-                                    <th>Country</th>
-                                </tr>
-                            </thead>
-                            <tbody></tbody>
-                        </table>
+                        {{ columns|json_script:"table-columns" }}
+                        {{ data|json_script:"table-data" }}
                     </div>
                 </div>
+            </div>
+        </div>
 
-                <!-- No Risk Table -->
-                <div class="card" style="flex: 1; min-width: 300px; border-top: 4px solid #22c55e;">
-                    <h3 style="color: #22c55e; margin-bottom: 1rem;">
-                        <i class="fas fa-check-circle"></i> No Risk / Low Risk
-                    </h3>
-                    <div class="table-responsive">
-                        <table id="noRiskTable" class="table display" style="width:100%">
-                            <thead>
-                                <tr>
-                                    <th>Part Number</th>
-                                    <th>CPN</th>
-                                    <th>Country</th>
-                                </tr>
-                            </thead>
-                            <tbody></tbody>
-                        </table>
+        <div id="resultsCard" class="row mt-4 g-4" style="display: none;">
+            <!-- High Risk Table -->
+            <div class="col-lg-6">
+                <div class="card border-start border-danger border-5 shadow-sm h-100">
+                    <div class="card-body p-4">
+                        <h3 class="h6 text-danger mb-3 fw-semibold">
+                            <i class="bi bi-exclamation-triangle-fill me-2"></i>
+                            High Risk
+                        </h3>
+                        <div class="table-responsive">
+                            <table id="highRiskTable" class="table table-striped table-hover data-table display" style="width:100%">
+                                <thead>
+                                    <tr>
+                                        <th>Part Number</th>
+                                        <th>CPN</th>
+                                        <th>Country</th>
+                                    </tr>
+                                </thead>
+                                <tbody></tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- No Risk Table -->
+            <div class="col-lg-6">
+                <div class="card border-start border-success border-5 shadow-sm h-100">
+                    <div class="card-body p-4">
+                        <h3 class="h6 text-success mb-3 fw-semibold">
+                            <i class="bi bi-check-circle-fill me-2"></i>
+                            No Risk / Low Risk
+                        </h3>
+                        <div class="table-responsive">
+                            <table id="noRiskTable" class="table table-striped table-hover data-table display" style="width:100%">
+                                <thead>
+                                    <tr>
+                                        <th>Part Number</th>
+                                        <th>CPN</th>
+                                        <th>Country</th>
+                                    </tr>
+                                </thead>
+                                <tbody></tbody>
+                            </table>
+                        </div>
                     </div>
                 </div>
             </div>
         </div>
         {% endif %}
-
     </div>
 
     <div class="loading-overlay" id="loadingOverlay">
-        <div class="spinner"></div>
-        <p style="margin-top: 1rem; font-weight: 500;">Processing file...</p>
+        <div class="spinner-border text-primary spinner" role="status">
+            <span class="visually-hidden">Loading...</span>
+        </div>
+        <p class="mt-3 fw-semibold text-primary">Processing file...</p>
     </div>
 
     <!-- Scripts -->
     <script src="https://code.jquery.com/jquery-3.7.0.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
     <script src="https://cdn.datatables.net/1.13.7/js/jquery.dataTables.min.js"></script>
+    <script src="https://cdn.datatables.net/1.13.7/js/dataTables.bootstrap5.min.js"></script>
     <script src="https://cdn.datatables.net/buttons/2.4.2/js/dataTables.buttons.min.js"></script>
+    <script src="https://cdn.datatables.net/buttons/2.4.2/js/buttons.bootstrap5.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
     <script src="https://cdn.datatables.net/buttons/2.4.2/js/buttons.html5.min.js"></script>
 
@@ -412,7 +348,7 @@
         function handleFileSelect(input) {
             if (input.files && input.files[0]) {
                 document.getElementById('filename').textContent = "Selected: " + input.files[0].name;
-                document.getElementById('file-info').style.display = 'block';
+                document.getElementById('file-info').classList.remove('d-none');
             }
         }
 
@@ -506,13 +442,11 @@
                                     "next": "Next",
                                     "previous": "Previous"
                                 }
-                            },
-                            "dom": 'lfrtip',
-                            "initComplete": function () {
-                                $('#loadingOverlay').css('display', 'none');
-                                console.log('DataTable initialized successfully');
                             }
                         });
+                        
+                        $('#loadingOverlay').css('display', 'none');
+                        console.log('DataTable initialized successfully');
                     }, 50);
                 } catch (error) {
                     console.error('Error initializing DataTable:', error);
@@ -632,7 +566,6 @@
                             if (cpnMap[cpn]) {
                                 cpnRisk = getRiskLevel(cpnMap[cpn]);
                             }
-
 
                             var remark = "";
                             if (cpnRisk === "Low Risk") {
@@ -766,8 +699,8 @@
                             "dom": 'Blfrtip',
                             "buttons": [{
                                 extend: 'excel',
-                                text: '<i class="fas fa-download"></i>',
-                                className: 'btn-circle',
+                                text: '<i class="bi bi-download"></i>',
+                                className: 'btn btn-circle me-1',
                                 title: 'FlagRisk_Analysis_Main_Export'
                             }],
                             "language": {
@@ -775,7 +708,6 @@
                                 "lengthMenu": "Show _MENU_ rows"
                             }
                         });
-
 
                         // Handle Split Results Tables
                         var initResultTable = function (id, data, emptyMsg) {
@@ -797,8 +729,8 @@
                                 "dom": 'Blfrtip',
                                 "buttons": [{
                                     extend: 'excel',
-                                    text: '<i class="fas fa-download"></i>',
-                                    className: 'btn-circle',
+                                    text: '<i class="bi bi-download"></i>',
+                                    className: 'btn btn-circle me-1',
                                     title: (id === '#highRiskTable') ? 'FlagRisk_High_Risk' : 'FlagRisk_No_Risk'
                                 }],
                                 "ordering": false,
@@ -828,7 +760,5 @@
             });
         });
     </script>
-
 </body>
-
 </html>
