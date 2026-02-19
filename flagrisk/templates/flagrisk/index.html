@@ -1,0 +1,834 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>FlagRisk - Data Upload</title>
+    <!-- Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet">
+    <!-- DataTables CSS -->
+    <link rel="stylesheet" href="https://cdn.datatables.net/1.13.7/css/jquery.dataTables.min.css">
+    <link rel="stylesheet" href="https://cdn.datatables.net/buttons/2.4.2/css/buttons.dataTables.min.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+
+    <style>
+        :root {
+            --primary-color: #6366f1;
+            /* Indigo */
+            --primary-hover: #4f46e5;
+            --bg-color: #f8fafc;
+            --surface-color: #ffffff;
+            --text-primary: #1e293b;
+            --text-secondary: #64748b;
+            --border-color: #e2e8f0;
+            --accent-color: #ec4899;
+            /* Pink */
+        }
+
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: var(--bg-color);
+            color: var(--text-primary);
+            margin: 0;
+            padding: 0;
+            line-height: 1.6;
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 2rem;
+        }
+
+        /* Header */
+        header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 2rem;
+            animation: fadeInDown 0.6s ease-out;
+        }
+
+        h1 {
+            font-weight: 600;
+            font-size: 2rem;
+            color: var(--text-primary);
+            margin: 0;
+        }
+
+        .brand {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .brand i {
+            color: var(--primary-color);
+        }
+
+        /* Card Styles */
+        .card {
+            background: var(--surface-color);
+            border-radius: 12px;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+            padding: 2rem;
+            margin-bottom: 2rem;
+            transition: transform 0.2s, box-shadow 0.2s;
+            animation: fadeInUp 0.6s ease-out 0.2s backwards;
+        }
+
+        .card:hover {
+            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+        }
+
+        /* Upload Area */
+        .upload-area {
+            border: 2px dashed var(--border-color);
+            border-radius: 8px;
+            padding: 3rem;
+            text-align: center;
+            background: #f1f5f9;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+
+        .upload-area:hover {
+            border-color: var(--primary-color);
+            background: #eef2ff;
+        }
+
+        .upload-icon {
+            font-size: 3rem;
+            color: var(--text-secondary);
+            margin-bottom: 1rem;
+        }
+
+        /* Buttons */
+        .btn {
+            background: var(--primary-color);
+            color: white;
+            border: none;
+            padding: 0.75rem 1.5rem;
+            border-radius: 6px;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.2s;
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .btn:hover {
+            background: var(--primary-hover);
+            transform: translateY(-1px);
+        }
+
+        /* Table Styles - pgAdmin-like dense & clean */
+        .table-responsive {
+            margin-top: 1rem;
+            overflow-x: auto;
+            border-radius: 8px;
+            border: 1px solid var(--border-color);
+        }
+
+        table.dataTable {
+            width: 100% !important;
+            border-collapse: collapse !important;
+            font-size: 0.875rem;
+            /* slightly smaller for density */
+        }
+
+        table.dataTable thead th {
+            background-color: #f1f5f9;
+            color: var(--text-primary);
+            font-weight: 600;
+            border-bottom: 2px solid var(--border-color) !important;
+            padding: 12px 16px !important;
+            white-space: nowrap;
+        }
+
+        table.dataTable tbody td {
+            padding: 8px 16px !important;
+            border-bottom: 1px solid var(--border-color);
+            color: var(--text-secondary);
+            line-height: 1.2 !important;
+            vertical-align: middle !important;
+            white-space: nowrap !important;
+            position: relative;
+        }
+
+        table.dataTable tbody tr:hover {
+            background-color: #f8fafc !important;
+            /* Subtle hover */
+        }
+
+        table.dataTable tbody tr.even {
+            background-color: #ffffff;
+        }
+
+        /* DataTables Controls Styling - pgAdmin Layout */
+        .dataTables_wrapper {
+            position: relative;
+        }
+
+        /* Position controls at top in a row */
+        .dataTables_wrapper .dataTables_length {
+            float: left;
+            padding: 8px 0;
+        }
+
+        .dataTables_wrapper .dataTables_paginate {
+            float: left;
+            padding: 8px 0;
+            margin-left: 20px;
+        }
+
+        .dataTables_wrapper .dataTables_filter {
+            float: right;
+            padding: 8px 0;
+        }
+
+        .dataTables_wrapper .dataTables_info {
+            clear: both;
+            float: left;
+            padding: 8px 0;
+        }
+
+        .dataTables_wrapper .dataTables_filter input,
+        .dataTables_wrapper .dataTables_length select {
+            border: 1px solid var(--border-color);
+            border-radius: 4px;
+            padding: 4px 8px;
+            margin: 0 4px;
+        }
+
+        /* Animations */
+        @keyframes fadeInDown {
+            from {
+                opacity: 0;
+                transform: translateY(-20px);
+            }
+
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        @keyframes fadeInUp {
+            from {
+                opacity: 0;
+                transform: translateY(20px);
+            }
+
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        /* Loading overlay */
+        .loading-overlay {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(255, 255, 255, 0.8);
+            z-index: 1000;
+            justify-content: center;
+            align-items: center;
+            flex-direction: column;
+        }
+
+        .spinner {
+            width: 50px;
+            height: 50px;
+            border: 4px solid #f3f3f3;
+            border-top: 4px solid var(--primary-color);
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+        }
+
+        @keyframes spin {
+            0% {
+                transform: rotate(0deg);
+            }
+
+            100% {
+                transform: rotate(360deg);
+            }
+        }
+
+        .btn-circle {
+            border-radius: 50% !important;
+            width: 40px;
+            height: 40px;
+            padding: 0 !important;
+            display: inline-flex !important;
+            justify-content: center;
+            align-items: center;
+            font-size: 1.2rem !important;
+            line-height: 1 !important;
+            background: var(--primary-color) !important;
+            color: white !important;
+            border: none;
+            cursor: pointer;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+            transition: all 0.2s;
+        }
+
+        .btn-circle:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.2);
+            background: var(--primary-hover) !important;
+        }
+    </style>
+</head>
+
+<body>
+
+    <div class="container">
+        <header>
+            <div class="brand">
+                <i class="fas fa-flag"></i>
+                <h1>FlagRisk</h1>
+            </div>
+        </header>
+
+        {% if not is_uploaded %}
+        <div class="card">
+            <h2>Upload Data</h2>
+            <p class="text-secondary">Select an Excel file to visualize and analyze.</p>
+
+            <form id="uploadForm" method="post" enctype="multipart/form-data" action="">
+                {% csrf_token %}
+                <div class="upload-area" onclick="document.getElementById('fileInput').click()">
+                    <i class="fas fa-cloud-upload-alt upload-icon"></i>
+                    <h3>Click to upload or drag and drop</h3>
+                    <p>XLS, XLSX files supported</p>
+                    <input type="file" name="excel_file" id="fileInput" style="display: none" accept=".xlsx, .xls"
+                        onchange="handleFileSelect(this)">
+                </div>
+                <div id="file-info" style="margin-top: 1rem; display: none;">
+                    <span id="filename"></span>
+                    <button type="submit" class="btn">Process File <i class="fas fa-arrow-right"></i></button>
+                </div>
+            </form>
+        </div>
+        {% endif %}
+
+        {% if error %}
+        <div class="alert"
+            style="background: #fee2e2; color: #b91c1c; padding: 1rem; border-radius: 8px; margin-bottom: 2rem;">
+            <i class="fas fa-exclamation-circle"></i> {{ error }}
+        </div>
+        {% endif %}
+
+        {% if is_uploaded %}
+        <div class="card" style="width: 100%; overflow: hidden;">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem;">
+                <h3>Data Preview: {{ filename }}</h3>
+                <div style="display: flex; gap: 10px;">
+                    <button type="button" id="analyzeBtn" class="btn"
+                        style="background: var(--accent-color); font-size: 0.8rem;">
+                        <i class="fas fa-chart-line"></i> Perform Risk Analysis
+                    </button>
+                    <a href="/" class="btn" style="background: var(--text-secondary); font-size: 0.8rem;">Upload New
+                        File</a>
+                </div>
+            </div>
+
+            <div class="table-responsive">
+                <table id="dataTable" class="table display" style="width:100%">
+                    <!-- Table content initialized via JavaScript -->
+                </table>
+            </div>
+
+            {{ columns|json_script:"table-columns" }}
+            {{ data|json_script:"table-data" }}
+        </div>
+
+        <div id="resultsCard" style="display: none; margin-top: 2rem;">
+            <div style="display: flex; gap: 2rem; flex-wrap: wrap;">
+                <!-- High Risk Table -->
+                <div class="card" style="flex: 1; min-width: 300px; border-top: 4px solid #ef4444;">
+                    <h3 style="color: #ef4444; margin-bottom: 1rem;">
+                        <i class="fas fa-exclamation-triangle"></i> High Risk (China/Taiwan)
+                    </h3>
+                    <div class="table-responsive">
+                        <table id="highRiskTable" class="table display" style="width:100%">
+                            <thead>
+                                <tr>
+                                    <th>Part Number</th>
+                                    <th>CPN</th>
+                                    <th>Country</th>
+                                </tr>
+                            </thead>
+                            <tbody></tbody>
+                        </table>
+                    </div>
+                </div>
+
+                <!-- No Risk Table -->
+                <div class="card" style="flex: 1; min-width: 300px; border-top: 4px solid #22c55e;">
+                    <h3 style="color: #22c55e; margin-bottom: 1rem;">
+                        <i class="fas fa-check-circle"></i> No Risk / Low Risk
+                    </h3>
+                    <div class="table-responsive">
+                        <table id="noRiskTable" class="table display" style="width:100%">
+                            <thead>
+                                <tr>
+                                    <th>Part Number</th>
+                                    <th>CPN</th>
+                                    <th>Country</th>
+                                </tr>
+                            </thead>
+                            <tbody></tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+        {% endif %}
+
+    </div>
+
+    <div class="loading-overlay" id="loadingOverlay">
+        <div class="spinner"></div>
+        <p style="margin-top: 1rem; font-weight: 500;">Processing file...</p>
+    </div>
+
+    <!-- Scripts -->
+    <script src="https://code.jquery.com/jquery-3.7.0.min.js"></script>
+    <script src="https://cdn.datatables.net/1.13.7/js/jquery.dataTables.min.js"></script>
+    <script src="https://cdn.datatables.net/buttons/2.4.2/js/dataTables.buttons.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
+    <script src="https://cdn.datatables.net/buttons/2.4.2/js/buttons.html5.min.js"></script>
+
+    <script>
+        function handleFileSelect(input) {
+            if (input.files && input.files[0]) {
+                document.getElementById('filename').textContent = "Selected: " + input.files[0].name;
+                document.getElementById('file-info').style.display = 'block';
+            }
+        }
+
+        document.getElementById('uploadForm')?.addEventListener('submit', function () {
+            document.getElementById('loadingOverlay').style.display = 'flex';
+        });
+
+        $(document).ready(function () {
+            console.log('Document ready');
+            console.log('jQuery version:', $.fn.jquery);
+            console.log('DataTables available:', typeof $.fn.DataTable);
+            console.log('Table exists:', $('#dataTable').length);
+
+            // Define global variable for columns
+            var tableColumns = [];
+            if (document.getElementById('table-columns')) {
+                try {
+                    tableColumns = JSON.parse(document.getElementById('table-columns').textContent);
+                } catch (e) { console.error("Error parsing columns", e); }
+            }
+
+            if ($('#dataTable').length) {
+                try {
+                    console.log('Initializing DataTable via JS...');
+                    $('#loadingOverlay').css('display', 'flex');
+                    $('#loadingOverlay p').text('Initializing table...');
+
+                    // Use setTimeout to allow the loading overlay to render
+                    setTimeout(function () {
+                        var tableData = [];
+                        if (document.getElementById('table-data')) {
+                            tableData = JSON.parse(document.getElementById('table-data').textContent);
+                        }
+
+                        // --- PRE-PROCESSING: REMOVE GEORISK & REORDER ---
+                        // 1. Find indices
+                        var colLower = tableColumns.map(function (c) { return String(c).toLowerCase().trim(); });
+                        var georiskIdx = colLower.indexOf('georisk');
+                        var pnIdx = colLower.indexOf('part number');
+
+                        // 2. Remove Georisk if present
+                        if (georiskIdx !== -1) {
+                            tableColumns.splice(georiskIdx, 1);
+                            // Adjust pnIdx if it was after georisk
+                            if (pnIdx > georiskIdx) pnIdx--;
+
+                            // Remove from data
+                            for (var i = 0; i < tableData.length; i++) {
+                                tableData[i].splice(georiskIdx, 1);
+                            }
+                        }
+
+                        // 3. Move Part Number to index 0 if it exists and isn't usually there
+                        if (pnIdx > 0) {
+                            // Move column header
+                            var pnCol = tableColumns.splice(pnIdx, 1)[0];
+                            tableColumns.unshift(pnCol);
+
+                            // Move data column
+                            for (var i = 0; i < tableData.length; i++) {
+                                var rowVal = tableData[i].splice(pnIdx, 1)[0];
+                                tableData[i].unshift(rowVal);
+                            }
+                        }
+                        // ------------------------------------------------
+
+                        var columnsDef = tableColumns.map(function (c) { return { title: c }; });
+
+                        var table = $('#dataTable').DataTable({
+                            data: tableData,
+                            columns: columnsDef,
+                            "paging": true,
+                            "pageLength": 10,
+                            "lengthMenu": [[10, 25, 50, 100, 500, 1000], [10, 25, 50, 100, 500, 1000]],
+                            "pagingType": "full_numbers",
+                            "searching": true,
+                            "ordering": false,
+                            "info": true,
+                            "autoWidth": false,
+                            "deferRender": true,
+                            "scrollY": "60vh",
+                            "scrollCollapse": true,
+                            "scrollX": true,
+                            "language": {
+                                "search": "Search:",
+                                "lengthMenu": "Show _MENU_ rows",
+                                "info": "Showing _START_ to _END_ of _TOTAL_ entries",
+                                "paginate": {
+                                    "first": "First",
+                                    "last": "Last",
+                                    "next": "Next",
+                                    "previous": "Previous"
+                                }
+                            },
+                            "dom": 'lfrtip',
+                            "initComplete": function () {
+                                $('#loadingOverlay').css('display', 'none');
+                                console.log('DataTable initialized successfully');
+                            }
+                        });
+                    }, 50);
+                } catch (error) {
+                    console.error('Error initializing DataTable:', error);
+                    $('#loadingOverlay').css('display', 'none');
+                }
+            } else {
+                console.log('Table #dataTable not found');
+            }
+
+            // Logic for "Perform Risk Analysis" button
+            var originalColumns = tableColumns;
+
+            $('#analyzeBtn').on('click', function () {
+                console.log('Analyzing risk...');
+                $('#loadingOverlay').css('display', 'flex');
+                $('#loadingOverlay p').text('Analyzing data...');
+
+                setTimeout(function () {
+                    try {
+                        var table = $('#dataTable').DataTable();
+
+                        // Get column headers to map names to indices
+                        var headers = [];
+                        $('#dataTable thead th').each(function () {
+                            headers.push($(this).text().trim().toLowerCase());
+                        });
+
+                        // Find required column indices
+                        var idxPN = headers.indexOf('part number');
+                        var idxMfr = headers.indexOf('manufacturer');
+                        var idxCPN = headers.indexOf('cpn');
+                        var idxSite = headers.indexOf('site status');
+                        var idxCountry = headers.indexOf('country');
+                        var idxUpPart = headers.indexOf('uploaded part');
+                        var idxCoName = headers.indexOf('company name');
+                        var idxMfgStep = headers.indexOf('manufacturing step');
+
+                        // Check if risk columns already exist
+                        var hasRiskCols = headers.indexOf('mpn risk') > -1;
+
+                        if (idxPN === -1 || idxMfr === -1 || idxUpPart === -1 || idxCoName === -1) {
+                            alert('Error: Could not find required columns (Part Number, Manufacturer, Uploaded Part, Company Name).');
+                            $('#loadingOverlay').hide();
+                            return;
+                        }
+
+                        // Get all data
+                        var data = table.rows().data();
+
+                        // Build Risk Maps
+                        var mpnMap = {};
+                        var cpnMap = {};
+                        var mpnSiteMap = {};
+
+                        var isRisky = function (c) {
+                            return c.includes('china') || c.includes('taiwan');
+                        };
+
+                        // Pass 1: populate maps
+                        for (var i = 0; i < data.length; i++) {
+                            var row = data[i];
+                            var pn = String(row[idxPN] || '').trim().toLowerCase();
+                            var cpn = idxCPN > -1 ? String(row[idxCPN] || '').trim().toLowerCase() : '';
+                            var country = idxCountry > -1 ? String(row[idxCountry] || '').trim().toLowerCase() : '';
+                            var mfgStep = idxMfgStep > -1 ? String(row[idxMfgStep] || '').trim() : '';
+
+                            if (pn) {
+                                if (!mpnMap[pn]) mpnMap[pn] = [];
+                                mpnMap[pn].push(country);
+
+                                if (isRisky(country)) {
+                                    if (!mpnSiteMap[pn]) mpnSiteMap[pn] = [];
+                                    if (mfgStep && mpnSiteMap[pn].indexOf(mfgStep) === -1) {
+                                        mpnSiteMap[pn].push(mfgStep);
+                                    }
+                                }
+                            }
+                            if (cpn) {
+                                if (!cpnMap[cpn]) cpnMap[cpn] = [];
+                                cpnMap[cpn].push(country);
+                            }
+                        }
+
+                        // Helper to get risk level
+                        var getRiskLevel = function (countries) {
+                            if (!countries || countries.length === 0) return "No Risk";
+                            var hasRisky = countries.some(function (c) { return isRisky(c); });
+                            var allRisky = countries.every(function (c) { return isRisky(c); });
+
+                            if (!hasRisky) return "No Risk";
+                            if (allRisky) return "High Risk";
+                            return "Low Risk";
+                        };
+
+                        // Pass 2: Process matched results & Build new main table data
+                        var newData = [];
+                        var highRiskResults = [];
+                        var noRiskResults = [];
+
+                        for (var i = 0; i < data.length; i++) {
+                            var row = data[i];
+                            var pn = String(row[idxPN] || '').trim().toLowerCase();
+                            var mfr = String(row[idxMfr] || '').trim().toLowerCase();
+                            var upPart = String(row[idxUpPart] || '').trim().toLowerCase();
+                            var coName = String(row[idxCoName] || '').trim().toLowerCase();
+                            var cpn = idxCPN > -1 ? String(row[idxCPN] || '').trim().toLowerCase() : '';
+                            var country = idxCountry > -1 ? String(row[idxCountry] || '').trim().toLowerCase() : '';
+
+                            // Calculate Risk Columns
+                            var mpnRisk = "No Risk";
+                            if (mpnMap[pn]) {
+                                var level = getRiskLevel(mpnMap[pn]);
+                                mpnRisk = (level === "High Risk") ? "High Risk" : "No Risk";
+                            }
+
+                            var cpnRisk = "No Risk";
+                            if (cpnMap[cpn]) {
+                                cpnRisk = getRiskLevel(cpnMap[cpn]);
+                            }
+
+
+                            var remark = "";
+                            if (cpnRisk === "Low Risk") {
+                                var sites = mpnSiteMap[pn] ? mpnSiteMap[pn].join(', ') : '';
+                                if (sites) {
+                                    remark = "This cpn is from a third party orgin for the part number : " + row[idxPN] + " on the sites : " + sites;
+                                }
+                            }
+
+                            // Calculate slice index based on where 'mpn risk' starts
+                            var idxMpnRisk = headers.indexOf('mpn risk');
+                            var sliceIdx = (idxMpnRisk > -1) ? idxMpnRisk : row.length;
+                            var baseRow = row.slice(0, sliceIdx);
+
+                            newData.push([...baseRow, mpnRisk, cpnRisk, remark]);
+
+                            // Filter for Split Tables (original match logic + country check)
+                            if (pn && mfr && pn === upPart && mfr === coName) {
+                                var matchRow = [
+                                    row[idxPN],
+                                    idxCPN > -1 ? row[idxCPN] : '',
+                                    idxCountry > -1 ? row[idxCountry] : ''
+                                ];
+
+                                if (country.includes('china') || country.includes('taiwan')) {
+                                    highRiskResults.push(matchRow);
+                                } else { 
+                                    noRiskResults.push(matchRow);
+                                }
+                            }
+                        }
+
+                        // Update Main Table
+                        table.clear().destroy();
+                        $('#dataTable thead tr').empty();
+
+                        // Append original columns + 2 new
+                        originalColumns.forEach(function (col) {
+                            $('#dataTable thead tr').append('<th>' + col + '</th>');
+                        });
+                        $('#dataTable thead tr').append('<th>MPN Risk</th><th>CPN Risk</th><th>Remarks</th>');
+
+                        $('#dataTable').DataTable({
+                            data: newData,
+                            columns: [
+                                ...originalColumns.map(function (c) { return { title: c }; }),
+                                { title: "MPN Risk" },
+                                { title: "CPN Risk" },
+                                { title: "Remarks" }
+                            ],
+                            "createdRow": function (row, data, dataIndex) {
+                                var mpnRisk = data[data.length - 3];  // MPN Risk
+                                var cpnRisk = data[data.length - 2];  // CPN Risk
+
+                                // Get column indices for Part Number and CPN
+                                var headers = [];
+                                $('#dataTable thead th').each(function () {
+                                    headers.push($(this).text().trim().toLowerCase());
+                                });
+                                var pnIdx = headers.indexOf('part number');
+                                var cpnIdx = headers.indexOf('cpn');
+
+                                // Highlight specific cells instead of whole row
+                                if (mpnRisk === 'High Risk' && pnIdx !== -1) {
+                                    // Highlight Part Number cell red for MPN High Risk
+                                    $('td:eq(' + pnIdx + ')', row).css({
+                                        'background-color': '#fecaca',
+                                        'color': '#dc2626',
+                                        'font-weight': '600',
+                                        'border-left': '3px solid #ef4444'
+                                    });
+                                }
+
+                                if (cpnRisk === 'High Risk' && cpnIdx !== -1) {
+                                    // Highlight CPN cell red for CPN High Risk
+                                    $('td:eq(' + cpnIdx + ')', row).css({
+                                        'background-color': '#fecaca',
+                                        'color': '#dc2626',
+                                        'font-weight': '600',
+                                        'border-left': '3px solid #ef4444'
+                                    });
+                                } else if (cpnRisk === 'Low Risk' && cpnIdx !== -1) {
+                                    // Highlight CPN cell orange for CPN Low Risk
+                                    $('td:eq(' + cpnIdx + ')', row).css({
+                                        'background-color': '#fed7aa',
+                                        'color': '#c2410c',
+                                        'font-weight': '500',
+                                        'border-left': '3px solid #f59e0b'
+                                    });
+                                }
+
+                                // Also highlight the risk columns themselves for clarity
+                                var mpnRiskIdx = data.length - 3;
+                                var cpnRiskIdx = data.length - 2;
+
+                                if (mpnRisk === 'High Risk') {
+                                    $('td:eq(' + mpnRiskIdx + ')', row).css({
+                                        'background-color': '#fecaca',
+                                        'color': '#dc2626',
+                                        'font-weight': '700'
+                                    });
+                                }
+
+                                if (cpnRisk === 'High Risk') {
+                                    $('td:eq(' + cpnRiskIdx + ')', row).css({
+                                        'background-color': '#fecaca',
+                                        'color': '#dc2626',
+                                        'font-weight': '700'
+                                    });
+                                } else if (cpnRisk === 'Low Risk') {
+                                    $('td:eq(' + cpnRiskIdx + ')', row).css({
+                                        'background-color': '#fed7aa',
+                                        'color': '#c2410c',
+                                        'font-weight': '600'
+                                    });
+                                }
+                            },
+
+                            "paging": true,
+                            "pageLength": 10,
+                            "lengthMenu": [[10, 25, 50, 100, 500, 1000], [10, 25, 50, 100, 500, 1000]],
+                            "pagingType": "full_numbers",
+                            "searching": true,
+                            "ordering": false,
+                            "info": true,
+                            "autoWidth": false,
+                            "deferRender": true,
+                            "scrollY": "60vh",
+                            "scrollCollapse": true,
+                            "scrollX": true,
+                            "dom": 'Blfrtip',
+                            "buttons": [{
+                                extend: 'excel',
+                                text: '<i class="fas fa-download"></i>',
+                                className: 'btn-circle',
+                                title: 'FlagRisk_Analysis_Main_Export'
+                            }],
+                            "language": {
+                                "search": "Search:",
+                                "lengthMenu": "Show _MENU_ rows"
+                            }
+                        });
+
+
+                        // Handle Split Results Tables
+                        var initResultTable = function (id, data, emptyMsg) {
+                            if ($.fn.DataTable.isDataTable(id)) {
+                                $(id).DataTable().clear().destroy();
+                            }
+                            $(id).DataTable({
+                                data: data,
+                                columns: [
+                                    { title: "Part Number" },
+                                    { title: "CPN" },
+                                    { title: "Country" }
+                                ],
+                                "pageLength": 10,
+                                "lengthMenu": [[10, 25, 50, -1], [10, 25, 50, "All"]],
+                                "scrollY": "40vh",
+                                "scrollCollapse": true,
+                                "scrollX": true,
+                                "dom": 'Blfrtip',
+                                "buttons": [{
+                                    extend: 'excel',
+                                    text: '<i class="fas fa-download"></i>',
+                                    className: 'btn-circle',
+                                    title: (id === '#highRiskTable') ? 'FlagRisk_High_Risk' : 'FlagRisk_No_Risk'
+                                }],
+                                "ordering": false,
+                                "language": {
+                                    "search": "Search:",
+                                    "emptyTable": emptyMsg || "No records found"
+                                }
+                            });
+                        };
+
+                        initResultTable('#highRiskTable', highRiskResults, 'No High Risk parts found.');
+                        initResultTable('#noRiskTable', noRiskResults, 'No matched parts in this category.');
+
+                        $('#resultsCard').show();
+                        // Scroll to results
+                        $('html, body').animate({
+                            scrollTop: $("#resultsCard").offset().top
+                        }, 500);
+
+                    } catch (e) {
+                        console.error(e);
+                        alert('An error occurred during analysis: ' + e.message);
+                    } finally {
+                        $('#loadingOverlay').hide();
+                    }
+                }, 100);
+            });
+        });
+    </script>
+
+</body>
+
+</html>
