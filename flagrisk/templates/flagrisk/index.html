@@ -631,19 +631,17 @@ header {
 
                             newData.push([...baseRow, mpnRisk, cpnRisk, remark]);
 
-                            // Filter for Split Tables (original match logic + country check)
-                            if (pn && mfr && pn === upPart && mfr === coName) {
-                                var matchRow = [
-                                    row[idxPN],
-                                    idxCPN > -1 ? row[idxCPN] : '',
-                                    idxCountry > -1 ? row[idxCountry] : ''
-                                ];
+                            var splitRow = [
+                                row[idxPN],
+                                idxCPN > -1 ? row[idxCPN] : '',
+                                idxCountry > -1 ? row[idxCountry] : ''
+                            ];
 
-                                if (country.includes('china') || country.includes('taiwan')) {
-                                    highRiskResults.push(matchRow);
-                                } else { 
-                                    noRiskResults.push(matchRow);
-                                }
+                            if (cpnRisk === "High Risk") {
+                                highRiskResults.push(splitRow);
+                            } else {
+                                // Includes both Low Risk and No Risk
+                                noRiskResults.push(splitRow);
                             }
                         }
 
