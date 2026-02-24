@@ -208,6 +208,12 @@ header {
 .card {
     animation: fadeInUp 0.6s ease-out 0.2s backwards;
 }
+.wafer-test { color: #92400e !important; font-weight: 600; }      /* Brown */
+.final-test { color: #d97706 !important; font-weight: 600; }       /* Yellow/Orange */
+.assembly { color: #1d4ed8 !important; font-weight: 600; }         /* Blue */
+.origin { color: #7c3aed !important; font-weight: 600; }           /* Purple */
+.fabrication { color: #a47f00 !important; font-weight: 600; }      /* Light brown */
+
     </style>
 </head>
 
@@ -440,7 +446,7 @@ header {
                             data: tableData,
                             columns: columnsDef,
                             "paging": true,
-                            "pageLength": 10,
+                            "pageLength": 50,
                             "lengthMenu": [[10, 25, 50, 100, 500, 1000], [10, 25, 50, 100, 500, 1000]],
                             "pagingType": "full_numbers",
                             "searching": true,
@@ -586,13 +592,37 @@ header {
                                 cpnRisk = getRiskLevel(cpnMap[cpn]);
                             }
 
-                            var remark = "";
-                            if (cpnRisk === "Low Risk") {
-                                var sites = mpnSiteMap[pn] ? mpnSiteMap[pn].join(', ') : '';
-                                if (sites) {
-                                    remark = "This cpn is from a third party orgin for the part number : " + row[idxPN] + " on the sites : " + sites;
-                                }
+                            var remark = '';
+                            var riskySteps = [];
+                            if (cpnRisk !== 'No Risk' && mpnSiteMap[pn]) {
+                                mpnSiteMap[pn].forEach(function(step) {
+                                    if (step.toLowerCase().includes('china') || step.toLowerCase().includes('taiwan')) {
+                                        riskySteps.push(step);
+                                    }
+                                });
                             }
+                            var riskyStepsList = riskySteps.length > 0 ? riskySteps.join(', ') : '';
+
+                            switch (mpnRisk + '|' + cpnRisk) {
+                                case 'No Risk|No Risk':
+                                    remark = 'the cpn is completely safe from all risks.';
+                                    break;
+                                case 'No Risk|Low Risk':
+                                    remark = 'the cpn has non preferred countries but the MPN has atleast one preferred country, so low risk';
+                                    break;
+                                case 'High Risk|Low Risk':
+                                    var allSteps = mpnSiteMap[pn] ? mpnSiteMap[pn].join(', ') : 'no steps found';
+                                    remark = `the cpn has non preferred country for ${row[idxPN]} (${allSteps})`;
+                                    break;
+                                case 'High Risk|High Risk':
+                                    var allSteps = mpnSiteMap[pn] ? mpnSiteMap[pn].join(', ') : 'no steps found';
+                                    remark = `the cpn has non preferred country for ${row[idxPN]} in all sites (${allSteps})`;
+                                    break;
+                                default:
+                                    remark = `CPN ${cpnRisk.toLowerCase()} | MPN ${mpnRisk.toLowerCase()}`;
+                            }
+
+
 
                             // Calculate slice index based on where 'mpn risk' starts
                             var idxMpnRisk = headers.indexOf('mpn risk');
@@ -651,7 +681,7 @@ header {
                                 if (mpnRisk === 'High Risk' && pnIdx !== -1) {
                                     // Highlight Part Number cell red for MPN High Risk
                                     $('td:eq(' + pnIdx + ')', row).css({
-                                        'background-color': '#fecaca',
+                                        'background-color': '#E54F4F',
                                         'color': '#dc2626',
                                         'font-weight': '600',
                                         'border-left': '3px solid #ef4444'
@@ -661,7 +691,7 @@ header {
                                 if (cpnRisk === 'High Risk' && cpnIdx !== -1) {
                                     // Highlight CPN cell red for CPN High Risk
                                     $('td:eq(' + cpnIdx + ')', row).css({
-                                        'background-color': '#fecaca',
+                                        'background-color': '#E54F4F',
                                         'color': '#dc2626',
                                         'font-weight': '600',
                                         'border-left': '3px solid #ef4444'
@@ -669,42 +699,62 @@ header {
                                 } else if (cpnRisk === 'Low Risk' && cpnIdx !== -1) {
                                     // Highlight CPN cell orange for CPN Low Risk
                                     $('td:eq(' + cpnIdx + ')', row).css({
-                                        'background-color': '#fed7aa',
-                                        'color': '#c2410c',
+                                        'background-color': '#F2A440',
+                                        'color': '#D47A54',
                                         'font-weight': '500',
                                         'border-left': '3px solid #f59e0b'
                                     });
-                                }
+                                } 
 
                                 // Also highlight the risk columns themselves for clarity
                                 var mpnRiskIdx = data.length - 3;
                                 var cpnRiskIdx = data.length - 2;
 
+                                // HIGH RISK - Red
                                 if (mpnRisk === 'High Risk') {
                                     $('td:eq(' + mpnRiskIdx + ')', row).css({
-                                        'background-color': '#fecaca',
+                                        'background-color': '#E54F4F',
+                                        'color': '#dc2626',
+                                        'font-weight': '700'
+                                    });
+                                }
+                                if (cpnRisk === 'High Risk') {
+                                    $('td:eq(' + cpnRiskIdx + ')', row).css({
+                                        'background-color': '#E54F4F',
                                         'color': '#dc2626',
                                         'font-weight': '700'
                                     });
                                 }
 
-                                if (cpnRisk === 'High Risk') {
-                                    $('td:eq(' + cpnRiskIdx + ')', row).css({
-                                        'background-color': '#fecaca',
-                                        'color': '#dc2626',
-                                        'font-weight': '700'
-                                    });
-                                } else if (cpnRisk === 'Low Risk') {
-                                    $('td:eq(' + cpnRiskIdx + ')', row).css({
-                                        'background-color': '#fed7aa',
-                                        'color': '#c2410c',
+                                // NO RISK - Green (CHECK FIRST!)
+                                if (mpnRisk === 'No Risk') {
+                                    $('td:eq(' + mpnRiskIdx + ')', row).css({
+                                        'background-color': '#99D999',
+                                        'color': '#047857',
                                         'font-weight': '600'
                                     });
                                 }
+                                if (cpnRisk === 'No Risk') {
+                                    $('td:eq(' + cpnRiskIdx + ')', row).css({
+                                        'background-color': '#99D999',
+                                        'color': '#047857',
+                                        'font-weight': '600'
+                                    });
+                                }
+
+                                // LOW RISK - Orange (check after No Risk)
+                                if (cpnRisk === 'Low Risk') {
+                                    $('td:eq(' + cpnRiskIdx + ')', row).css({
+                                        'background-color': '#F2A440',
+                                        'color': '#D47A54',
+                                        'font-weight': '600'
+                                    });
+                                }
+
                             },
 
                             "paging": true,
-                            "pageLength": 10,
+                            "pageLength": 50,
                             "lengthMenu": [[10, 25, 50, 100, 500, 1000], [10, 25, 50, 100, 500, 1000]],
                             "pagingType": "full_numbers",
                             "searching": true,
