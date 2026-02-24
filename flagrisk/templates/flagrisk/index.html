@@ -208,11 +208,11 @@ header {
 .card {
     animation: fadeInUp 0.6s ease-out 0.2s backwards;
 }
-.wafer-test { color: #92400e !important; font-weight: 600; }      /* Brown */
-.final-test { color: #d97706 !important; font-weight: 600; }       /* Yellow/Orange */
-.assembly { color: #1d4ed8 !important; font-weight: 600; }         /* Blue */
-.origin { color: #7c3aed !important; font-weight: 600; }           /* Purple */
-.fabrication { color: #a47f00 !important; font-weight: 600; }      /* Light brown */
+.wafer-test { color: #92400e !important; font-weight: 600; }
+.final-test { color: #22b4bb !important; font-weight: 600; }
+.assembly { color: #1d4ed8 !important; font-weight: 600; }
+.origin { color: #b716af !important; font-weight: 600; }
+.fabrication { color: #a47f00 !important; font-weight: 600; }
 
     </style>
 </head>
@@ -605,18 +605,68 @@ header {
 
                             switch (mpnRisk + '|' + cpnRisk) {
                                 case 'No Risk|No Risk':
-                                    remark = 'the cpn is completely safe from all risks.';
+                                    remark = 'The CPN is completely safe from all risks.';
                                     break;
                                 case 'No Risk|Low Risk':
-                                    remark = 'the cpn has non preferred countries but the MPN has atleast one preferred country, so low risk';
+                                    remark = 'The CPN has non preferred countries but the MPN has atleast one preferred country, so low risk';
                                     break;
                                 case 'High Risk|Low Risk':
-                                    var allSteps = mpnSiteMap[pn] ? mpnSiteMap[pn].join(', ') : 'no steps found';
-                                    remark = `the cpn has non preferred country for ${row[idxPN]} (${allSteps})`;
+                                    var allSteps = '';
+                                    if (mpnSiteMap[pn]) {
+                                        allSteps = mpnSiteMap[pn].map(function(step) {
+                                            var lower = step.toLowerCase();
+
+                                            if (lower.includes('assembly')) {
+                                                return '<span class="assembly">' + step + '</span>';
+                                            }
+                                            if (lower.includes('origin')) {
+                                                return '<span class="origin">' + step + '</span>';
+                                            }
+                                            if (lower.includes('fabrication')) {
+                                                return '<span class="fabrication">' + step + '</span>';
+                                            }
+                                            if (lower.includes('final')) {
+                                                return '<span class="final-test">' + step + '</span>';
+                                            }
+                                            if (lower.includes('wafer')) {
+                                                return '<span class="wafer-test">' + step + '</span>';
+                                            }
+
+                                            return step;
+                                        }).join(', ');
+                                    } else {
+                                        allSteps = 'no steps found';
+                                    }
+                                    remark = `The CPN has non preferred country for ${row[idxPN]} (${allSteps})`;
                                     break;
                                 case 'High Risk|High Risk':
-                                    var allSteps = mpnSiteMap[pn] ? mpnSiteMap[pn].join(', ') : 'no steps found';
-                                    remark = `the cpn has non preferred country for ${row[idxPN]} in all sites (${allSteps})`;
+                                    var allSteps = '';
+                                    if (mpnSiteMap[pn]) {
+                                        allSteps = mpnSiteMap[pn].map(function(step) {
+                                            var lower = step.toLowerCase();
+
+                                            if (lower.includes('assembly')) {
+                                                return '<span class="assembly">' + step + '</span>';
+                                            }
+                                            if (lower.includes('origin')) {
+                                                return '<span class="origin">' + step + '</span>';
+                                            }
+                                            if (lower.includes('fabrication')) {
+                                                return '<span class="fabrication">' + step + '</span>';
+                                            }
+                                            if (lower.includes('final')) {
+                                                return '<span class="final-test">' + step + '</span>';
+                                            }
+                                            if (lower.includes('wafer')) {
+                                                return '<span class="wafer-test">' + step + '</span>';
+                                            }
+
+                                            return step;
+                                        }).join(', ');
+                                    } else {
+                                        allSteps = 'no steps found';
+                                    }
+                                    remark = `The CPN has non preferred country for ${row[idxPN]} in all sites (${allSteps})`;
                                     break;
                                 default:
                                     remark = `CPN ${cpnRisk.toLowerCase()} | MPN ${mpnRisk.toLowerCase()}`;
@@ -661,7 +711,12 @@ header {
                                 ...originalColumns.map(function (c) { return { title: c }; }),
                                 { title: "MPN Risk" },
                                 { title: "CPN Risk" },
-                                { title: "Remarks" }
+                                {
+                                    title: "Remarks",
+                                    render: function(data, type, row) {
+                                        return data;
+                                    }
+                                }
                             ],
                             "createdRow": function (row, data, dataIndex) {
                                 var mpnRisk = data[data.length - 3];  // MPN Risk
