@@ -506,20 +506,57 @@ header {
                         var idxSite = headers.indexOf('site status');
                         var idxCountry = headers.indexOf('country');
                         var idxUpPart = headers.indexOf('uploaded part');
-                        var idxCoName = headers.indexOf('company name');
+                        var idxUpMfg = headers.indexOf('uploaded mfg');
                         var idxMfgStep = headers.indexOf('manufacturing step');
+                        
 
                         // Check if risk columns already exist
                         var hasRiskCols = headers.indexOf('mpn risk') > -1;
 
-                        if (idxPN === -1 || idxMfr === -1 || idxUpPart === -1 || idxCoName === -1) {
-                            alert('Error: Could not find required columns (Part Number, Manufacturer, Uploaded Part, Company Name).');
+                        if (idxPN === -1 || idxMfr === -1 || idxUpPart === -1 || idxUpMfg === -1) {
+                            alert('Error: Could not find required columns (Part Number, Manufacturer, Uploaded Part, Uploaded Mfg).');
                             $('#loadingOverlay').hide();
                             return;
                         }
 
-                        // Get all data
-                        var data = table.rows().data();
+     
+                        function normalizePart(val) {
+                            return String(val || '')
+                                .replace(/-/g, '')        
+                                .replace(/^0+/, '')         
+                                .replace(/\.0+$/, '')     
+                                .trim()
+                                .toLowerCase();
+                        }
+
+                        function normalizeText(val) {
+                            return String(val || '')
+                                .replace(/\s+/g, '')
+                                .trim()
+                                .toLowerCase();
+                        }
+
+                        var allData = table.rows().data();
+                        var data = [];
+
+                        for (var i = 0; i < allData.length; i++) {
+                            var row = allData[i];
+
+                            var pn = normalizePart(row[idxPN]);
+                            var upPart = normalizePart(row[idxUpPart]);
+
+                            var mfr = normalizeText(row[idxMfr]);
+                            var upMfg = normalizeText(row[idxUpMfg]);
+
+                            if (pn === upPart && mfr === upMfg) {
+                                data.push(row);
+                            }
+                        }
+                        if (data.length === 0) {
+                            alert('No exact matches found after normalization.');
+                            $('#loadingOverlay').hide();
+                            return;
+                        }
 
                         // Build Risk Maps
                         var mpnMap = {};
@@ -576,7 +613,7 @@ header {
                             var pn = String(row[idxPN] || '').trim().toLowerCase();
                             var mfr = String(row[idxMfr] || '').trim().toLowerCase();
                             var upPart = String(row[idxUpPart] || '').trim().toLowerCase();
-                            var coName = String(row[idxCoName] || '').trim().toLowerCase();
+                            var idxUpMfg = headers.indexOf('uploaded mfg');
                             var cpn = idxCPN > -1 ? String(row[idxCPN] || '').trim().toLowerCase() : '';
                             var country = idxCountry > -1 ? String(row[idxCountry] || '').trim().toLowerCase() : '';
 
@@ -723,9 +760,8 @@ header {
                                 var cpnRisk = data[data.length - 2];  // CPN Risk
 
                                 // Get column indices for Part Number and CPN
-                                var headers = [];
-                                $('#dataTable thead th').each(function () {
-                                    headers.push($(this).text().trim().toLowerCase());
+                                var headers = originalColumns.map(function(col){
+                                    return col.trim().toLowerCase();
                                 });
                                 var pnIdx = originalColumns
                                     .map(c => c.toLowerCase().trim())
