@@ -848,47 +848,46 @@ header {
                                     .map(c => c.toLowerCase().trim())
                                     .indexOf('cpn');
 
-                                // Highlight specific cells instead of whole row
-                                if (mpnRisk === 'High Risk' && pnIdx !== -1) {
-                                    $('td:eq(' + pnIdx + ')', row).css({
-                                        'background-color': '#E54F4F',
-                                        'color': '#dc2626',
-                                        'font-weight': '600',
-                                        'border-left': '3px solid #ef4444'
-                                    });
-                                }
-                                else if (mpnRisk === 'No Risk' && pnIdx !== -1) {
-                                    $('td:eq(' + pnIdx + ')', row).css({
-                                        'background-color': '#99D999',
-                                        'color': '#047857',
-                                        'font-weight': '600',
-                                        'border-left': '3px solid #10b981'
-                                    });
-                                }
-                                if (cpnRisk === 'High Risk' && cpnIdx !== -1) {
-                                    // Highlight CPN cell red for CPN High Risk
-                                    $('td:eq(' + cpnIdx + ')', row).css({
-                                        'background-color': '#E54F4F',
-                                        'color': '#dc2626',
-                                        'font-weight': '600',
-                                        'border-left': '3px solid #ef4444'
-                                    });
-                                } else if (cpnRisk === 'Low Risk' && cpnIdx !== -1) {
-                                    // Highlight CPN cell orange for CPN Low Risk
-                                    $('td:eq(' + cpnIdx + ')', row).css({
-                                        'background-color': '#F2A440',
-                                        'color': '#D47A54',
-                                        'font-weight': '500',
-                                        'border-left': '3px solid #f59e0b'
-                                    });
-                                } if (cpnRisk === 'No Risk' && cpnIdx !== -1) {
-                                    $('td:eq(' + cpnIdx + ')', row).css({
-                                        'background-color': '#99D999',
-                                        'color': '#047857',
-                                        'font-weight': '600',
-                                        'border-left': '3px solid #10b981'
-                                    });
-                                }
+                                // if (mpnRisk === 'High Risk' && pnIdx !== -1) {
+                                //     $('td:eq(' + pnIdx + ')', row).css({
+                                //         'background-color': '#EF9595',
+                                //         'color': '#dc2626',
+                                //         'font-weight': '600',
+                                //         'border-left': '3px solid #ef4444'
+                                //     });
+                                // }
+                                // else if (mpnRisk === 'No Risk' && pnIdx !== -1) {
+                                //     $('td:eq(' + pnIdx + ')', row).css({
+                                //         'background-color': '#99D999',
+                                //         'color': '#047857',
+                                //         'font-weight': '600',
+                                //         'border-left': '3px solid #10b981'
+                                //     });
+                                // }
+                                // if (cpnRisk === 'High Risk' && cpnIdx !== -1) {
+                                //     // Highlight CPN cell red for CPN High Risk
+                                //     $('td:eq(' + cpnIdx + ')', row).css({
+                                //         'background-color': '#EF9595',
+                                //         'color': '#dc2626',
+                                //         'font-weight': '600',
+                                //         'border-left': '3px solid #ef4444'
+                                //     });
+                                // } else if (cpnRisk === 'Low Risk' && cpnIdx !== -1) {
+                                    // // Highlight CPN cell orange for CPN Low Risk
+                                    // $('td:eq(' + cpnIdx + ')', row).css({
+                                    //     'background-color': '#F5BF79',
+                                    //     'color': '#D47A54',
+                                    //     'font-weight': '500',
+                                    //     'border-left': '3px solid #f59e0b'
+                                    // });
+                                // } if (cpnRisk === 'No Risk' && cpnIdx !== -1) {
+                                //     $('td:eq(' + cpnIdx + ')', row).css({
+                                //         'background-color': '#99D999',
+                                //         'color': '#047857',
+                                //         'font-weight': '600',
+                                //         'border-left': '3px solid #10b981'
+                                //     });
+                                // }
 
                                 // Also highlight the risk columns themselves for clarity
                                 var mpnRiskIdx = data.length - 3;
@@ -897,14 +896,14 @@ header {
                                 // HIGH RISK - Red
                                 if (mpnRisk === 'High Risk') {
                                     $('td:eq(' + mpnRiskIdx + ')', row).css({
-                                        'background-color': '#E54F4F',
+                                        'background-color': '#EF9595',
                                         'color': '#dc2626',
                                         'font-weight': '700'
                                     });
                                 }
                                 if (cpnRisk === 'High Risk') {
                                     $('td:eq(' + cpnRiskIdx + ')', row).css({
-                                        'background-color': '#E54F4F',
+                                        'background-color': '#EF9595',
                                         'color': '#dc2626',
                                         'font-weight': '700'
                                     });
@@ -929,7 +928,7 @@ header {
                                 // LOW RISK - Orange (check after No Risk)
                                 if (cpnRisk === 'Low Risk') {
                                     $('td:eq(' + cpnRiskIdx + ')', row).css({
-                                        'background-color': '#F2A440',
+                                        'background-color': '#F5BF79',
                                         'color': '#D47A54',
                                         'font-weight': '600'
                                     });
