@@ -1238,22 +1238,37 @@
                                     var noRiskData = noRiskTable.rows().data().toArray();
 
                                     var mainHeaders = [];
-                                    $('#dataTable thead th').each(function() {
+                                    $('#dataTable thead th').each(function () {
                                         mainHeaders.push($(this).text().trim());
                                     });
+
+                                    function stripHtml(html) {
+                                        if (typeof html !== 'string') return html;
+                                        var tmp = document.createElement("DIV");
+                                        tmp.innerHTML = html;
+                                        return tmp.textContent || tmp.innerText || "";
+                                    }
+
+                                    var cleanData = function (dataArray) {
+                                        return dataArray.map(function (row) {
+                                            return row.map(function (cell) {
+                                                return stripHtml(cell);
+                                            });
+                                        });
+                                    };
 
                                     var exportData = {
                                         Main_Report: {
                                             headers: mainHeaders,
-                                            data: mainData
+                                            data: cleanData(mainData)
                                         },
                                         High_Risk: {
                                             headers: ['Part Number', 'CPN', 'Country'],
-                                            data: highRiskData
+                                            data: cleanData(highRiskData)
                                         },
                                         No_Low_Risk: {
                                             headers: ['Part Number', 'CPN', 'Country'],
-                                            data: noRiskData
+                                            data: cleanData(noRiskData)
                                         }
                                     };
 
