@@ -237,18 +237,35 @@ header {
             border-collapse: separate !important;
             border-spacing: 0;
         }
+        .logo-small {
+        height: 28px !important;
+        width: auto;
+        max-height: 32px;
+        object-fit: contain;
+        animation: fadeInDown 0.6s ease-out 0.2s backwards;
+        }
+
     </style>
 </head>
 
 <body>
     <div class="container-fluid py-4 px-3 px-md-4">
         <header class="row mb-4">
-            <div class="col-12">
-                <div class="d-flex align-items-center gap-2">
-                    <i class="bi bi-flag-fill text-primary fs-1"></i>
-                    <h1 class="h3 mb-0 fw-bold text-dark">FlagRisk</h1>
-                </div>
+        <div class="col-12">
+            <div class="d-flex align-items-center gap-2">
+            <!-- Left: Flag + FlagRisk text -->
+            <div class="d-flex align-items-center gap-2">
+                <i class="bi bi-flag-fill text-danger fs-1"></i>
+                <h1 class="h3 mb-0 fw-bold text-dark">FlagRisk</h1>
             </div>
+            
+            <div class="ms-auto d-flex align-items-center gap-2">
+                <img src="https://www.ametek.com/-/media/project/oneweb/oneweb/oneweb/logos/default-logo.png?h=33&w=216&revision=19c8369c-a1ce-43a0-9399-74476f6b8457&hash=FD110BFD930AC1F855B5552CAAF77354" alt="Ametek" class="logo-small">
+                <img src="https://inesssolutions.com/inesslogo.png" alt="Iness" class="logo-small">
+                <h1 class="h5 mb-0 fw-semibold text-muted">Iness Solutions</h1>
+            </div>
+            </div>
+        </div>
         </header>
 
         {% if not is_uploaded %}
