@@ -17,255 +17,405 @@
     <link rel="stylesheet" href="https://cdn.datatables.net/fixedcolumns/4.3.0/css/fixedColumns.bootstrap5.min.css">
 
     <style>
-:root {
-    --primary-color: #0d9488;     
-    --primary-hover: #0f766e;
-    --accent-color: #f59e0b;       
-    --success-color: #10b981;
-    --danger-color: #ef4444;
-    --warning-color: #f59e0b;
-    --bg-color: #f0fdf4;
-    --surface-color: #ffffff;
-    --text-primary: #064e3b;
-    --text-secondary: #047857;
-    --border-color: #d1fae5;
-    --gradient: linear-gradient(135deg, #0d9488 0%, #14b8a6 100%);
-}
-
-body { 
-    background: linear-gradient(135deg, #f0fdf4 0%, #ecfdf5 100%);
-    font-family: 'Inter', sans-serif;
-}
-
-.card {
-    background: rgba(255,255,255,0.95);
-    border-radius: 20px;
-    box-shadow: 0 20px 40px -10px rgba(13,148,136,0.2);
-    border: 1px solid rgba(236,253,245,0.8);
-    transition: transform 0.2s, box-shadow 0.2s;
-}
-
-.card:hover {
-    box-shadow: 0 25px 50px -15px rgba(13,148,136,0.3);
-}
-
-.upload-area {
-    border: 2px dashed var(--border-color);
-    border-radius: 12px;
-    padding: 3rem;
-    text-align: center;
-    background: #f1f5f9;
-    cursor: pointer;
-    transition: all 0.3s;
-}
-
-.upload-area:hover {
-    background: var(--gradient);
-    border-color: #14b8a6;
-    color: white;
-}
-
-.upload-icon {
-    font-size: 3rem;
-    color: var(--text-secondary);
-    margin-bottom: 1rem;
-}
-
-.btn-custom {
-    background: var(--gradient);
-    border: none;
-    font-weight: 500;
-    transition: all 0.2s;
-    display: inline-flex;
-    align-items: center;
-    gap: 0.5rem;
-}
-
-.btn-custom:hover {
-    background: var(--primary-hover);
-    transform: translateY(-1px);
-    border-color: var(--primary-hover);
-}
-
-.table-responsive {
-    border-radius: 8px;
-    border: 1px solid var(--border-color);
-}
-
-.data-table th {
-    background-color: #f1f5f9;
-    color: var(--text-primary);
-    font-weight: 600;
-    border-bottom: 2px solid var(--border-color);
-    padding: 12px 16px !important;
-    white-space: nowrap;
-}
-
-.data-table td {
-    padding: 8px 16px !important;
-    border-bottom: 1px solid var(--border-color);
-    color: var(--text-secondary);
-    line-height: 1.2 !important;
-    vertical-align: middle !important;
-    white-space: nowrap !important;
-}
-#dataTable.data-table td,
-#dataTable.data-table th {
-    color: #000000 !important;
-}
-#highRiskTable.data-table td,
-#highRiskTable.data-table th {
-    color: #dc2626 !important;
-    font-weight: 500;
-}
-#noRiskTable.data-table td,
-#noRiskTable.data-table th {
-    color: #047857 !important;
-    font-weight: 500;
-}
-
-.data-table tbody tr:hover {
-    background-color: #f8fafc !important;
-}
-
-.btn-circle {
-    border-radius: 50% !important;
-    width: 40px;
-    height: 40px;
-    padding: 0 !important;
-    display: inline-flex !important;
-    justify-content: center;
-    align-items: center;
-    font-size: 1.2rem !important;
-    line-height: 1 !important;
-    background: var(--primary-color) !important;
-    color: white !important;
-    border: none;
-    cursor: pointer;
-    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
-    transition: all 0.2s;
-}
-
-.btn-circle:hover {
-    transform: translateY(-2px);
-    box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.2);
-    background: var(--primary-hover) !important;
-}
-
-.loading-overlay {
-    display: none;
-    position: fixed;
-    top: 0;
-    left: 0;
-    width: 100%;
-    height: 100%;
-    background: rgba(255, 255, 255, 0.9);
-    z-index: 1000;
-    justify-content: center;
-    align-items: center;
-    flex-direction: column;
-}
-
-.spinner {
-    width: 50px;
-    height: 50px;
-    border: 4px solid #f3f3f3;
-    border-top: 4px solid var(--primary-color);
-    border-radius: 50%;
-    animation: spin 1s linear infinite;
-}
-
-@keyframes spin {
-    0% { transform: rotate(0deg); }
-    100% { transform: rotate(360deg); }
-}
-
-@keyframes fadeInDown {
-    from {
-        opacity: 0;
-        transform: translateY(-20px);
-    }
-    to {
-        opacity: 1;
-        transform: translateY(0);
-    }
-}
-
-@keyframes fadeInUp {
-    from {
-        opacity: 0;
-        transform: translateY(20px);
-    }
-    to {
-        opacity: 1;
-        transform: translateY(0);
-    }
-}
-
-header {
-    animation: fadeInDown 0.6s ease-out;
-}
-
-.card {
-    animation: fadeInUp 0.6s ease-out 0.2s backwards;
-}
-.wafer-test { color: #92400e !important; font-weight: 600; }
-.final-test { color: #22b4bb !important; font-weight: 600; }
-.assembly { color: #1d4ed8 !important; font-weight: 600; }
-.origin { color: #b716af !important; font-weight: 600; }
-.fabrication { color: #a47f00 !important; font-weight: 600; }
-
-        /* Fixed Columns Styles */
-        .dtfc-fixed-left,
-        .dtfc-fixed-right {
-            background-color: var(--surface-color);
-            z-index: 10;
+        :root {
+            --primary-color: #0d9488;
+            --primary-hover: #0f766e;
+            --accent-color: #f59e0b;
+            --success-color: #10b981;
+            --danger-color: #ef4444;
+            --warning-color: #f59e0b;
+            --bg-color: #f8fafc;
+            --surface-color: #ffffff;
+            --text-primary: #1e293b;
+            --text-secondary: #475569;
+            --border-color: #e2e8f0;
+            --gradient: linear-gradient(135deg, #0d9488 0%, #14b8a6 100%);
+            --card-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.1), 0 8px 10px -6px rgba(0, 0, 0, 0.1);
         }
 
-        .data-table thead th.dtfc-fixed-left,
-        .data-table thead th.dtfc-fixed-right {
-            background-color: #f1f5f9 !important;
+        body {
+            background: #f8fafc;
+            font-family: 'Inter', sans-serif;
+            color: var(--text-primary);
         }
 
-        /* Ensure colors applied via JS createdRow take precedence but have sticky background */
-        #dataTable tbody td.dtfc-fixed-left {
-            z-index: 11;
+        .card {
+            background: var(--surface-color);
+            border-radius: 16px;
+            box-shadow: var(--card-shadow);
+            border: 1px solid var(--border-color);
+            transition: transform 0.2s, box-shadow 0.2s;
+            overflow: hidden;
         }
 
-        /* Fix for transparency in sticky columns */
+        .card-header {
+            background: transparent;
+            border-bottom: 1px solid var(--border-color);
+            padding: 1.5rem;
+        }
+
+        .upload-area {
+            border: 2px dashed #cbd5e1;
+            border-radius: 12px;
+            padding: 3rem;
+            text-align: center;
+            background: #f1f5f9;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+
+        .upload-area:hover {
+            border-color: var(--primary-color);
+            background: #f0fdfa;
+        }
+
+        .upload-icon {
+            font-size: 3rem;
+            color: #94a3b8;
+            margin-bottom: 1rem;
+        }
+
+        .btn-custom {
+            background: var(--gradient);
+            border: none;
+            color: white;
+            font-weight: 500;
+            padding: 0.75rem 1.5rem;
+            border-radius: 8px;
+            transition: all 0.2s;
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .btn-custom:hover {
+            box-shadow: 0 4px 12px rgba(13, 148, 136, 0.3);
+            transform: translateY(-1px);
+        }
+
+        /* DataTables & Table Styling Overhaul */
+        .table-responsive {
+            border-radius: 12px;
+            border: 1px solid var(--border-color);
+            background: white;
+            margin-bottom: 1rem;
+        }
+
         .data-table {
             border-collapse: separate !important;
             border-spacing: 0;
-        }
-        .logo-small {
-        height: 28px !important;
-        width: auto;
-        max-height: 32px;
-        object-fit: contain;
-        animation: fadeInDown 0.6s ease-out 0.2s backwards;
+            width: 100% !important;
+            margin: 0 !important;
         }
 
+        .data-table thead th {
+            background-color: #096de5 !important;
+            /* Updated to brand blue */
+            color: white !important;
+            /* White text for contrast */
+            font-size: 0.75rem;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            padding: 14px 16px !important;
+            border-bottom: 2px solid #0758ba !important;
+            white-space: nowrap;
+        }
+
+        .data-table tbody td {
+            padding: 12px 16px !important;
+            border-bottom: 1px solid var(--border-color);
+            color: #000000 !important;  
+            font-size: 0.875rem;
+            vertical-align: middle !important;
+            white-space: nowrap !important;
+        }
+
+        .data-table tbody tr:last-child td {
+            border-bottom: none;
+        }
+
+        .data-table tbody tr {
+            transition: background-color 0.15s;
+        }
+
+        .data-table tbody tr:hover {
+            background-color: #f8fafc !important;
+        }
+
+        /* Fix for DataTables scroll head alignment row being visible */
+        .dataTables_scrollBody thead th {
+            padding-top: 0 !important;
+            padding-bottom: 0 !important;
+            border-top: none !important;
+            border-bottom: none !important;
+            height: 0 !important;
+            overflow: hidden !important;
+            line-height: 0 !important;
+        }
+
+        /* DataTables Pagination & Controls Symmetry */
+        .dataTables_wrapper {
+            padding: 1rem 0;
+        }
+
+        .dataTables_wrapper .dataTables_length,
+        .dataTables_wrapper .dataTables_filter {
+            margin-bottom: 1.5rem;
+            /* Separate controls from the table */
+            display: flex;
+            align-items: center;
+        }
+
+        .dataTables_wrapper .dataTables_length {
+            float: left;
+        }
+
+        .dataTables_wrapper .dataTables_filter {
+            float: right;
+        }
+
+        .dataTables_wrapper .dataTables_length select,
+        .dataTables_wrapper .dataTables_filter input {
+            padding: 0.5rem 0.8rem;
+            border-radius: 8px;
+            border: 1px solid #cbd5e1;
+            background-color: white;
+            outline: none;
+            transition: border-color 0.2s;
+        }
+
+        .dataTables_wrapper .dataTables_length select:focus,
+        .dataTables_wrapper .dataTables_filter input:focus {
+            border-color: var(--primary-color);
+            box-shadow: 0 0 0 3px rgba(13, 148, 136, 0.1);
+        }
+
+        .dataTables_wrapper .dataTables_paginate {
+            margin-top: 1.5rem;
+            padding-top: 1rem;
+            border-top: 1px solid var(--border-color);
+            display: flex;
+            justify-content: flex-end;
+        }
+
+        .dataTables_wrapper .dataTables_paginate .paginate_button {
+            padding: 0 !important;
+            margin-left: 5px !important;
+            border: none !important;
+            background: transparent !important;
+            display: inline-block !important;
+        }
+
+        .dataTables_wrapper .dataTables_paginate .paginate_button a {
+            padding: 0.5rem 1rem !important;
+            border-radius: 8px !important;
+            border: 1px solid var(--border-color) !important;
+            background: white !important;
+            color: var(--text-secondary) !important;
+            display: block !important;
+            text-decoration: none !important;
+            transition: all 0.2s !important;
+            font-weight: 500;
+        }
+
+        .dataTables_wrapper .dataTables_paginate .paginate_button.active a,
+        .dataTables_wrapper .dataTables_paginate .paginate_button.current a {
+            background: #096de5 !important;
+            color: white !important;
+            border-color: #096de5 !important;
+            box-shadow: 0 4px 6px rgba(9, 109, 229, 0.2);
+        }
+
+        .dataTables_wrapper .dataTables_paginate .paginate_button:hover:not(.active):not(.current) a {
+            background: #f1f5f9 !important;
+            border-color: #cbd5e1 !important;
+            color: var(--primary-color) !important;
+        }
+
+        /* Action Buttons */
+        .btn-circle {
+            border-radius: 10px !important;
+            /* Slightly rounded instead of full circle for modern look */
+            width: 36px;
+            height: 36px;
+            padding: 0 !important;
+            display: inline-flex !important;
+            justify-content: center;
+            align-items: center;
+            font-size: 1rem !important;
+            background: white !important;
+            color: var(--text-secondary) !important;
+            border: 1px solid var(--border-color) !important;
+            cursor: pointer;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+            transition: all 0.2s;
+        }
+
+        .btn-circle:hover {
+            background: #f1f5f9 !important;
+            color: var(--primary-color) !important;
+            transform: translateY(-1px);
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        }
+
+        /* Risk Badges - DARKER SHADES */
+        .risk-badge {
+            padding: 5px 12px;
+            border-radius: 6px;
+            /* Slightly more structured badge */
+            font-weight: 700;
+            font-size: 0.7rem;
+            text-transform: uppercase;
+            letter-spacing: 0.025em;
+            display: inline-block;
+            box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05);
+        }
+
+        .risk-high {
+            background-color: #fecaca;
+            color: #7f1d1d;
+            border: 1px solid #ef4444;
+        }
+
+        .risk-low {
+            background-color: #fde68a;
+            color: #78350f;
+            border: 1px solid #f59e0b;
+        }
+
+        .risk-none {
+            background-color: #bbf7d0;
+            color: #064e3b;
+            border: 1px solid #10b981;
+        }
+
+        /* Fixed Columns Visual Cue */
+        .dtfc-fixed-left {
+            background-color: var(--surface-color) !important;
+            box-shadow: 2px 0 5px rgba(0, 0, 0, 0.05);
+            z-index: 5;
+        }
+
+        .data-table thead th.dtfc-fixed-left {
+            background-color: #096de5 !important;
+            color: white !important;
+            box-shadow: 2px 0 5px rgba(0, 0, 0, 0.1);
+            z-index: 6;
+        }
+
+        /* Logo Alignment */
+        .logo-small {
+            height: 24px !important;
+            width: auto;
+            opacity: 0.8;
+            transition: opacity 0.2s;
+        }
+
+        .logo-small:hover {
+            opacity: 1;
+        }
+
+        .wafer-test {
+            color: #92400e !important;
+            font-weight: 600;
+        }
+
+        .final-test {
+            color: #208e93 !important;
+            font-weight: 600;
+        }
+
+        .assembly {
+            color: #1d4ed8 !important;
+            font-weight: 600;
+        }
+
+        .origin {
+            color: #b716af !important;
+            font-weight: 600;
+        }
+
+        .fabrication {
+            color: #a47f00 !important;
+            font-weight: 600;
+        }
+
+        .loading-overlay {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(255, 255, 255, 0.8);
+            backdrop-filter: blur(4px);
+            z-index: 2000;
+            justify-content: center;
+            align-items: center;
+            flex-direction: column;
+        }
+
+        .spinner {
+            width: 48px;
+            height: 48px;
+            border: 4px solid #f1f5f9;
+            border-top: 4px solid var(--primary-color);
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+        }
+
+        @keyframes spin {
+            to {
+                transform: rotate(360deg);
+            }
+        }
+
+        @keyframes fadeInUp {
+            from {
+                opacity: 0;
+                transform: translateY(10px);
+            }
+
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .card {
+            animation: fadeInUp 0.5s ease-out backwards;
+        }
+        
     </style>
 </head>
 
 <body>
     <div class="container-fluid py-4 px-3 px-md-4">
         <header class="row mb-4">
-        <div class="col-12">
-            <div class="d-flex align-items-center gap-2">
-            <!-- Left: Flag + FlagRisk text -->
-            <div class="d-flex align-items-center gap-2">
-                <i class="bi bi-flag-fill text-danger fs-1"></i>
-                <h1 class="h3 mb-0 fw-bold text-dark">FlagRisk</h1>
+            <div class="col-12">
+                <div class="d-flex align-items-center p-3 rounded-4 bg-white shadow-sm border border-light-subtle">
+                    <!-- Left: Flag + FlagRisk text -->
+                    <div class="d-flex align-items-center gap-3">
+                        <div class="bg-danger bg-opacity-10 p-2 rounded-3">
+                            <i class="bi bi-flag-fill text-danger fs-4"></i>
+                        </div>
+                        <div>
+                            <h1 class="h4 mb-0 fw-bold text-dark">FlagRisk</h1>
+                            <p class="text-muted small mb-0">Risk Analysis Tool</p>
+                        </div>
+                    </div>
+
+                    <div class="ms-auto d-flex align-items-center gap-4">
+                        <div class="d-flex align-items-center gap-2 pe-3 border-end border-light-subtle">
+                            <img src="https://www.ametek.com/-/media/project/oneweb/oneweb/oneweb/logos/default-logo.png"
+                                alt="Ametek" class="logo-small">
+                            <img src="https://inesssolutions.com/inesslogo.png" alt="Iness" class="logo-small">
+                        </div>
+                        <h1 class="h6 mb-0 fw-semibold text-muted">Iness Solutions</h1>
+                    </div>
+                </div>
             </div>
-            
-            <div class="ms-auto d-flex align-items-center gap-2">
-                <img src="https://www.ametek.com/-/media/project/oneweb/oneweb/oneweb/logos/default-logo.png?h=33&w=216&revision=19c8369c-a1ce-43a0-9399-74476f6b8457&hash=FD110BFD930AC1F855B5552CAAF77354" alt="Ametek" class="logo-small">
-                <img src="https://inesssolutions.com/inesslogo.png" alt="Iness" class="logo-small">
-                <h1 class="h5 mb-0 fw-semibold text-muted">Iness Solutions</h1>
-            </div>
-            </div>
-        </div>
         </header>
 
         {% if not is_uploaded %}
@@ -311,12 +461,13 @@ header {
                 <div class="card">
                     <div class="card-body p-4">
                         <div class="d-flex justify-content-between align-items-center flex-wrap gap-2 mb-4">
-                            <h3 class="h5 mb-0 fw-semibold">Data Preview: <span class="text-primary">{{ filename }}</span></h3>
+                            <h3 class="h5 mb-0 fw-semibold">Data Preview:</h3>
                             <div class="d-flex gap-2">
-                                <button type="button" id="analyzeBtn" class="btn btn-warning btn-sm">
-                                    <i class="bi bi-graph-up"></i> Perform Risk Analysis
+                                <button type="button" id="analyzeBtn" class="btn btn-custom btn-sm shadow-sm pe-3">
+                                    <i class="bi bi-graph-up-arrow"></i> Perform Risk Analysis
                                 </button>
-                                <button type="button" id="exportCompleteBtn" class="btn btn-primary btn-sm" style="display: none;">
+                                <button type="button" id="exportCompleteBtn" class="btn btn-primary btn-sm"
+                                    style="display: none;">
                                     <i class="bi bi-file-earmark-excel"></i> Export Complete Report
                                 </button>
                                 <a href="/" class="btn btn-success btn-sm">
@@ -327,7 +478,8 @@ header {
                         </div>
 
                         <div class="table-responsive">
-                            <table id="dataTable" class="table table-striped table-hover data-table display" style="width:100%">
+                            <table id="dataTable" class="table table-striped table-hover data-table display"
+                                style="width:100%">
                                 <!-- Table content initialized via JavaScript -->
                             </table>
                         </div>
@@ -342,14 +494,16 @@ header {
         <div id="resultsCard" class="row mt-4 g-4" style="display: none;">
             <!-- High Risk Table -->
             <div class="col-lg-6">
-                <div class="card border-start border-danger border-5 shadow-sm h-100">
-                    <div class="card-body p-4">
-                        <h3 class="h6 text-danger mb-3 fw-semibold">
+                <div class="card h-100">
+                    <div class="card-header d-flex align-items-center bg-danger bg-opacity-25 py-3">
+                        <h3 class="h6 text-danger mb-0 fw-bold">
                             <i class="bi bi-exclamation-triangle-fill me-2"></i>
-                            High Risk
+                            High Risk Parts
                         </h3>
+                    </div>
+                    <div class="card-body p-4">
                         <div class="table-responsive">
-                            <table id="highRiskTable" class="table table-striped table-hover data-table display" style="width:100%">
+                            <table id="highRiskTable" class="table data-table display" style="width:100%">
                                 <thead>
                                     <tr>
                                         <th>Part Number</th>
@@ -366,14 +520,16 @@ header {
 
             <!-- No Risk Table -->
             <div class="col-lg-6">
-                <div class="card border-start border-success border-5 shadow-sm h-100">
-                    <div class="card-body p-4">
-                        <h3 class="h6 text-success mb-3 fw-semibold">
+                <div class="card h-100">
+                    <div class="card-header d-flex align-items-center bg-success bg-opacity-25 py-3">
+                        <h3 class="h6 text-success mb-0 fw-bold">
                             <i class="bi bi-check-circle-fill me-2"></i>
-                            No Risk / Low Risk
+                            No Risk / Low Risk Parts
                         </h3>
+                    </div>
+                    <div class="card-body p-4">
                         <div class="table-responsive">
-                            <table id="noRiskTable" class="table table-striped table-hover data-table display" style="width:100%">
+                            <table id="noRiskTable" class="table data-table display" style="width:100%">
                                 <thead>
                                     <tr>
                                         <th>Part Number</th>
@@ -549,6 +705,10 @@ header {
                         
                         $('#loadingOverlay').css('display', 'none');
                         console.log('DataTable initialized successfully');
+                        // Fix for alignment
+                        setTimeout(function () {
+                            table.columns.adjust().draw();
+                        }, 200);
                     }, 50);
                 } catch (error) {
                     console.error('Error initializing DataTable:', error);
@@ -625,7 +785,8 @@ header {
                             var mfr = normalizeText(row[idxMfr]);
                             var upMfg = normalizeText(row[idxUpMfg]);
 
-                            if (pn === upPart && mfr === upMfg) {
+                            // Only push if we have both Part Number and Manufacturer values
+                            if (pn && mfr && pn === upPart && mfr === upMfg) {
                                 data.push(row);
                             }
                         }
@@ -637,7 +798,7 @@ header {
 
                         // Build Risk Maps
                         var mpnMap = {};
-                        var cpnMap = {};
+                        var cpnToMpns = {}; // NEW: map CPN to set of unique MPNs
                         var mpnSiteMap = {};
 
                         var isRisky = function (c) {
@@ -663,22 +824,40 @@ header {
                                     }
                                 }
                             }
-                            if (cpn) {
-                                if (!cpnMap[cpn]) cpnMap[cpn] = [];
-                                cpnMap[cpn].push(country);
+                            if (cpn && pn) {
+                                if (!cpnToMpns[cpn]) cpnToMpns[cpn] = new Set();
+                                cpnToMpns[cpn].add(pn);
                             }
                         }
 
-                        // Helper to get risk level
-                        var getRiskLevel = function (countries) {
+                        // Helper to get raw risk level from countries
+                        var getRawLevelFromCountries = function (countries) {
                             if (!countries || countries.length === 0) return "No Risk";
-                            var hasRisky = countries.some(function (c) { return isRisky(c); });
                             var allRisky = countries.every(function (c) { return isRisky(c); });
-
-                            if (!hasRisky) return "No Risk";
-                            if (allRisky) return "High Risk";
-                            return "Low Risk";
+                            return allRisky ? "High Risk" : "No Risk";
                         };
+
+                        // Calculate MPN Risk Map
+                        var mpnRiskMap = {};
+                        Object.keys(mpnMap).forEach(function (pn) {
+                            mpnRiskMap[pn] = getRawLevelFromCountries(mpnMap[pn]);
+                        });
+
+                        // Calculate CPN Risk Map based on user's new rules
+                        var cpnRiskMap = {};
+                        Object.keys(cpnToMpns).forEach(function (cpn) {
+                            var associatedMpns = Array.from(cpnToMpns[cpn]);
+                            var risks = associatedMpns.map(function (pn) { return mpnRiskMap[pn]; });
+
+                            var allNoRisk = risks.every(function (r) { return r === "No Risk"; });
+                            var allHighRisk = risks.every(function (r) { return r === "High Risk"; });
+                            var someHighRisk = risks.some(function (r) { return r === "High Risk"; });
+
+                            if (allNoRisk) cpnRiskMap[cpn] = "No Risk";
+                            else if (allHighRisk) cpnRiskMap[cpn] = "High Risk";
+                            else if (someHighRisk) cpnRiskMap[cpn] = "Low Risk";
+                            else cpnRiskMap[cpn] = "No Risk";
+                        });
 
                         // Pass 2: Process matched results & Build new main table data
                         var newData = [];
@@ -694,22 +873,14 @@ header {
                             var cpn = idxCPN > -1 ? String(row[idxCPN] || '').trim().toLowerCase() : '';
                             var country = idxCountry > -1 ? String(row[idxCountry] || '').trim().toLowerCase() : '';
 
-                            // Calculate Risk Columns
-                            var mpnRisk = "No Risk";
-                            if (mpnMap[pn]) {
-                                var level = getRiskLevel(mpnMap[pn]);
-                                mpnRisk = (level === "High Risk") ? "High Risk" : "No Risk";
-                            }
-
-                            var cpnRisk = "No Risk";
-                            if (cpnMap[cpn]) {
-                                cpnRisk = getRiskLevel(cpnMap[cpn]);
-                            }
+                            // Apply Pre-calculated Risks
+                            var mpnRisk = mpnRiskMap[pn] || "No Risk";
+                            var cpnRisk = cpnRiskMap[cpn] || "No Risk";
 
                             var remark = '';
                             var riskySteps = [];
                             if (cpnRisk !== 'No Risk' && mpnSiteMap[pn]) {
-                                mpnSiteMap[pn].forEach(function(step) {
+                                mpnSiteMap[pn].forEach(function (step) {
                                     if (step.toLowerCase().includes('china') || step.toLowerCase().includes('taiwan')) {
                                         riskySteps.push(step);
                                     }
@@ -727,7 +898,7 @@ header {
                                 case 'High Risk|Low Risk':
                                     var allSteps = '';
                                     if (mpnSiteMap[pn]) {
-                                        allSteps = mpnSiteMap[pn].map(function(step) {
+                                        allSteps = mpnSiteMap[pn].map(function (step) {
                                             var lower = step.toLowerCase();
 
                                             if (lower.includes('assembly')) {
@@ -756,7 +927,7 @@ header {
                                 case 'High Risk|High Risk':
                                     var allSteps = '';
                                     if (mpnSiteMap[pn]) {
-                                        allSteps = mpnSiteMap[pn].map(function(step) {
+                                        allSteps = mpnSiteMap[pn].map(function (step) {
                                             var lower = step.toLowerCase();
 
                                             if (lower.includes('assembly')) {
@@ -873,13 +1044,13 @@ header {
                                 //         'border-left': '3px solid #ef4444'
                                 //     });
                                 // } else if (cpnRisk === 'Low Risk' && cpnIdx !== -1) {
-                                    // // Highlight CPN cell orange for CPN Low Risk
-                                    // $('td:eq(' + cpnIdx + ')', row).css({
-                                    //     'background-color': '#F5BF79',
-                                    //     'color': '#D47A54',
-                                    //     'font-weight': '500',
-                                    //     'border-left': '3px solid #f59e0b'
-                                    // });
+                                // // Highlight CPN cell orange for CPN Low Risk
+                                // $('td:eq(' + cpnIdx + ')', row).css({
+                                //     'background-color': '#F5BF79',
+                                //     'color': '#D47A54',
+                                //     'font-weight': '500',
+                                //     'border-left': '3px solid #f59e0b'
+                                // });
                                 // } if (cpnRisk === 'No Risk' && cpnIdx !== -1) {
                                 //     $('td:eq(' + cpnIdx + ')', row).css({
                                 //         'background-color': '#99D999',
@@ -893,46 +1064,24 @@ header {
                                 var mpnRiskIdx = data.length - 3;
                                 var cpnRiskIdx = data.length - 2;
 
-                                // HIGH RISK - Red
-                                if (mpnRisk === 'High Risk') {
-                                    $('td:eq(' + mpnRiskIdx + ')', row).css({
-                                        'background-color': '#EF9595',
-                                        'color': '#dc2626',
-                                        'font-weight': '700'
-                                    });
-                                }
-                                if (cpnRisk === 'High Risk') {
-                                    $('td:eq(' + cpnRiskIdx + ')', row).css({
-                                        'background-color': '#EF9595',
-                                        'color': '#dc2626',
-                                        'font-weight': '700'
-                                    });
+                                function applyRiskStyle(idx, risk) {
+                                    var $cell = $('td:eq(' + idx + ')', row);
+                                    var text = $cell.text();
+                                    var badgeClass = '';
+
+                                    if (risk === 'High Risk') badgeClass = 'risk-high';
+                                    else if (risk === 'Low Risk') badgeClass = 'risk-low';
+                                    else if (risk === 'No Risk') badgeClass = 'risk-none';
+
+                                    if (badgeClass) {
+                                        $cell.html('<span class="risk-badge ' + badgeClass + '">' + text + '</span>');
+                                        $cell.css('background-color', 'transparent'); // Reset any potential background
+                                    }
                                 }
 
-                                // NO RISK - Green (CHECK FIRST!)
-                                if (mpnRisk === 'No Risk') {
-                                    $('td:eq(' + mpnRiskIdx + ')', row).css({
-                                        'background-color': '#99D999',
-                                        'color': '#047857',
-                                        'font-weight': '600'
-                                    });
-                                }
-                                if (cpnRisk === 'No Risk') {
-                                    $('td:eq(' + cpnRiskIdx + ')', row).css({
-                                        'background-color': '#99D999',
-                                        'color': '#047857',
-                                        'font-weight': '600'
-                                    });
-                                }
+                                applyRiskStyle(mpnRiskIdx, mpnRisk);
+                                applyRiskStyle(cpnRiskIdx, cpnRisk);
 
-                                // LOW RISK - Orange (check after No Risk)
-                                if (cpnRisk === 'Low Risk') {
-                                    $('td:eq(' + cpnRiskIdx + ')', row).css({
-                                        'background-color': '#F5BF79',
-                                        'color': '#D47A54',
-                                        'font-weight': '600'
-                                    });
-                                }
 
                             },
 
@@ -963,6 +1112,12 @@ header {
                                 "lengthMenu": "Show _MENU_ rows"
                             }
                         });
+
+                        // Fix for alignment after risk analysis
+                        setTimeout(function () {
+                            var t = $('#dataTable').DataTable();
+                            t.columns.adjust().draw();
+                        }, 200);
 
                         // Handle Split Results Tables
                         var initResultTable = function (id, data, emptyMsg) {
