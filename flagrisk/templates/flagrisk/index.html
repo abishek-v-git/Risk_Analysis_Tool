@@ -540,11 +540,11 @@
                                 <button type="button" id="analyzeBtn" class="btn btn-custom btn-sm shadow-sm pe-3">
                                     <i class="bi bi-graph-up-arrow"></i> Perform Risk Analysis
                                 </button>
-                                <button type="button" id="exportCompleteBtn" class="btn btn-primary btn-sm"
-                                    style="display: none;">
+                                <button type="button" id="exportCompleteBtn"
+                                    class="btn btn-custom btn-sm shadow-sm pe-3" style="display: none;">
                                     <i class="bi bi-file-earmark-excel"></i> Export Complete Report
                                 </button>
-                                <a href="/" class="btn btn-success btn-sm">
+                                <a href="/" class="btn btn-custom btn-sm shadow-sm pe-3">
                                     <i class="bi bi-cloud-upload"></i> Upload New File
                                 </a>
                             </div>
@@ -798,7 +798,7 @@
             $('#analyzeBtn').on('click', function () {
                 console.log('Analyzing risk...');
                 $('#loadingOverlay').css('display', 'flex');
-                $('#loadingOverlay p').text('Analyzing data...');
+                $('#loadingOverlay p').text('Analyzing table...');
 
                 setTimeout(function () {
                     try {
@@ -831,13 +831,57 @@
                         }
 
 
-                        function normalizePart(val) {
-                            return String(val || '')
-                                .replace(/-/g, '')
-                                .replace(/^0+/, '')
-                                .replace(/\.0+$/, '')
-                                .trim()
-                                .toLowerCase();
+                        function superNormalize(val) {
+                            if (!val) return '';
+                            let s = String(val).toLowerCase();
+                            // Remove common suffixes/modifiers/junk
+                            s = s.replace(/\(obs\)/g, '')
+                                .replace(/\(strip\)/g, '')
+                                .replace(/\(lf\)\(sn\)/g, '')
+                                .replace(/lead free/g, '')
+                                .replace(/leadfree/g, '')
+                                .replace(/pbfree/g, '')
+                                .replace(/pbf/g, '')
+                                .replace(/nopb/g, '')
+                                .replace(/tr/g, ''); // tape and reel
+
+                            // Remove all non-alphanumeric
+                            s = s.replace(/[^a-z0-9]/g, '');
+
+                            // Normalize number blocks (e.g., 001 -> 1)
+                            s = s.replace(/0+([1-9])/g, '$1');
+
+                            return s.trim();
+                        }
+
+                        function levenshtein(s, t) {
+                            if (s === t) return 0;
+                            if (s.length === 0) return t.length;
+                            if (t.length === 0) return s.length;
+                            let v0 = new Array(t.length + 1), v1 = new Array(t.length + 1);
+                            for (let i = 0; i <= t.length; i++) v0[i] = i;
+                            for (let i = 0; i < s.length; i++) {
+                                v1[0] = i + 1;
+                                for (let j = 0; j < t.length; j++) {
+                                    let cost = (s[i] === t[j]) ? 0 : 1;
+                                    v1[j + 1] = Math.min(v1[j] + 1, v0[j + 1] + 1, v0[j] + cost);
+                                }
+                                for (let j = 0; j <= t.length; j++) v0[j] = v1[j];
+                            }
+                            return v0[t.length];
+                        }
+
+                        function isFuzzyMatch(s1, s2, threshold = 0.85) {
+                            let n1 = superNormalize(s1);
+                            let n2 = superNormalize(s2);
+                            if (!n1 || !n2) return false;
+                            if (n1 === n2) return true;
+                            // Containment check
+                            if (n1.length > 5 && n2.length > 5 && (n1.indexOf(n2) !== -1 || n2.indexOf(n1) !== -1)) return true;
+
+                            let dist = levenshtein(n1, n2);
+                            let maxLen = Math.max(n1.length, n2.length);
+                            return (maxLen - dist) / maxLen >= threshold;
                         }
 
                         function normalizeText(val) {
@@ -847,20 +891,24 @@
                                 .toLowerCase();
                         }
 
+
                         var allData = table.rows().data();
                         var data = [];
 
                         for (var i = 0; i < allData.length; i++) {
                             var row = allData[i];
 
-                            var pn = normalizePart(row[idxPN]);
-                            var upPart = normalizePart(row[idxUpPart]);
+                            var sysPnRaw = String(row[idxPN] || "").trim();
+                            var upPnRaw = String(row[idxUpPart] || "").trim();
+                            var sysMfrRaw = String(row[idxMfr] || "").trim();
+                            var upMfrRaw = String(row[idxUpMfg] || "").trim();
 
-                            var mfr = normalizeText(row[idxMfr]);
-                            var upMfg = normalizeText(row[idxUpMfg]);
+                            // Match logic using fuzzy logic (superNormalization + Levenshtein)
+                            var isPnMatch = isFuzzyMatch(sysPnRaw, upPnRaw);
+                            var isMfrMatch = isFuzzyMatch(sysMfrRaw, upMfrRaw);
 
-                            // Only push if we have both Part Number and Manufacturer values
-                            if (pn && mfr && pn === upPart && mfr === upMfg) {
+                            // Only push if we have a match
+                            if (sysPnRaw && sysMfrRaw && isPnMatch && isMfrMatch) {
                                 data.push(row);
                             }
                         }
