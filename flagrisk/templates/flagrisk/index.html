@@ -16,6 +16,8 @@
     <link rel="stylesheet" href="https://cdn.datatables.net/1.13.7/css/dataTables.bootstrap5.min.css">
     <link rel="stylesheet" href="https://cdn.datatables.net/buttons/2.4.2/css/buttons.bootstrap5.min.css">
     <link rel="stylesheet" href="https://cdn.datatables.net/fixedcolumns/4.3.0/css/fixedColumns.bootstrap5.min.css">
+    <!-- Animate.css -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/animate.css/4.1.1/animate.min.css" />
 
     <style>
         :root {
@@ -176,14 +178,23 @@
             float: right;
         }
 
-        .dataTables_wrapper .dataTables_length select,
-        .dataTables_wrapper .dataTables_filter input {
+        .dataTables_wrapper .dataTables_length select {
             padding: 0.5rem 0.8rem;
             border-radius: 8px;
             border: 1px solid #cbd5e1;
             background-color: white;
             outline: none;
             transition: border-color 0.2s;
+        }
+
+        .dataTables_wrapper .dataTables_filter input {
+            padding: 0.5rem 0.8rem;
+            border-radius: 8px;
+            border: 1px solid #cbd5e1;
+            background-color: white;
+            outline: none;
+            transition: all 0.3s cubic-bezier(0.165, 0.84, 0.44, 1);
+            width: 200px;
         }
 
         .dataTables_wrapper .dataTables_length select {
@@ -198,10 +209,16 @@
             cursor: pointer;
         }
 
-        .dataTables_wrapper .dataTables_length select:focus,
+        .dataTables_wrapper .dataTables_length select:focus {
+            border-color: var(--primary-color);
+            box-shadow: 0 0 0 3px rgba(13, 148, 136, 0.1);
+        }
+
         .dataTables_wrapper .dataTables_filter input:focus {
             border-color: var(--primary-color);
             box-shadow: 0 0 0 3px rgba(13, 148, 136, 0.1);
+            width: 300px;
+            background-color: #f0fdf9;
         }
 
         .dataTables_wrapper .dataTables_paginate {
@@ -421,11 +438,13 @@
             position: fixed;
             top: 0;
             left: 0;
-            width: 100%;
-            height: 100%;
-            background: rgba(255, 255, 255, 0.8);
-            backdrop-filter: blur(4px);
-            z-index: 2000;
+            width: 100vw;
+            height: 100vh;
+            background-color: #f8fafc !important;
+            /* Fully solid background to hide page content */
+            opacity: 1 !important;
+            z-index: 999999;
+            /* Absolute foreground */
             justify-content: center;
             align-items: center;
             flex-direction: column;
@@ -440,16 +459,10 @@
             animation: spin 1s linear infinite;
         }
 
-        @keyframes spin {
-            to {
-                transform: rotate(360deg);
-            }
-        }
-
-        @keyframes fadeInUp {
+        @keyframes fadeInUpCustom {
             from {
                 opacity: 0;
-                transform: translateY(10px);
+                transform: translateY(30px);
             }
 
             to {
@@ -458,8 +471,349 @@
             }
         }
 
+        @keyframes float {
+            0% {
+                transform: translateY(0px);
+            }
+
+            50% {
+                transform: translateY(-10px);
+            }
+
+            100% {
+                transform: translateY(0px);
+            }
+        }
+
+        @keyframes pulse-red {
+            0% {
+                box-shadow: 0 0 0 0 rgba(239, 68, 68, 0.4);
+            }
+
+            70% {
+                box-shadow: 0 0 0 10px rgba(239, 68, 68, 0);
+            }
+
+            100% {
+                box-shadow: 0 0 0 0 rgba(239, 68, 68, 0);
+            }
+        }
+
+        @keyframes pulse-green {
+            0% {
+                box-shadow: 0 0 0 0 rgba(16, 185, 129, 0.4);
+            }
+
+            70% {
+                box-shadow: 0 0 0 10px rgba(16, 185, 129, 0);
+            }
+
+            100% {
+                box-shadow: 0 0 0 0 rgba(16, 185, 129, 0);
+            }
+        }
+
+        @keyframes pulse-yellow {
+            0% {
+                box-shadow: 0 0 0 0 rgba(245, 158, 11, 0.4);
+            }
+
+            70% {
+                box-shadow: 0 0 0 10px rgba(245, 158, 11, 0);
+            }
+
+            100% {
+                box-shadow: 0 0 0 0 rgba(245, 158, 11, 0);
+            }
+        }
+
+        @keyframes scan {
+            0% {
+                top: 0%;
+            }
+
+            100% {
+                top: 100%;
+            }
+        }
+
+        @keyframes shimmer {
+            0% {
+                background-position: -1000px 0;
+            }
+
+            100% {
+                background-position: 1000px 0;
+            }
+        }
+
+        .animate-fade-in-up {
+            animation: fadeInUpCustom 0.6s cubic-bezier(0.16, 1, 0.3, 1) both;
+        }
+
+        .delay-1 {
+            animation-delay: 0.1s;
+        }
+
+        .delay-2 {
+            animation-delay: 0.2s;
+        }
+
+        .delay-3 {
+            animation-delay: 0.3s;
+        }
+
+        .delay-4 {
+            animation-delay: 0.4s;
+        }
+
         .card {
-            animation: fadeInUp 0.5s ease-out backwards;
+            transition: all 0.4s cubic-bezier(0.165, 0.84, 0.44, 1);
+        }
+
+        .card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.12);
+        }
+
+        .upload-area {
+            position: relative;
+            overflow: hidden;
+        }
+
+        .upload-area::after {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(to right, transparent 0%, rgba(255, 255, 255, 0.3) 50%, transparent 100%);
+            background-size: 1000px 100%;
+            display: none;
+        }
+
+        .upload-area.dragging {
+            border-color: var(--primary-color);
+            background: #f0fdfa;
+            transform: scale(1.02);
+        }
+
+        .upload-icon {
+            transition: transform 0.3s ease;
+        }
+
+        .upload-area:hover .upload-icon {
+            transform: scale(1.1) translateY(-5px);
+            color: var(--primary-color);
+        }
+
+        .risk-high {
+            background-color: #fecaca;
+            color: #7f1d1d;
+            border: 1px solid #ef4444;
+            animation: pulse-red 2s infinite;
+            transition: transform 0.2s;
+        }
+
+        .risk-low {
+            animation: pulse-yellow 3s infinite;
+            transition: transform 0.2s;
+        }
+
+        .risk-none {
+            animation: pulse-green 4s infinite;
+            transition: transform 0.2s;
+        }
+
+        .risk-badge:hover {
+            transform: scale(1.1);
+            z-index: 10;
+        }
+
+        .btn-custom {
+            position: relative;
+            z-index: 1;
+            overflow: hidden;
+        }
+
+        .btn-custom::before {
+            content: '';
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            width: 0;
+            height: 0;
+            background: rgba(255, 255, 255, 0.2);
+            border-radius: 50%;
+            transform: translate(-50%, -50%);
+            transition: width 0.6s ease, height 0.6s ease;
+            z-index: -1;
+        }
+
+        .btn-custom:hover::before {
+            width: 300px;
+            height: 300px;
+        }
+
+        .logo-small {
+            height: 24px !important;
+            width: auto;
+            opacity: 0.8;
+            transition: opacity 0.2s;
+        }
+
+        .btn-custom i {
+            transition: transform 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+        }
+
+        .btn-custom:hover i {
+            transform: rotate(360deg) scale(1.2);
+        }
+
+        /* Improved Loading Overlay */
+        .loading-content {
+            text-align: center;
+            position: relative;
+            padding: 40px;
+            background-color: #ffffff !important;
+            border-radius: 30px;
+            box-shadow: 0 40px 100px rgba(13, 148, 136, 0.15);
+            border: 1px solid #e2e8f0;
+            min-width: 350px;
+        }
+
+        .scanner-container {
+            width: 80px;
+            height: 80px;
+            border: 4px solid var(--border-color);
+            border-radius: 12px;
+            position: relative;
+            margin: 0 auto 20px;
+            overflow: hidden;
+        }
+
+        .scanner-line {
+            position: absolute;
+            width: 100%;
+            height: 4px;
+            background: var(--primary-color);
+            box-shadow: 0 0 15px var(--primary-color);
+            animation: scan 2s linear infinite;
+        }
+
+        .loading-text {
+            background: linear-gradient(90deg, var(--primary-color), var(--accent-color), var(--primary-color));
+            background-size: 200% auto;
+            background-clip: text;
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            animation: shimmer 2s linear infinite;
+            font-size: 1.2rem;
+            font-weight: 700;
+        }
+
+        /* Specialized Loader Animations */
+        .loader-section {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 140px;
+            background: #ffffff;
+            border-radius: 16px;
+            margin-bottom: 20px;
+            box-shadow: inset 0 2px 10px rgba(0, 0, 0, 0.05);
+            /* Sunken 'stage' effect */
+            border: 1px solid #f1f5f9;
+        }
+
+        .flag-animation-container {
+            position: relative;
+            animation: flagPlant 1.2s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards;
+        }
+
+        @keyframes flagPlant {
+            0% {
+                transform: translateY(-100px) rotate(-15deg);
+                opacity: 0;
+            }
+
+            60% {
+                transform: translateY(20px) rotate(5deg);
+                opacity: 1;
+            }
+
+            100% {
+                transform: translateY(0) rotate(0);
+            }
+        }
+
+        .download-animation-container {
+            position: relative;
+            width: 100px;
+            height: 100px;
+            margin: 0 auto;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .download-arrow {
+            position: absolute;
+            top: -30px;
+            animation: arrowDownload 1.5s ease-in-out infinite;
+            font-size: 3rem;
+            z-index: 10;
+        }
+
+        @keyframes arrowDownload {
+            0% {
+                transform: translateY(-40px);
+                opacity: 0;
+            }
+
+            40% {
+                transform: translateY(0);
+                opacity: 1;
+            }
+
+            70% {
+                transform: translateY(40px);
+                opacity: 0;
+            }
+
+            100% {
+                transform: translateY(40px);
+                opacity: 0;
+            }
+        }
+
+        /* Table Row Entrance */
+        .data-table tbody tr {
+            opacity: 0;
+            transform: translateY(10px);
+            animation: fadeInUpCustom 0.4s ease forwards;
+        }
+
+        /* Staggered row animation via JS or CSS classes */
+        .row-delay-1 {
+            animation-delay: 0.05s;
+        }
+
+        .row-delay-2 {
+            animation-delay: 0.1s;
+        }
+
+        .row-delay-3 {
+            animation-delay: 0.15s;
+        }
+
+        .row-delay-4 {
+            animation-delay: 0.2s;
+        }
+
+        .row-delay-5 {
+            animation-delay: 0.25s;
         }
     </style>
 </head>
@@ -468,25 +822,30 @@
     <div class="container-fluid py-4 px-3 px-md-4">
         <header class="row mb-4">
             <div class="col-12">
-                <div class="d-flex align-items-center p-3 rounded-4 bg-white shadow-sm border border-light-subtle">
+                <div
+                    class="d-flex align-items-center p-3 rounded-4 bg-white shadow-sm border border-light-subtle animate__animated animate__fadeInDown">
                     <!-- Left: Flag + FlagRisk text -->
-                    <div class="d-flex align-items-center gap-3">
-                        <div class="bg-danger bg-opacity-10 p-2 rounded-3">
+                    <div class="d-flex align-items-center gap-3 animate__animated animate__fadeInLeft">
+                        <div
+                            class="bg-danger bg-opacity-10 p-2 rounded-3 animate__animated animate__bounceIn animate__delay-1s">
                             <i class="bi bi-flag-fill text-danger fs-4"></i>
                         </div>
-                        <div>
+                        <div class="animate__animated animate__fadeInLeft animate__delay-1s">
                             <h1 class="h4 mb-0 fw-bold text-dark">FlagRisk</h1>
                             <p class="text-muted small mb-0">Risk Analysis Tool</p>
                         </div>
                     </div>
 
-                    <div class="ms-auto d-flex align-items-center gap-4">
+                    <div class="ms-auto d-flex align-items-center gap-4 animate__animated animate__fadeInRight">
                         <div class="d-flex align-items-center gap-2 pe-3 border-end border-light-subtle">
                             <img src="https://www.ametek.com/-/media/project/oneweb/oneweb/oneweb/logos/default-logo.png"
                                 alt="Ametek" class="logo-small">
                         </div>
-                        <img src="https://inesssolutions.com/inesslogo.png" alt="Iness" class="logo-small">
-                        <h1 class="h6 mb-0 fw-semibold text-muted">Iness Solutions</h1>
+                        <img src="https://inesssolutions.com/inesslogo.png" alt="Iness"
+                            class="logo-small animate__delay-1s">
+                        <h1
+                            class="h6 mb-0 fw-semibold text-muted animate__animated animate__fadeInRight animate__delay-1s">
+                            Iness Solutions</h1>
                     </div>
                 </div>
             </div>
@@ -495,7 +854,7 @@
         {% if not is_uploaded %}
         <div class="row justify-content-center">
             <div class="col-12 col-lg-10 col-xl-8">
-                <div class="card p-4 p-md-5">
+                <div class="card p-4 p-md-5 animate-fade-in-up">
                     <div class="text-center mb-4">
                         <h2 class="h4 fw-semibold text-primary mb-2">Upload Data</h2>
                         <p class="text-muted mb-0">Select an Excel file to visualize and perform risk analysis.</p>
@@ -532,7 +891,7 @@
         {% if is_uploaded %}
         <div class="row">
             <div class="col-12">
-                <div class="card card-main">
+                <div class="card card-main animate-fade-in-up">
                     <div class="card-body p-4">
                         <div class="d-flex justify-content-between align-items-center flex-wrap gap-2 mb-4">
                             <h3 class="h5 mb-0 fw-semibold">Data Preview:</h3>
@@ -568,7 +927,7 @@
         <div id="resultsCard" class="row mt-4 g-4" style="display: none;">
             <!-- High Risk Table -->
             <div class="col-lg-6">
-                <div class="card h-100 card-high-risk">
+                <div class="card h-100 card-high-risk animate-fade-in-up delay-1">
                     <div class="card-header d-flex align-items-center bg-danger bg-opacity-25 py-3">
                         <h3 class="h6 text-danger mb-0 fw-bold">
                             <i class="bi bi-exclamation-triangle-fill me-2"></i>
@@ -594,7 +953,7 @@
 
             <!-- No Risk Table -->
             <div class="col-lg-6">
-                <div class="card h-100 card-no-risk">
+                <div class="card h-100 card-no-risk animate-fade-in-up delay-2">
                     <div class="card-header d-flex align-items-center bg-success bg-opacity-25 py-3">
                         <h3 class="h6 text-success mb-0 fw-bold">
                             <i class="bi bi-check-circle-fill me-2"></i>
@@ -622,10 +981,35 @@
     </div>
 
     <div class="loading-overlay" id="loadingOverlay">
-        <div class="spinner-border text-primary spinner" role="status">
-            <span class="visually-hidden">Loading...</span>
+        <div class="loading-content animate__animated animate__zoomIn">
+            <div id="loader-magnifier" class="loader-section">
+                <div class="scanner-container">
+                    <div class="scanner-line"></div>
+                    <i class="bi bi-search text-primary"
+                        style="font-size: 2.5rem; position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); opacity: 0.3;"></i>
+                </div>
+            </div>
+
+            <div id="loader-flag" class="loader-section d-none">
+                <div class="flag-animation-container">
+                    <i class="bi bi-flag-fill text-danger" style="font-size: 4rem;"></i>
+                </div>
+            </div>
+
+            <div id="loader-download" class="loader-section d-none">
+                <div class="download-animation-container">
+                    <i class="bi bi-file-earmark-excel-fill text-success" style="font-size: 4rem;"></i>
+                    <div class="download-arrow">
+                        <i class="bi bi-arrow-down text-success"></i>
+                    </div>
+                </div>
+            </div>
+
+            <div class="spinner-border text-primary d-none" role="status">
+                <span class="visually-hidden">Loading...</span>
+            </div>
+            <p class="mt-3 loading-text mb-0" id="loadingStatusText">Processing data...</p>
         </div>
-        <p class="mt-3 fw-semibold text-primary">Processing file...</p>
     </div>
 
     <!-- Scripts -->
@@ -641,15 +1025,54 @@
     <script src="https://cdn.datatables.net/fixedcolumns/4.3.0/js/dataTables.fixedColumns.min.js"></script>
 
     <script>
+        function showLoader(type, text) {
+            $('.loader-section').addClass('d-none');
+            $('#loadingStatusText').text(text || 'Processing data...');
+
+            if (type === 'magnifier') {
+                $('#loader-magnifier').removeClass('d-none');
+            } else if (type === 'flag') {
+                $('#loader-flag').removeClass('d-none');
+            } else if (type === 'download') {
+                $('#loader-download').removeClass('d-none');
+            } else {
+                $('#loader-magnifier').removeClass('d-none');
+            }
+
+            $('#loadingOverlay').css('display', 'flex').hide().fadeIn(200);
+        }
+
         function handleFileSelect(input) {
             if (input.files && input.files[0]) {
-                document.getElementById('filename').textContent = "Selected: " + input.files[0].name;
-                document.getElementById('file-info').classList.remove('d-none');
+                const fileName = input.files[0].name;
+                const $fileInfo = $('#file-info');
+                const $filename = $('#filename');
+
+                $filename.text("Selected: " + fileName);
+                $fileInfo.removeClass('d-none').addClass('animate__animated animate__bounceIn');
             }
         }
 
+        // Drag and drop visual feedback
+        const uploadArea = document.querySelector('.upload-area');
+        if (uploadArea) {
+            ['dragenter', 'dragover'].forEach(eventName => {
+                uploadArea.addEventListener(eventName, (e) => {
+                    e.preventDefault();
+                    uploadArea.classList.add('dragging');
+                }, false);
+            });
+
+            ['dragleave', 'drop'].forEach(eventName => {
+                uploadArea.addEventListener(eventName, (e) => {
+                    e.preventDefault();
+                    uploadArea.classList.remove('dragging');
+                }, false);
+            });
+        }
+
         document.getElementById('uploadForm')?.addEventListener('submit', function () {
-            document.getElementById('loadingOverlay').style.display = 'flex';
+            showLoader('magnifier', 'Uploading and processing file...');
         });
 
         $(document).ready(function () {
@@ -739,8 +1162,7 @@
             if ($('#dataTable').length) {
                 try {
                     console.log('Initializing DataTable via JS...');
-                    $('#loadingOverlay').css('display', 'flex');
-                    $('#loadingOverlay p').text('Initializing table...');
+                    showLoader('magnifier', 'Initializing table...');
 
                     // Use setTimeout to allow the loading overlay to render
                     setTimeout(function () {
@@ -774,10 +1196,15 @@
                                     "next": "Next",
                                     "previous": "Previous"
                                 }
+                            },
+                            "createdRow": function (row, data, dataIndex) {
+                                // Add staggered animation delay
+                                const delayClass = 'row-delay-' + ((dataIndex % 5) + 1);
+                                $(row).addClass(delayClass);
                             }
                         });
 
-                        $('#loadingOverlay').css('display', 'none');
+                        $('#loadingOverlay').fadeOut(400);
                         console.log('DataTable initialized successfully');
                         // Fix for alignment
                         setTimeout(function () {
@@ -797,10 +1224,26 @@
 
             $('#analyzeBtn').on('click', function () {
                 console.log('Analyzing risk...');
-                $('#loadingOverlay').css('display', 'flex');
-                $('#loadingOverlay p').text('Analyzing table...');
+                showLoader('flag', 'Analyzing table...');
+
+                const statuses = [
+                    'Analyzing table...',
+                    'Processing manufacturer data...',
+                    'Calculating country risks...',
+                    'Applying fuzzy matching...',
+                    'Finalizing risk assessment...'
+                ];
+                let sIdx = 0;
+                $('#loadingStatusText').text(statuses[0]);
+                const statusInterval = setInterval(() => {
+                    sIdx = (sIdx + 1) % statuses.length;
+                    $('#loadingStatusText').fadeOut(200, function () {
+                        $(this).text(statuses[sIdx]).fadeIn(200);
+                    });
+                }, 1500);
 
                 setTimeout(function () {
+                    clearInterval(statusInterval);
                     try {
                         var table = $('#dataTable').DataTable();
 
@@ -1285,13 +1728,12 @@
                         initResultTable('#highRiskTable', highRiskResults, 'No High Risk parts found.');
                         initResultTable('#noRiskTable', noRiskResults, 'No matched parts in this category.');
 
-                        $('#resultsCard').show();
-                        $('#exportCompleteBtn').show();
+                        $('#resultsCard').show().addClass('animate__animated animate__fadeInUp');
+                        $('#exportCompleteBtn').show().addClass('animate__animated animate__zoomIn');
 
                         $('#exportCompleteBtn').on('click', function () {
                             console.log('Exporting complete report...');
-                            $('#loadingOverlay').css('display', 'flex');
-                            $('#loadingOverlay p').text('Generating complete report...');
+                            showLoader('download', 'Generating complete report...');
 
                             setTimeout(function () {
                                 try {
