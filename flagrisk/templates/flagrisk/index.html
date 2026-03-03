@@ -925,9 +925,36 @@
         </div>
 
         <div id="resultsCard" class="row mt-4 g-4" style="display: none;">
+            <!-- Unmatched Table -->
+            <div class="col-12">
+                <div class="card animate-fade-in-up delay-1">
+                    <div class="card-header d-flex align-items-center bg-warning bg-opacity-25 py-3">
+                        <h3 class="h6 text-warning mb-0 fw-bold">
+                            <i class="bi bi-info-circle-fill me-2"></i>
+                            Unmatched Uploads
+                        </h3>
+                    </div>
+                    <div class="card-body p-4">
+                        <div class="table-responsive">
+                            <table id="unmatchedTable" class="table data-table display" style="width:100%">
+                                <thead>
+                                    <tr>
+                                        <th>Part Number</th>
+                                        <th>Manufacturer</th>
+                                        <th>Uploaded Part</th>
+                                        <th>Uploaded Mfg</th>
+                                    </tr>
+                                </thead>
+                                <tbody></tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
             <!-- High Risk Table -->
             <div class="col-lg-6">
-                <div class="card h-100 card-high-risk animate-fade-in-up delay-1">
+                <div class="card h-100 card-high-risk animate-fade-in-up delay-2">
                     <div class="card-header d-flex align-items-center bg-danger bg-opacity-25 py-3">
                         <h3 class="h6 text-danger mb-0 fw-bold">
                             <i class="bi bi-exclamation-triangle-fill me-2"></i>
@@ -953,7 +980,7 @@
 
             <!-- No Risk Table -->
             <div class="col-lg-6">
-                <div class="card h-100 card-no-risk animate-fade-in-up delay-2">
+                <div class="card h-100 card-no-risk animate-fade-in-up delay-3">
                     <div class="card-header d-flex align-items-center bg-success bg-opacity-25 py-3">
                         <h3 class="h6 text-success mb-0 fw-bold">
                             <i class="bi bi-check-circle-fill me-2"></i>
@@ -1220,7 +1247,7 @@
             }
 
             // Logic for "Perform Risk Analysis" button
-            var originalColumns = tableColumns;
+            var originalColumns = tableColumns.slice();
 
             $('#analyzeBtn').on('click', function () {
                 console.log('Analyzing risk...');
@@ -1327,6 +1354,18 @@
                             return (maxLen - dist) / maxLen >= threshold;
                         }
 
+                        function similarityScore(s1, s2) {
+                            let n1 = superNormalize(s1);
+                            let n2 = superNormalize(s2);
+                            if (!n1 || !n2) return 0;
+                            if (n1 === n2) return 1;
+                            if (n1.length > 5 && n2.length > 5 && (n1.indexOf(n2) !== -1 || n2.indexOf(n1) !== -1)) return 0.99;
+                            let dist = levenshtein(n1, n2);
+                            let maxLen = Math.max(n1.length, n2.length);
+                            if (!maxLen) return 0;
+                            return (maxLen - dist) / maxLen;
+                        }
+
                         function normalizeText(val) {
                             return String(val || '')
                                 .replace(/\s+/g, '')
@@ -1335,8 +1374,39 @@
                         }
 
 
-                        var allData = table.rows().data();
-                        var data = [];
+                        var allData = table.rows().data().toArray();
+                        var matchedRows = [];
+                        var uploadSummary = {}; 
+
+                        function uploadKey(upPart, upMfg) {
+                            var p = String(upPart || '').trim();
+                            var m = String(upMfg || '').trim();
+                            if (!p && !m) return '';
+                            return (p + '||' + m).toLowerCase();
+                        }
+
+                        function ensureUploadSummary(key, upPart, upMfg) {
+                            if (!key) return;
+                            if (!uploadSummary[key]) {
+                                uploadSummary[key] = {
+                                    upPart: String(upPart || '').trim(),
+                                    upMfg: String(upMfg || '').trim(),
+                                    matched: false,
+                                    bestPn: '',
+                                    bestMfr: '',
+                                    bestScore: -1
+                                };
+                            }
+                        }
+
+                        function updateBestCandidate(key, pn, mfr, score) {
+                            if (!key || !uploadSummary[key]) return;
+                            if (score > uploadSummary[key].bestScore) {
+                                uploadSummary[key].bestScore = score;
+                                uploadSummary[key].bestPn = String(pn || '').trim();
+                                uploadSummary[key].bestMfr = String(mfr || '').trim();
+                            }
+                        }
 
                         for (var i = 0; i < allData.length; i++) {
                             var row = allData[i];
@@ -1346,22 +1416,256 @@
                             var sysMfrRaw = String(row[idxMfr] || "").trim();
                             var upMfrRaw = String(row[idxUpMfg] || "").trim();
 
+                            var key = uploadKey(upPnRaw, upMfrRaw);
+                            ensureUploadSummary(key, upPnRaw, upMfrRaw);
+
+                            var pnScore = similarityScore(sysPnRaw, upPnRaw);
+                            var mfrScore = similarityScore(sysMfrRaw, upMfrRaw);
+                            var combinedScore = (pnScore + mfrScore) / 2;
+                            updateBestCandidate(key, row[idxPN], row[idxMfr], combinedScore);
+
                             // Match logic using fuzzy logic (superNormalization + Levenshtein)
                             var isPnMatch = isFuzzyMatch(sysPnRaw, upPnRaw);
                             var isMfrMatch = isFuzzyMatch(sysMfrRaw, upMfrRaw);
 
-                            // Only push if we have a match
-                            if (sysPnRaw && sysMfrRaw && isPnMatch && isMfrMatch) {
-                                data.push(row);
+                            if (sysPnRaw && sysMfrRaw && upPnRaw && upMfrRaw && isPnMatch && isMfrMatch) {
+                                matchedRows.push(row);
+                                if (key && uploadSummary[key]) uploadSummary[key].matched = true;
                             }
                         }
-                        if (data.length === 0) {
-                            alert('No exact matches found after normalization.');
-                            $('#loadingOverlay').hide();
+
+                        var unmatchedUploads = Object.keys(uploadSummary)
+                            .filter(function (k) { return uploadSummary[k] && !uploadSummary[k].matched; })
+                            .map(function (k) {
+                                var u = uploadSummary[k];
+                                return [u.bestPn, u.bestMfr, u.upPart, u.upMfg];
+                            });
+
+                        // Helper for split results tables (High Risk / No+Low Risk)
+                        function initResultTable(id, data, emptyMsg) {
+                            if ($.fn.DataTable.isDataTable(id)) {
+                                $(id).DataTable().clear().destroy();
+                            }
+                            $(id).DataTable({
+                                data: data,
+                                columns: [
+                                    { title: "Part Number" },
+                                    { title: "CPN" },
+                                    { title: "Country" }
+                                ],
+                                "pageLength": 10,
+                                "lengthMenu": [[10, 25, 50, -1], [10, 25, 50, "All"]],
+                                "scrollY": "40vh",
+                                "scrollCollapse": true,
+                                "scrollX": true,
+                                "fixedColumns": {
+                                    left: 2
+                                },
+                                "dom": 'Blfrtip',
+                                "buttons": [{
+                                    extend: 'excel',
+                                    text: '<i class="bi bi-download"></i>',
+                                    className: 'btn btn-circle me-1',
+                                    title: (id === '#highRiskTable') ? 'FlagRisk_High_Risk' : 'FlagRisk_No_and_low_Risk'
+                                }],
+                                "ordering": false,
+                                "language": {
+                                    "search": "Search:",
+                                    "emptyTable": emptyMsg || "No records found"
+                                }
+                            });
+
+                            // Adjust columns after a small delay to ensure visibility
+                            setTimeout(function () {
+                                var t = $(id).DataTable();
+                                t.columns.adjust().draw();
+                            }, 250);
+                        }
+
+                        function bindExportCompleteBtn() {
+                            $('#exportCompleteBtn').off('click').on('click', function () {
+                                console.log('Exporting complete report...');
+                                showLoader('download', 'Generating complete report...');
+
+                                setTimeout(function () {
+                                    try {
+                                        var mainTable = $('#dataTable').DataTable();
+                                        var highRiskTable = $('#highRiskTable').DataTable();
+                                        var noRiskTable = $('#noRiskTable').DataTable();
+                                        var unmatchedTable = $.fn.DataTable.isDataTable('#unmatchedTable') ? $('#unmatchedTable').DataTable() : null;
+
+                                        var mainData = mainTable.rows().data().toArray();
+                                        var highRiskData = highRiskTable.rows().data().toArray();
+                                        var noRiskData = noRiskTable.rows().data().toArray();
+                                        var unmatchedData = unmatchedTable ? unmatchedTable.rows().data().toArray() : [];
+
+                                        var mainHeaders = [];
+                                        $('#dataTable thead th').each(function () {
+                                            mainHeaders.push($(this).text().trim());
+                                        });
+
+                                        function stripHtml(html) {
+                                            if (typeof html !== 'string') return html;
+                                            var tmp = document.createElement("DIV");
+                                            tmp.innerHTML = html;
+                                            return tmp.textContent || tmp.innerText || "";
+                                        }
+
+                                        var cleanData = function (dataArray) {
+                                            return dataArray.map(function (row) {
+                                                return row.map(function (cell) {
+                                                    return stripHtml(cell);
+                                                });
+                                            });
+                                        };
+
+                                        var exportData = {
+                                            Main_Report: {
+                                                headers: mainHeaders,
+                                                data: cleanData(mainData)
+                                            },
+                                            High_Risk: {
+                                                headers: ['Part Number', 'CPN', 'Country'],
+                                                data: cleanData(highRiskData)
+                                            },
+                                            No_Low_Risk: {
+                                                headers: ['Part Number', 'CPN', 'Country'],
+                                                data: cleanData(noRiskData)
+                                            },
+                                            Unmatched_Uploads: {
+                                                headers: ['Part Number', 'Manufacturer', 'Uploaded Part', 'Uploaded Mfg'],
+                                                data: cleanData(unmatchedData)
+                                            }
+                                        };
+
+                                        function s2ab(s) {
+                                            var buf = new ArrayBuffer(s.length);
+                                            var view = new Uint8Array(buf);
+                                            for (var i = 0; i < s.length; i++) view[i] = s.charCodeAt(i) & 0xFF;
+                                            return buf;
+                                        }
+
+                                        var wb = XLSX.utils.book_new();
+
+                                        var mainWS = XLSX.utils.aoa_to_sheet([exportData.Main_Report.headers].concat(exportData.Main_Report.data));
+                                        XLSX.utils.book_append_sheet(wb, mainWS, 'Main_Report');
+
+                                        var highWS = XLSX.utils.aoa_to_sheet([exportData.High_Risk.headers].concat(exportData.High_Risk.data));
+                                        XLSX.utils.book_append_sheet(wb, highWS, 'High_Risk');
+
+                                        var noLowWS = XLSX.utils.aoa_to_sheet([exportData.No_Low_Risk.headers].concat(exportData.No_Low_Risk.data));
+                                        XLSX.utils.book_append_sheet(wb, noLowWS, 'No_and_Low_Risk');
+
+                                        var unmatchedWS = XLSX.utils.aoa_to_sheet([exportData.Unmatched_Uploads.headers].concat(exportData.Unmatched_Uploads.data));
+                                        XLSX.utils.book_append_sheet(wb, unmatchedWS, 'Unmatched_Uploads');
+
+                                        function autofitColumns(ws) {
+                                            const colWidths = [];
+                                            const data = XLSX.utils.sheet_to_json(ws, { header: 1 });
+
+                                            data.forEach(row => {
+                                                row.forEach((cell, colIndex) => {
+                                                    const len = String(cell || '').length;
+                                                    colWidths[colIndex] = Math.max(colWidths[colIndex] || 10, len + 2);
+                                                });
+                                            });
+
+                                            ws['!cols'] = colWidths.map(w => ({ wch: Math.min(w, 50) }));
+                                        }
+
+                                        autofitColumns(mainWS);
+                                        autofitColumns(highWS);
+                                        autofitColumns(noLowWS);
+                                        autofitColumns(unmatchedWS);
+
+                                        var now = new Date();
+                                        var timestamp = now.toISOString().slice(0, 19).replace(/:/g, '-');
+                                        var filename = 'FlagRisk_Complete_Report_' + timestamp + '.xlsx';
+
+                                        var wbout = XLSX.write(wb, { bookType: 'xlsx', type: 'binary' });
+                                        var blob = new Blob([s2ab(wbout)], { type: 'application/octet-stream' });
+
+                                        var a = document.createElement('a');
+                                        a.href = URL.createObjectURL(blob);
+                                        a.download = filename;
+                                        a.click();
+
+                                        console.log('Complete report exported:', filename);
+
+                                    } catch (e) {
+                                        console.error('Export error:', e);
+                                        alert('Error generating report: ' + e.message);
+                                    } finally {
+                                        $('#loadingOverlay').hide();
+                                    }
+                                }, 100);
+                            });
+                        }
+
+                        function removeAnalyzeBtn() {
+                            if ($('#analyzeBtn').length) {
+                                $('#analyzeBtn').remove();
+                            }
+                        }
+
+                        // Helper for Unmatched table
+                        var initUnmatchedTable = function (data, emptyMsg) {
+                            var id = '#unmatchedTable';
+                            if ($.fn.DataTable.isDataTable(id)) {
+                                $(id).DataTable().clear().destroy();
+                            }
+                            $(id).DataTable({
+                                data: data,
+                                columns: [
+                                    { title: "Part Number" },
+                                    { title: "Manufacturer" },
+                                    { title: "Uploaded Part" },
+                                    { title: "Uploaded Mfg" }
+                                ],
+                                "pageLength": 10,
+                                "lengthMenu": [[10, 25, 50, -1], [10, 25, 50, "All"]],
+                                "scrollY": "40vh",
+                                "scrollCollapse": true,
+                                "scrollX": true,
+                                "fixedColumns": {
+                                    left: 2
+                                },
+                                "dom": 'Blfrtip',
+                                "buttons": [{
+                                    extend: 'excel',
+                                    text: '<i class="bi bi-download"></i>',
+                                    className: 'btn btn-circle me-1',
+                                    title: 'FlagRisk_Unmatched_Uploads'
+                                }],
+                                "ordering": false,
+                                "language": {
+                                    "search": "Search:",
+                                    "emptyTable": emptyMsg || "No unmatched uploads found"
+                                }
+                            });
+
+                            setTimeout(function () {
+                                var t = $(id).DataTable();
+                                t.columns.adjust().draw();
+                            }, 250);
+                        };
+
+                        // If there are no matches, still show unmatched uploads
+                        if (matchedRows.length === 0) {
+                            initResultTable('#highRiskTable', [], 'No High Risk parts found.');
+                            initResultTable('#noRiskTable', [], 'No matched parts in this category.');
+                            initUnmatchedTable(unmatchedUploads, 'No unmatched uploads found.');
+
+                            $('#resultsCard').show().addClass('animate__animated animate__fadeInUp');
+                            $('#exportCompleteBtn').show().addClass('animate__animated animate__zoomIn');
+                            bindExportCompleteBtn();
+                            removeAnalyzeBtn();
+
+                            alert('No matches found after normalization. Showing unmatched uploads.');
                             return;
                         }
 
-                        // Build Risk Maps
+                        // Build Risk Maps (based on matched rows only)
                         var mpnMap = {};
                         var cpnToMpns = {}; // NEW: map CPN to set of unique MPNs
                         var mpnSiteMap = {};
@@ -1371,8 +1675,8 @@
                         };
 
                         // Pass 1: populate maps
-                        for (var i = 0; i < data.length; i++) {
-                            var row = data[i];
+                        for (var i = 0; i < matchedRows.length; i++) {
+                            var row = matchedRows[i];
                             var pn = String(row[idxPN] || '').trim().toLowerCase();
                             var cpn = idxCPN > -1 ? String(row[idxCPN] || '').trim().toLowerCase() : '';
                             var country = idxCountry > -1 ? String(row[idxCountry] || '').trim().toLowerCase() : '';
@@ -1424,13 +1728,27 @@
                             else cpnRiskMap[cpn] = "No Risk";
                         });
 
-                        // Pass 2: Process matched results & Build new main table data
+                        // Pass 2: Build main table & split tables using only matched rows
                         var newData = [];
                         var highRiskResults = [];
                         var noRiskResults = [];
 
-                        for (var i = 0; i < data.length; i++) {
-                            var row = data[i];
+                        for (var i = 0; i < allData.length; i++) {
+                            var row = allData[i];
+
+                            var sysPnRaw = String(row[idxPN] || "").trim();
+                            var upPnRaw = String(row[idxUpPart] || "").trim();
+                            var sysMfrRaw = String(row[idxMfr] || "").trim();
+                            var upMfrRaw = String(row[idxUpMfg] || "").trim();
+                            var isPnMatch = isFuzzyMatch(sysPnRaw, upPnRaw);
+                            var isMfrMatch = isFuzzyMatch(sysMfrRaw, upMfrRaw);
+                            var isMatched = (sysPnRaw && sysMfrRaw && upPnRaw && upMfrRaw && isPnMatch && isMfrMatch);
+
+                            // Skip unmatched rows in the main table
+                            if (!isMatched) {
+                                continue;
+                            }
+
                             var pn = String(row[idxPN] || '').trim().toLowerCase();
                             var mfr = String(row[idxMfr] || '').trim().toLowerCase();
                             var upPart = String(row[idxUpPart] || '').trim().toLowerCase();
@@ -1438,7 +1756,7 @@
                             var cpn = idxCPN > -1 ? String(row[idxCPN] || '').trim().toLowerCase() : '';
                             var country = idxCountry > -1 ? String(row[idxCountry] || '').trim().toLowerCase() : '';
 
-                            // Apply Pre-calculated Risks
+                            // Apply Pre-calculated Risks (matched rows only)
                             var mpnRisk = mpnRiskMap[pn] || "No Risk";
                             var cpnRisk = cpnRiskMap[cpn] || "No Risk";
 
@@ -1537,11 +1855,13 @@
                                 idxCountry > -1 ? row[idxCountry] : ''
                             ];
 
-                            if (cpnRisk === "High Risk") {
-                                highRiskResults.push(splitRow);
-                            } else {
-                                // Includes both Low Risk and No Risk
-                                noRiskResults.push(splitRow);
+                            if (isMatched) {
+                                if (cpnRisk === "High Risk") {
+                                    highRiskResults.push(splitRow);
+                                } else {
+                                    // Includes both Low Risk and No Risk
+                                    noRiskResults.push(splitRow);
+                                }
                             }
                         }
 
@@ -1584,48 +1904,7 @@
                                     .map(c => c.toLowerCase().trim())
                                     .indexOf('cpn');
 
-                                // if (mpnRisk === 'High Risk' && pnIdx !== -1) {
-                                //     $('td:eq(' + pnIdx + ')', row).css({
-                                //         'background-color': '#EF9595',
-                                //         'color': '#dc2626',
-                                //         'font-weight': '600',
-                                //         'border-left': '3px solid #ef4444'
-                                //     });
-                                // }
-                                // else if (mpnRisk === 'No Risk' && pnIdx !== -1) {
-                                //     $('td:eq(' + pnIdx + ')', row).css({
-                                //         'background-color': '#99D999',
-                                //         'color': '#047857',
-                                //         'font-weight': '600',
-                                //         'border-left': '3px solid #10b981'
-                                //     });
-                                // }
-                                // if (cpnRisk === 'High Risk' && cpnIdx !== -1) {
-                                //     // Highlight CPN cell red for CPN High Risk
-                                //     $('td:eq(' + cpnIdx + ')', row).css({
-                                //         'background-color': '#EF9595',
-                                //         'color': '#dc2626',
-                                //         'font-weight': '600',
-                                //         'border-left': '3px solid #ef4444'
-                                //     });
-                                // } else if (cpnRisk === 'Low Risk' && cpnIdx !== -1) {
-                                // // Highlight CPN cell orange for CPN Low Risk
-                                // $('td:eq(' + cpnIdx + ')', row).css({
-                                //     'background-color': '#F5BF79',
-                                //     'color': '#D47A54',
-                                //     'font-weight': '500',
-                                //     'border-left': '3px solid #f59e0b'
-                                // });
-                                // } if (cpnRisk === 'No Risk' && cpnIdx !== -1) {
-                                //     $('td:eq(' + cpnIdx + ')', row).css({
-                                //         'background-color': '#99D999',
-                                //         'color': '#047857',
-                                //         'font-weight': '600',
-                                //         'border-left': '3px solid #10b981'
-                                //     });
-                                // }
-
-                                // Also highlight the risk columns themselves for clarity
+    
                                 var mpnRiskIdx = data.length - 3;
                                 var cpnRiskIdx = data.length - 2;
 
@@ -1684,165 +1963,14 @@
                             t.columns.adjust().draw();
                         }, 200);
 
-                        // Handle Split Results Tables
-                        var initResultTable = function (id, data, emptyMsg) {
-                            if ($.fn.DataTable.isDataTable(id)) {
-                                $(id).DataTable().clear().destroy();
-                            }
-                            $(id).DataTable({
-                                data: data,
-                                columns: [
-                                    { title: "Part Number" },
-                                    { title: "CPN" },
-                                    { title: "Country" }
-                                ],
-                                "pageLength": 10,
-                                "lengthMenu": [[10, 25, 50, -1], [10, 25, 50, "All"]],
-                                "scrollY": "40vh",
-                                "scrollCollapse": true,
-                                "scrollX": true,
-                                "fixedColumns": {
-                                    left: 2
-                                },
-                                "dom": 'Blfrtip',
-                                "buttons": [{
-                                    extend: 'excel',
-                                    text: '<i class="bi bi-download"></i>',
-                                    className: 'btn btn-circle me-1',
-                                    title: (id === '#highRiskTable') ? 'FlagRisk_High_Risk' : 'FlagRisk_No_and_low_Risk'
-                                }],
-                                "ordering": false,
-                                "language": {
-                                    "search": "Search:",
-                                    "emptyTable": emptyMsg || "No records found"
-                                }
-                            });
-
-                            // Adjust columns after a small delay to ensure visibility
-                            setTimeout(function () {
-                                var t = $(id).DataTable();
-                                t.columns.adjust().draw();
-                            }, 250);
-                        };
-
                         initResultTable('#highRiskTable', highRiskResults, 'No High Risk parts found.');
                         initResultTable('#noRiskTable', noRiskResults, 'No matched parts in this category.');
+                        initUnmatchedTable(unmatchedUploads, 'No unmatched uploads found.');
 
                         $('#resultsCard').show().addClass('animate__animated animate__fadeInUp');
                         $('#exportCompleteBtn').show().addClass('animate__animated animate__zoomIn');
-
-                        $('#exportCompleteBtn').on('click', function () {
-                            console.log('Exporting complete report...');
-                            showLoader('download', 'Generating complete report...');
-
-                            setTimeout(function () {
-                                try {
-                                    var mainTable = $('#dataTable').DataTable();
-                                    var highRiskTable = $('#highRiskTable').DataTable();
-                                    var noRiskTable = $('#noRiskTable').DataTable();
-
-                                    var mainData = mainTable.rows().data().toArray();
-                                    var highRiskData = highRiskTable.rows().data().toArray();
-                                    var noRiskData = noRiskTable.rows().data().toArray();
-
-                                    var mainHeaders = [];
-                                    $('#dataTable thead th').each(function () {
-                                        mainHeaders.push($(this).text().trim());
-                                    });
-
-                                    function stripHtml(html) {
-                                        if (typeof html !== 'string') return html;
-                                        var tmp = document.createElement("DIV");
-                                        tmp.innerHTML = html;
-                                        return tmp.textContent || tmp.innerText || "";
-                                    }
-
-                                    var cleanData = function (dataArray) {
-                                        return dataArray.map(function (row) {
-                                            return row.map(function (cell) {
-                                                return stripHtml(cell);
-                                            });
-                                        });
-                                    };
-
-                                    var exportData = {
-                                        Main_Report: {
-                                            headers: mainHeaders,
-                                            data: cleanData(mainData)
-                                        },
-                                        High_Risk: {
-                                            headers: ['Part Number', 'CPN', 'Country'],
-                                            data: cleanData(highRiskData)
-                                        },
-                                        No_Low_Risk: {
-                                            headers: ['Part Number', 'CPN', 'Country'],
-                                            data: cleanData(noRiskData)
-                                        }
-                                    };
-
-                                    function s2ab(s) {
-                                        var buf = new ArrayBuffer(s.length);
-                                        var view = new Uint8Array(buf);
-                                        for (var i = 0; i < s.length; i++) view[i] = s.charCodeAt(i) & 0xFF;
-                                        return buf;
-                                    }
-
-                                    var wb = XLSX.utils.book_new();
-
-                                    var mainWS = XLSX.utils.aoa_to_sheet([exportData.Main_Report.headers].concat(exportData.Main_Report.data));
-                                    XLSX.utils.book_append_sheet(wb, mainWS, 'Main_Report');
-
-                                    var highWS = XLSX.utils.aoa_to_sheet([exportData.High_Risk.headers].concat(exportData.High_Risk.data));
-                                    XLSX.utils.book_append_sheet(wb, highWS, 'High_Risk');
-
-                                    var noLowWS = XLSX.utils.aoa_to_sheet([exportData.No_Low_Risk.headers].concat(exportData.No_Low_Risk.data));
-                                    XLSX.utils.book_append_sheet(wb, noLowWS, 'No_and_Low_Risk');
-
-                                    function autofitColumns(ws) {
-                                        const colWidths = [];
-                                        const data = XLSX.utils.sheet_to_json(ws, { header: 1 });
-
-                                        data.forEach(row => {
-                                            row.forEach((cell, colIndex) => {
-                                                const len = String(cell || '').length;
-                                                colWidths[colIndex] = Math.max(colWidths[colIndex] || 10, len + 2);
-                                            });
-                                        });
-
-                                        ws['!cols'] = colWidths.map(w => ({ wch: Math.min(w, 50) }));
-                                    }
-
-                                    autofitColumns(mainWS);
-                                    autofitColumns(highWS);
-                                    autofitColumns(noLowWS);
-
-                                    var now = new Date();
-                                    var timestamp = now.toISOString().slice(0, 19).replace(/:/g, '-');
-                                    var filename = 'FlagRisk_Complete_Report_' + timestamp + '.xlsx';
-
-                                    var wbout = XLSX.write(wb, { bookType: 'xlsx', type: 'binary' });
-                                    var blob = new Blob([s2ab(wbout)], { type: 'application/octet-stream' });
-
-                                    var a = document.createElement('a');
-                                    a.href = URL.createObjectURL(blob);
-                                    a.download = filename;
-                                    a.click();
-
-                                    console.log('Complete report exported:', filename);
-
-                                } catch (e) {
-                                    console.error('Export error:', e);
-                                    alert('Error generating report: ' + e.message);
-                                } finally {
-                                    $('#loadingOverlay').hide();
-                                }
-                            }, 100);
-                        });
-
-                        // Scroll to results
-                        $('html, body').animate({
-                            scrollTop: $("#resultsCard").offset().top
-                        }, 500);
+                        bindExportCompleteBtn();
+                        removeAnalyzeBtn();
 
                     } catch (e) {
                         console.error(e);
