@@ -18,6 +18,8 @@
     <link rel="stylesheet" href="https://cdn.datatables.net/fixedcolumns/4.3.0/css/fixedColumns.bootstrap5.min.css">
     <!-- Animate.css -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/animate.css/4.1.1/animate.min.css" />
+    <!-- Chart.js -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 
     <style>
         :root {
@@ -65,6 +67,8 @@
             background: #f1f5f9;
             cursor: pointer;
             transition: all 0.3s;
+            position: relative;
+            overflow: hidden;
         }
 
         .upload-area:hover {
@@ -76,6 +80,12 @@
             font-size: 3rem;
             color: #94a3b8;
             margin-bottom: 1rem;
+            transition: transform 0.3s ease;
+        }
+
+        .upload-area:hover .upload-icon {
+            transform: scale(1.1) translateY(-5px);
+            color: var(--primary-color);
         }
 
         .btn-custom {
@@ -89,11 +99,41 @@
             display: inline-flex;
             align-items: center;
             gap: 0.5rem;
+            position: relative;
+            z-index: 1;
+            overflow: hidden;
         }
 
         .btn-custom:hover {
             box-shadow: 0 4px 12px rgba(13, 148, 136, 0.3);
             transform: translateY(-1px);
+        }
+
+        .btn-custom::before {
+            content: '';
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            width: 0;
+            height: 0;
+            background: rgba(255, 255, 255, 0.2);
+            border-radius: 50%;
+            transform: translate(-50%, -50%);
+            transition: width 0.6s ease, height 0.6s ease;
+            z-index: -1;
+        }
+
+        .btn-custom:hover::before {
+            width: 300px;
+            height: 300px;
+        }
+
+        .btn-custom i {
+            transition: transform 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+        }
+
+        .btn-custom:hover i {
+            transform: rotate(360deg) scale(1.2);
         }
 
         /* DataTables & Table Styling Overhaul */
@@ -113,9 +153,7 @@
 
         .data-table thead th {
             background-color: #096de5 !important;
-            /* Updated to brand blue */
             color: white !important;
-            /* White text for contrast */
             font-size: 0.75rem;
             font-weight: 700;
             text-transform: uppercase;
@@ -140,13 +178,35 @@
 
         .data-table tbody tr {
             transition: background-color 0.15s;
+            opacity: 0;
+            transform: translateY(10px);
+            animation: fadeInUpCustom 0.4s ease forwards;
         }
 
         .data-table tbody tr:hover {
             background-color: #f8fafc !important;
         }
 
-        /* Fix for DataTables scroll head alignment row being visible */
+        .row-delay-1 {
+            animation-delay: 0.05s;
+        }
+
+        .row-delay-2 {
+            animation-delay: 0.1s;
+        }
+
+        .row-delay-3 {
+            animation-delay: 0.15s;
+        }
+
+        .row-delay-4 {
+            animation-delay: 0.2s;
+        }
+
+        .row-delay-5 {
+            animation-delay: 0.25s;
+        }
+
         .dataTables_scrollBody thead th {
             padding-top: 0 !important;
             padding-bottom: 0 !important;
@@ -157,7 +217,6 @@
             line-height: 0 !important;
         }
 
-        /* DataTables Pagination & Controls Symmetry */
         .dataTables_wrapper {
             padding: 1rem 0;
         }
@@ -165,7 +224,6 @@
         .dataTables_wrapper .dataTables_length,
         .dataTables_wrapper .dataTables_filter {
             margin-bottom: 1.5rem;
-            /* Separate controls from the table */
             display: flex;
             align-items: center;
         }
@@ -185,6 +243,15 @@
             background-color: white;
             outline: none;
             transition: border-color 0.2s;
+            padding-right: 2.2rem !important;
+            appearance: none !important;
+            -webkit-appearance: none !important;
+            -moz-appearance: none !important;
+            background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 24 24' stroke='%23475569'%3E%3Cpath stroke-linecap='round' stroke-linejoin='round' stroke-width='2' d='C19 9l-7 7-7-7'%3E%3C/path%3E%3C/svg%3E") !important;
+            background-repeat: no-repeat !important;
+            background-position: right 0.75rem center !important;
+            background-size: 1rem !important;
+            cursor: pointer;
         }
 
         .dataTables_wrapper .dataTables_filter input {
@@ -195,18 +262,6 @@
             outline: none;
             transition: all 0.3s cubic-bezier(0.165, 0.84, 0.44, 1);
             width: 200px;
-        }
-
-        .dataTables_wrapper .dataTables_length select {
-            padding-right: 2.2rem !important;
-            appearance: none !important;
-            -webkit-appearance: none !important;
-            -moz-appearance: none !important;
-            background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 24 24' stroke='%23475569'%3E%3Cpath stroke-linecap='round' stroke-linejoin='round' stroke-width='2' d='C19 9l-7 7-7-7'%3E%3C/path%3E%3C/svg%3E") !important;
-            background-repeat: no-repeat !important;
-            background-position: right 0.75rem center !important;
-            background-size: 1rem !important;
-            cursor: pointer;
         }
 
         .dataTables_wrapper .dataTables_length select:focus {
@@ -257,7 +312,6 @@
             box-shadow: 0 4px 6px rgba(9, 109, 229, 0.2);
         }
 
-        /* Specific Table Pagination Colors */
         #highRiskTable_wrapper .dataTables_paginate .paginate_button.active a,
         #highRiskTable_wrapper .dataTables_paginate .paginate_button.current a {
             background: #dc3545 !important;
@@ -286,10 +340,8 @@
             color: #198754 !important;
         }
 
-        /* Action Buttons */
         .btn-circle {
             border-radius: 10px !important;
-            /* Slightly rounded instead of full circle for modern look */
             width: 36px;
             height: 36px;
             padding: 0 !important;
@@ -312,11 +364,9 @@
             box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
         }
 
-        /* Risk Badges - DARKER SHADES */
         .risk-badge {
             padding: 5px 12px;
             border-radius: 6px;
-            /* Slightly more structured badge */
             font-weight: 700;
             font-size: 0.7rem;
             text-transform: uppercase;
@@ -329,21 +379,31 @@
             background-color: #fecaca;
             color: #7f1d1d;
             border: 1px solid #ef4444;
+            animation: pulse-red 2s infinite;
+            transition: transform 0.2s;
         }
 
         .risk-low {
             background-color: #fde68a;
             color: #78350f;
             border: 1px solid #f59e0b;
+            animation: pulse-yellow 3s infinite;
+            transition: transform 0.2s;
         }
 
         .risk-none {
             background-color: #bbf7d0;
             color: #064e3b;
             border: 1px solid #10b981;
+            animation: pulse-green 4s infinite;
+            transition: transform 0.2s;
         }
 
-        /* Fixed Columns Visual Cue */
+        .risk-badge:hover {
+            transform: scale(1.1);
+            z-index: 10;
+        }
+
         .dtfc-fixed-left {
             background-color: var(--surface-color) !important;
             box-shadow: 2px 0 5px rgba(0, 0, 0, 0.05);
@@ -357,7 +417,6 @@
             z-index: 6;
         }
 
-        /* Card Border Styles */
         .card-main {
             border: 2px solid #096de5 !important;
         }
@@ -370,7 +429,6 @@
             border: 2px solid #198754 !important;
         }
 
-        /* Table Header Colors - HIGH RISK */
         #highRiskTable_wrapper .dataTables_scrollHead thead th,
         #highRiskTable thead th {
             background-color: #dc3545 !important;
@@ -383,7 +441,6 @@
             background-color: #dc3545 !important;
         }
 
-        /* Table Header Colors - NO RISK / LOW RISK */
         #noRiskTable_wrapper .dataTables_scrollHead thead th,
         #noRiskTable thead th {
             background-color: #198754 !important;
@@ -396,7 +453,6 @@
             background-color: #198754 !important;
         }
 
-        /* Logo Alignment */
         .logo-small {
             height: 24px !important;
             width: auto;
@@ -441,10 +497,8 @@
             width: 100vw;
             height: 100vh;
             background-color: #f8fafc !important;
-            /* Fully solid background to hide page content */
             opacity: 1 !important;
             z-index: 999999;
-            /* Absolute foreground */
             justify-content: center;
             align-items: center;
             flex-direction: column;
@@ -576,11 +630,6 @@
             box-shadow: 0 20px 40px rgba(0, 0, 0, 0.12);
         }
 
-        .upload-area {
-            position: relative;
-            overflow: hidden;
-        }
-
         .upload-area::after {
             content: '';
             position: absolute;
@@ -599,79 +648,6 @@
             transform: scale(1.02);
         }
 
-        .upload-icon {
-            transition: transform 0.3s ease;
-        }
-
-        .upload-area:hover .upload-icon {
-            transform: scale(1.1) translateY(-5px);
-            color: var(--primary-color);
-        }
-
-        .risk-high {
-            background-color: #fecaca;
-            color: #7f1d1d;
-            border: 1px solid #ef4444;
-            animation: pulse-red 2s infinite;
-            transition: transform 0.2s;
-        }
-
-        .risk-low {
-            animation: pulse-yellow 3s infinite;
-            transition: transform 0.2s;
-        }
-
-        .risk-none {
-            animation: pulse-green 4s infinite;
-            transition: transform 0.2s;
-        }
-
-        .risk-badge:hover {
-            transform: scale(1.1);
-            z-index: 10;
-        }
-
-        .btn-custom {
-            position: relative;
-            z-index: 1;
-            overflow: hidden;
-        }
-
-        .btn-custom::before {
-            content: '';
-            position: absolute;
-            top: 50%;
-            left: 50%;
-            width: 0;
-            height: 0;
-            background: rgba(255, 255, 255, 0.2);
-            border-radius: 50%;
-            transform: translate(-50%, -50%);
-            transition: width 0.6s ease, height 0.6s ease;
-            z-index: -1;
-        }
-
-        .btn-custom:hover::before {
-            width: 300px;
-            height: 300px;
-        }
-
-        .logo-small {
-            height: 24px !important;
-            width: auto;
-            opacity: 0.8;
-            transition: opacity 0.2s;
-        }
-
-        .btn-custom i {
-            transition: transform 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275);
-        }
-
-        .btn-custom:hover i {
-            transform: rotate(360deg) scale(1.2);
-        }
-
-        /* Improved Loading Overlay */
         .loading-content {
             text-align: center;
             position: relative;
@@ -713,7 +689,6 @@
             font-weight: 700;
         }
 
-        /* Specialized Loader Animations */
         .loader-section {
             display: flex;
             justify-content: center;
@@ -723,7 +698,6 @@
             border-radius: 16px;
             margin-bottom: 20px;
             box-shadow: inset 0 2px 10px rgba(0, 0, 0, 0.05);
-            /* Sunken 'stage' effect */
             border: 1px solid #f1f5f9;
         }
 
@@ -788,32 +762,178 @@
             }
         }
 
-        /* Table Row Entrance */
-        .data-table tbody tr {
-            opacity: 0;
-            transform: translateY(10px);
-            animation: fadeInUpCustom 0.4s ease forwards;
+        /* NAV TABS */
+        .nav-tabs-container {
+            display: flex;
+            justify-content: center;
+            margin-bottom: 1.5rem;
         }
 
-        /* Staggered row animation via JS or CSS classes */
-        .row-delay-1 {
-            animation-delay: 0.05s;
+        .nav-pills-custom {
+            display: inline-flex;
+            background: white;
+            border-radius: 14px;
+            padding: 5px;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.08);
+            border: 1px solid var(--border-color);
+            position: relative;
+            gap: 4px;
         }
 
-        .row-delay-2 {
-            animation-delay: 0.1s;
+        .nav-pills-custom .nav-link-custom {
+            position: relative;
+            z-index: 1;
+            padding: 10px 28px;
+            border-radius: 10px;
+            border: none;
+            background: transparent;
+            color: var(--text-secondary);
+            font-weight: 600;
+            font-size: 0.9rem;
+            cursor: pointer;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            white-space: nowrap;
+            outline: none;
         }
 
-        .row-delay-3 {
-            animation-delay: 0.15s;
+        .nav-pills-custom .nav-link-custom:hover:not(.active) {
+            color: var(--primary-color);
+            background: rgba(13, 148, 136, 0.06);
         }
 
-        .row-delay-4 {
-            animation-delay: 0.2s;
+        .nav-pills-custom .nav-link-custom.active {
+            background: var(--gradient);
+            color: white;
+            box-shadow: 0 4px 12px rgba(13, 148, 136, 0.35);
         }
 
-        .row-delay-5 {
-            animation-delay: 0.25s;
+        .nav-pills-custom .nav-link-custom.active i {
+            animation: none;
+        }
+
+        .nav-pills-custom .nav-link-custom .badge-count {
+            background: rgba(255, 255, 255, 0.25);
+            color: white;
+            font-size: 0.7rem;
+            padding: 2px 8px;
+            border-radius: 50px;
+            font-weight: 700;
+            display: none;
+        }
+
+        .nav-pills-custom .nav-link-custom.active .badge-count {
+            display: inline-block;
+        }
+
+        .nav-pills-custom .nav-link-custom.disabled {
+            opacity: 0.45;
+            cursor: not-allowed;
+            pointer-events: none;
+        }
+
+        .tab-pane-custom {
+            display: none;
+            animation: tabFadeIn 0.4s cubic-bezier(0.16, 1, 0.3, 1) both;
+        }
+
+        .tab-pane-custom.active {
+            display: block;
+        }
+
+        @keyframes tabFadeIn {
+            from {
+                opacity: 0;
+                transform: translateY(12px);
+            }
+
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        /* DASHBOARD STYLES */
+        .dashboard-section {
+            background: linear-gradient(135deg, var(--bg-color) 0%, #ffffff 100%);
+            border-radius: 16px;
+            padding: 2rem;
+            margin-top: 2rem;
+            box-shadow: var(--card-shadow);
+        }
+
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 1.5rem;
+            margin-bottom: 2rem;
+        }
+
+        .stat-card {
+            background: white;
+            border-radius: 12px;
+            padding: 1.5rem;
+            text-align: center;
+            border: 1px solid var(--border-color);
+            transition: all 0.3s ease;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .stat-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.4), transparent);
+            transition: left 0.5s;
+        }
+
+        .stat-card:hover::before {
+            left: 100%;
+        }
+
+        .stat-card:hover {
+            transform: translateY(-8px);
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.15);
+        }
+
+        .stat-number {
+            font-size: 2.5rem;
+            font-weight: 700;
+            margin-bottom: 0.5rem;
+        }
+
+        .stat-high .stat-number {
+            background: linear-gradient(45deg, #ef4444, #dc2626);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .stat-low .stat-number {
+            background: linear-gradient(45deg, #f59e0b, #d97706);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .stat-none .stat-number {
+            background: linear-gradient(45deg, #10b981, #059669);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .chart-container {
+            position: relative;
+            height: 350px;
+            margin-bottom: 1.5rem;
+            animation: fadeInUpCustom 0.8s ease forwards;
         }
     </style>
 </head>
@@ -824,7 +944,6 @@
             <div class="col-12">
                 <div
                     class="d-flex align-items-center p-3 rounded-4 bg-white shadow-sm border border-light-subtle animate__animated animate__fadeInDown">
-                    <!-- Left: Flag + FlagRisk text -->
                     <div class="d-flex align-items-center gap-3 animate__animated animate__fadeInLeft">
                         <div
                             class="bg-danger bg-opacity-10 p-2 rounded-3 animate__animated animate__bounceIn animate__delay-1s">
@@ -889,121 +1008,208 @@
         {% endif %}
 
         {% if is_uploaded %}
-        <div class="row">
-            <div class="col-12">
-                <div class="card card-main animate-fade-in-up">
-                    <div class="card-body p-4">
-                        <div class="d-flex justify-content-between align-items-center flex-wrap gap-2 mb-4">
-                            <h3 class="h5 mb-0 fw-semibold">Data Preview:</h3>
-                            <div class="d-flex gap-2">
-                                <button type="button" id="analyzeBtn" class="btn btn-custom btn-sm shadow-sm pe-3">
-                                    <i class="bi bi-graph-up-arrow"></i> Perform Risk Analysis
-                                </button>
-                                <button type="button" id="exportCompleteBtn"
-                                    class="btn btn-custom btn-sm shadow-sm pe-3" style="display: none;">
-                                    <i class="bi bi-file-earmark-excel"></i> Export Complete Report
-                                </button>
-                                <a href="/" class="btn btn-custom btn-sm shadow-sm pe-3">
-                                    <i class="bi bi-cloud-upload"></i> Upload New File
-                                </a>
+
+        <!-- Action Buttons Row -->
+        <div class="d-flex justify-content-between align-items-center flex-wrap gap-2 mb-3 animate-fade-in-up">
+            <div></div>
+            <div class="d-flex gap-2">
+                <button type="button" id="analyzeBtn" class="btn btn-custom btn-sm shadow-sm pe-3">
+                    <i class="bi bi-graph-up-arrow"></i> Perform Risk Analysis
+                </button>
+                <button type="button" id="exportCompleteBtn" class="btn btn-custom btn-sm shadow-sm pe-3"
+                    style="display: none;">
+                    <i class="bi bi-file-earmark-excel"></i> Export Complete Report
+                </button>
+                <a href="/" class="btn btn-custom btn-sm shadow-sm pe-3">
+                    <i class="bi bi-cloud-upload"></i> Upload New File
+                </a>
+            </div>
+        </div>
+
+        <!-- Centered Nav Tabs -->
+        <div class="nav-tabs-container animate-fade-in-up">
+            <div class="nav-pills-custom" id="mainNavTabs">
+                <button class="nav-link-custom active" data-tab="dataPreviewTab" id="navDataPreview">
+                    <i class="bi bi-table"></i> Data Preview
+                </button>
+                <button class="nav-link-custom disabled" data-tab="analysisTab" id="navAnalysis">
+                    <i class="bi bi-graph-up-arrow"></i> Analysis & Dashboard
+                </button>
+            </div>
+        </div>
+
+        <!-- TAB 1: Data Preview -->
+        <div class="tab-pane-custom active" id="dataPreviewTab">
+            <div class="row">
+                <div class="col-12">
+                    <div class="card card-main animate-fade-in-up">
+                        <div class="card-body p-4">
+                            <div class="d-flex justify-content-between align-items-center flex-wrap gap-2 mb-4">
+                                <h3 class="h5 mb-0 fw-semibold">
+                                    <i class="bi bi-eye me-2 text-primary"></i>Data Preview
+                                </h3>
                             </div>
-
+                            <div class="table-responsive">
+                                <table id="dataTable" class="table table-striped table-hover data-table display"
+                                    style="width:100%">
+                                </table>
+                            </div>
+                            {{ columns|json_script:"table-columns" }}
+                            {{ data|json_script:"table-data" }}
                         </div>
+                    </div>
+                </div>
+            </div>
 
-                        <div class="table-responsive">
-                            <table id="dataTable" class="table table-striped table-hover data-table display"
-                                style="width:100%">
-                                <!-- Table content initialized via JavaScript -->
-                            </table>
+            <!-- Unmatched Table (inside Data Preview tab) -->
+            <div id="unmatchedCard" class="row mt-4 g-4" style="display: none;">
+                <div class="col-12">
+                    <div class="card animate-fade-in-up delay-1">
+                        <div class="card-header d-flex align-items-center bg-warning bg-opacity-25 py-3">
+                            <h3 class="h6 text-warning mb-0 fw-bold">
+                                <i class="bi bi-info-circle-fill me-2"></i>
+                                Unmatched Uploads
+                            </h3>
                         </div>
-
-                        {{ columns|json_script:"table-columns" }}
-                        {{ data|json_script:"table-data" }}
+                        <div class="card-body p-4">
+                            <div class="table-responsive">
+                                <table id="unmatchedTable" class="table data-table display" style="width:100%">
+                                    <thead>
+                                        <tr>
+                                            <th>Part Number</th>
+                                            <th>Manufacturer</th>
+                                            <th>Uploaded Part</th>
+                                            <th>Uploaded Mfg</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody></tbody>
+                                </table>
+                            </div>
+                        </div>
                     </div>
                 </div>
             </div>
         </div>
 
-        <div id="resultsCard" class="row mt-4 g-4" style="display: none;">
-            <!-- Unmatched Table -->
-            <div class="col-12">
-                <div class="card animate-fade-in-up delay-1">
-                    <div class="card-header d-flex align-items-center bg-warning bg-opacity-25 py-3">
-                        <h3 class="h6 text-warning mb-0 fw-bold">
-                            <i class="bi bi-info-circle-fill me-2"></i>
-                            Unmatched Uploads
-                        </h3>
-                    </div>
-                    <div class="card-body p-4">
-                        <div class="table-responsive">
-                            <table id="unmatchedTable" class="table data-table display" style="width:100%">
-                                <thead>
-                                    <tr>
-                                        <th>Part Number</th>
-                                        <th>Manufacturer</th>
-                                        <th>Uploaded Part</th>
-                                        <th>Uploaded Mfg</th>
-                                    </tr>
-                                </thead>
-                                <tbody></tbody>
-                            </table>
+        <!-- TAB 2: Analysis & Dashboard -->
+        <div class="tab-pane-custom" id="analysisTab">
+            <div id="resultsCard" class="row g-4" style="display: none;">
+                <!-- High Risk Table -->
+                <div class="col-lg-6">
+                    <div class="card h-100 card-high-risk animate-fade-in-up delay-2">
+                        <div class="card-header d-flex align-items-center bg-danger bg-opacity-25 py-3">
+                            <h3 class="h6 text-danger mb-0 fw-bold">
+                                <i class="bi bi-exclamation-triangle-fill me-2"></i>
+                                High Risk Parts
+                            </h3>
+                        </div>
+                        <div class="card-body p-4">
+                            <div class="table-responsive">
+                                <table id="highRiskTable" class="table data-table display" style="width:100%">
+                                    <thead>
+                                        <tr>
+                                            <th>Part Number</th>
+                                            <th>CPN</th>
+                                            <th>Country</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody></tbody>
+                                </table>
+                            </div>
                         </div>
                     </div>
                 </div>
-            </div>
 
-            <!-- High Risk Table -->
-            <div class="col-lg-6">
-                <div class="card h-100 card-high-risk animate-fade-in-up delay-2">
-                    <div class="card-header d-flex align-items-center bg-danger bg-opacity-25 py-3">
-                        <h3 class="h6 text-danger mb-0 fw-bold">
-                            <i class="bi bi-exclamation-triangle-fill me-2"></i>
-                            High Risk Parts
-                        </h3>
-                    </div>
-                    <div class="card-body p-4">
-                        <div class="table-responsive">
-                            <table id="highRiskTable" class="table data-table display" style="width:100%">
-                                <thead>
-                                    <tr>
-                                        <th>Part Number</th>
-                                        <th>CPN</th>
-                                        <th>Country</th>
-                                    </tr>
-                                </thead>
-                                <tbody></tbody>
-                            </table>
+                <!-- No / Low Risk Table -->
+                <div class="col-lg-6">
+                    <div class="card h-100 card-no-risk animate-fade-in-up delay-3">
+                        <div class="card-header d-flex align-items-center bg-success bg-opacity-25 py-3">
+                            <h3 class="h6 text-success mb-0 fw-bold">
+                                <i class="bi bi-check-circle-fill me-2"></i>
+                                No Risk / Low Risk Parts
+                            </h3>
+                        </div>
+                        <div class="card-body p-4">
+                            <div class="table-responsive">
+                                <table id="noRiskTable" class="table data-table display" style="width:100%">
+                                    <thead>
+                                        <tr>
+                                            <th>Part Number</th>
+                                            <th>CPN</th>
+                                            <th>Country</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody></tbody>
+                                </table>
+                            </div>
                         </div>
                     </div>
                 </div>
-            </div>
 
-            <!-- No Risk Table -->
-            <div class="col-lg-6">
-                <div class="card h-100 card-no-risk animate-fade-in-up delay-3">
-                    <div class="card-header d-flex align-items-center bg-success bg-opacity-25 py-3">
-                        <h3 class="h6 text-success mb-0 fw-bold">
-                            <i class="bi bi-check-circle-fill me-2"></i>
-                            No Risk / Low Risk Parts
+                <!-- RISK ANALYSIS DASHBOARD -->
+                <div class="col-12">
+                    <div class="dashboard-section animate-fade-in-up" style="animation-delay: 0.5s;">
+                        <h3 class="mb-4 fw-bold text-primary text-center">
+                            <i class="bi bi-bar-chart-line-fill me-2"></i>Risk Analysis Dashboard
                         </h3>
-                    </div>
-                    <div class="card-body p-4">
-                        <div class="table-responsive">
-                            <table id="noRiskTable" class="table data-table display" style="width:100%">
-                                <thead>
-                                    <tr>
-                                        <th>Part Number</th>
-                                        <th>CPN</th>
-                                        <th>Country</th>
-                                    </tr>
-                                </thead>
-                                <tbody></tbody>
-                            </table>
+                        <div class="stats-grid" id="riskStats">
+                            <div class="stat-card stat-high animate-fade-in-up" style="animation-delay: 0.1s;">
+                                <div class="stat-number" id="highRiskCount">0</div>
+                                <div class="text-danger fw-semibold">High Risk</div>
+                                <div class="text-muted small">Critical parts requiring attention</div>
+                            </div>
+                            <div class="stat-card stat-low animate-fade-in-up" style="animation-delay: 0.2s;">
+                                <div class="stat-number" id="lowRiskCount">0</div>
+                                <div class="text-warning fw-semibold">Low Risk</div>
+                                <div class="text-muted small">Parts with moderate risk exposure</div>
+                            </div>
+                            <div class="stat-card stat-none animate-fade-in-up" style="animation-delay: 0.3s;">
+                                <div class="stat-number" id="noRiskOnlyCount">0</div>
+                                <div class="text-success fw-semibold">No Risk</div>
+                                <div class="text-muted small">Safe and compliant parts</div>
+                            </div>
+                        </div>
+                        <div class="row mb-4">
+                            <div class="col-md-6">
+                                <h5 class="fw-semibold text-primary mb-3 text-center">
+                                    <i class="bi bi-pie-chart-fill me-1"></i>MPN Risk Distribution
+                                </h5>
+                                <div class="chart-container">
+                                    <canvas id="mpnPieChart"></canvas>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <h5 class="fw-semibold text-primary mb-3 text-center">
+                                    <i class="bi bi-pie-chart-fill me-1"></i>CPN Risk Distribution
+                                </h5>
+                                <div class="chart-container">
+                                    <canvas id="cpnPieChart"></canvas>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="row">
+                            <div class="col-md-6">
+                                <h5 class="fw-semibold text-primary mb-3 text-center">
+                                    <i class="bi bi-bar-chart-fill me-1"></i>MPN Risk Volume
+                                </h5>
+                                <div class="chart-container">
+                                    <canvas id="mpnBarChart"></canvas>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <h5 class="fw-semibold text-primary mb-3 text-center">
+                                    <i class="bi bi-bar-chart-fill me-1"></i>CPN Risk Volume
+                                </h5>
+                                <div class="chart-container">
+                                    <canvas id="cpnBarChart"></canvas>
+                                </div>
+                            </div>
                         </div>
                     </div>
                 </div>
             </div>
         </div>
+
         {% endif %}
     </div>
 
@@ -1080,7 +1286,6 @@
             }
         }
 
-        // Drag and drop visual feedback
         const uploadArea = document.querySelector('.upload-area');
         if (uploadArea) {
             ['dragenter', 'dragover'].forEach(eventName => {
@@ -1102,67 +1307,228 @@
             showLoader('magnifier', 'Uploading and processing file...');
         });
 
-        $(document).ready(function () {
-            console.log('Document ready');
-            console.log('jQuery version:', $.fn.jquery);
-            console.log('DataTables available:', typeof $.fn.DataTable);
-            console.log('Table exists:', $('#dataTable').length);
+        // Dashboard updater
+        function updateDashboard(highRiskCount, lowRiskCount, noRiskOnlyCount, mpnRiskMap, cpnRiskMap) {
+            // Update stats cards
+            $('#highRiskCount').text(highRiskCount);
+            $('#lowRiskCount').text(lowRiskCount);
+            $('#noRiskOnlyCount').text(noRiskOnlyCount);
 
-            // Define global variable for columns
+            // Calculate MPN-specific counts
+            const mpnHighRisk = Object.values(mpnRiskMap || {}).filter(r => r === 'High Risk').length;
+            const mpnNoRisk = Object.values(mpnRiskMap || {}).filter(r => r === 'No Risk').length;
+
+            // CPN counts from parameters
+            const cpnHighRisk = highRiskCount;
+            const cpnLowRisk = lowRiskCount;
+            const cpnNoRisk = noRiskOnlyCount;
+
+            // MPN Pie Chart (High Risk vs No Risk)
+            const mpnPieCtx = document.getElementById('mpnPieChart').getContext('2d');
+            new Chart(mpnPieCtx, {
+                type: 'pie',
+                data: {
+                    labels: ['High Risk MPNs', 'No Risk MPNs'],
+                    datasets: [{
+                        data: [mpnHighRisk, mpnNoRisk],
+                        backgroundColor: ['#ef4444', '#10b981'],
+                        borderColor: '#ffffff',
+                        borderWidth: 4,
+                        hoverOffset: 12
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: {
+                            position: 'bottom',
+                            labels: { padding: 25, usePointStyle: true, font: { size: 13 } }
+                        },
+                        tooltip: {
+                            callbacks: {
+                                label: function (context) {
+                                    const total = context.dataset.data.reduce((a, b) => a + b, 0);
+                                    const percentage = total ? ((context.parsed / total) * 100).toFixed(1) : 0;
+                                    return `${context.label}: ${context.parsed} (${percentage}%)`;
+                                }
+                            }
+                        }
+                    },
+                    animation: {
+                        animateRotate: true,
+                        duration: 2000,
+                        easing: 'easeOutBounce'
+                    }
+                }
+            });
+
+            // CPN Pie Chart (High/Low/No Risk)
+            const cpnPieCtx = document.getElementById('cpnPieChart').getContext('2d');
+            new Chart(cpnPieCtx, {
+                type: 'pie',
+                data: {
+                    labels: ['High Risk CPNs', 'Low Risk CPNs', 'No Risk CPNs'],
+                    datasets: [{
+                        data: [cpnHighRisk, cpnLowRisk, cpnNoRisk],
+                        backgroundColor: ['#ef4444', '#f59e0b', '#10b981'],
+                        borderColor: '#ffffff',
+                        borderWidth: 4,
+                        hoverOffset: 12
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: {
+                            position: 'bottom',
+                            labels: { padding: 25, usePointStyle: true, font: { size: 13 } }
+                        },
+                        tooltip: {
+                            callbacks: {
+                                label: function (context) {
+                                    const total = context.dataset.data.reduce((a, b) => a + b, 0);
+                                    const percentage = total ? ((context.parsed / total) * 100).toFixed(1) : 0;
+                                    return `${context.label}: ${context.parsed} (${percentage}%)`;
+                                }
+                            }
+                        }
+                    },
+                    animation: {
+                        animateRotate: true,
+                        duration: 2200,
+                        easing: 'easeOutBack'
+                    }
+                }
+            });
+
+            // MPN Bar Chart
+            const mpnBarCtx = document.getElementById('mpnBarChart').getContext('2d');
+            new Chart(mpnBarCtx, {
+                type: 'bar',
+                data: {
+                    labels: ['High Risk', 'No Risk'],
+                    datasets: [{
+                        label: 'MPN Count',
+                        data: [mpnHighRisk, mpnNoRisk],
+                        backgroundColor: ['rgba(239, 68, 68, 0.85)', 'rgba(16, 185, 129, 0.85)'],
+                        borderColor: ['#dc2626', '#059669'],
+                        borderWidth: 2,
+                        borderRadius: 12,
+                        borderSkipped: false
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    scales: {
+                        y: {
+                            beginAtZero: true,
+                            ticks: { stepSize: 1, font: { size: 12 } },
+                            grid: { color: 'rgba(0,0,0,0.05)' }
+                        },
+                        x: {
+                            grid: { display: false }
+                        }
+                    },
+                    plugins: {
+                        legend: { display: false },
+                    },
+                    animation: {
+                        delay: 1000,
+                        duration: 1800,
+                        easing: 'easeOutElastic'
+                    }
+                }
+            });
+
+            // CPN Bar Chart
+            const cpnBarCtx = document.getElementById('cpnBarChart').getContext('2d');
+            new Chart(cpnBarCtx, {
+                type: 'bar',
+                data: {
+                    labels: ['High Risk', 'Low Risk', 'No Risk'],
+                    datasets: [{
+                        label: 'CPN Count',
+                        data: [cpnHighRisk, cpnLowRisk, cpnNoRisk],
+                        backgroundColor: [
+                            'rgba(239, 68, 68, 0.85)',
+                            'rgba(245, 158, 11, 0.85)',
+                            'rgba(16, 185, 129, 0.85)'
+                        ],
+                        borderColor: ['#dc2626', '#d97706', '#059669'],
+                        borderWidth: 2,
+                        borderRadius: 12,
+                        borderSkipped: false
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    scales: {
+                        y: {
+                            beginAtZero: true,
+                            ticks: { stepSize: 1, font: { size: 12 } },
+                            grid: { color: 'rgba(0,0,0,0.05)' }
+                        },
+                        x: {
+                            grid: { display: false }
+                        }
+                    },
+                    plugins: {
+                        legend: { display: false },
+
+                    },
+                    animation: {
+                        delay: 1200,
+                        duration: 2000,
+                        easing: 'easeOutBounce'
+                    }
+                }
+            });
+        }
+
+
+        $(document).ready(function () {
             var tableColumns = [];
             if (document.getElementById('table-columns')) {
-                try {
-                    tableColumns = JSON.parse(document.getElementById('table-columns').textContent);
-                } catch (e) { console.error("Error parsing columns", e); }
+                try { tableColumns = JSON.parse(document.getElementById('table-columns').textContent); } catch (e) { }
             }
 
             var tableData = [];
             if (document.getElementById('table-data')) {
-                try {
-                    tableData = JSON.parse(document.getElementById('table-data').textContent);
-                } catch (e) { console.error("Error parsing data", e); }
+                try { tableData = JSON.parse(document.getElementById('table-data').textContent); } catch (e) { }
             }
 
-            // 1. Find indices
             var colLower = tableColumns.map(function (c) { return String(c).toLowerCase().trim(); });
             var georiskIdx = colLower.indexOf('georisk');
-
-            // 2. Remove Georisk if present
             if (georiskIdx !== -1) {
                 tableColumns.splice(georiskIdx, 1);
                 for (var i = 0; i < tableData.length; i++) {
                     tableData[i].splice(georiskIdx, 1);
                 }
-                // Refresh colLower
                 colLower = tableColumns.map(function (c) { return String(c).toLowerCase().trim(); });
             }
 
-            // 3. Move CPN and Part Number to specific indices [0] Part Number, [1] CPN
             function findColIdx(names) {
                 for (var i = 0; i < names.length; i++) {
                     var searchName = names[i];
                     for (var j = 0; j < colLower.length; j++) {
                         var currentVal = colLower[j];
-                        // Exact match first
-                        if (currentVal === searchName) {
-                            return j;
-                        }
+                        if (currentVal === searchName) return j;
                     }
                 }
-                // If no exact match, try partial match (for longer names)
                 for (var i = 0; i < names.length; i++) {
                     var searchName = names[i];
                     if (searchName.length < 3) continue;
                     for (var j = 0; j < colLower.length; j++) {
-                        if (colLower[j].indexOf(searchName) !== -1) {
-                            return j;
-                        }
+                        if (colLower[j].indexOf(searchName) !== -1) return j;
                     }
                 }
                 return -1;
             }
 
-            // Move CPN first
             var cpnIdx = findColIdx(['cpn', 'internal part', 'customer part']);
             if (cpnIdx !== -1) {
                 var cpnCol = tableColumns.splice(cpnIdx, 1)[0];
@@ -1174,83 +1540,60 @@
                 colLower = tableColumns.map(function (c) { return String(c).toLowerCase().trim(); });
             }
 
-            // Move Part Number second (to index 0, pushing CPN to index 1)
             var pnIdxNew = findColIdx(['part number', 'apn', 'mpn']);
             if (pnIdxNew !== -1) {
                 var pnCol = tableColumns.splice(pnIdxNew, 1)[0];
                 tableColumns.unshift(pnCol);
                 for (var i = 0; i < tableData.length; i++) {
-                    var rowVal = tableData[i].splice(pnIdxNew, 1)[0];
-                    tableData[i].unshift(rowVal);
+                    var rowVal2 = tableData[i].splice(pnIdxNew, 1)[0];
+                    tableData[i].unshift(rowVal2);
                 }
                 colLower = tableColumns.map(function (c) { return String(c).toLowerCase().trim(); });
             }
 
             if ($('#dataTable').length) {
                 try {
-                    console.log('Initializing DataTable via JS...');
                     showLoader('magnifier', 'Initializing table...');
-
-                    // Use setTimeout to allow the loading overlay to render
                     setTimeout(function () {
                         var columnsDef = tableColumns.map(function (c) { return { title: c }; });
-
                         var table = $('#dataTable').DataTable({
                             data: tableData,
                             columns: columnsDef,
-                            "paging": true,
-                            "pageLength": 50,
-                            "lengthMenu": [[10, 25, 50, 100, 500, 1000], [10, 25, 50, 100, 500, 1000]],
-                            "pagingType": "full_numbers",
-                            "searching": true,
-                            "ordering": false,
-                            "info": true,
-                            "autoWidth": false,
-                            "deferRender": true,
-                            "scrollY": "60vh",
-                            "scrollCollapse": true,
-                            "scrollX": true,
-                            "fixedColumns": {
-                                left: 2
+                            paging: true,
+                            pageLength: 50,
+                            lengthMenu: [[10, 25, 50, 100, 500, 1000], [10, 25, 50, 100, 500, 1000]],
+                            pagingType: "full_numbers",
+                            searching: true,
+                            ordering: false,
+                            info: true,
+                            autoWidth: false,
+                            deferRender: true,
+                            scrollY: "60vh",
+                            scrollCollapse: true,
+                            scrollX: true,
+                            fixedColumns: { left: 2 },
+                            language: {
+                                search: "Search:",
+                                lengthMenu: "Show _MENU_ rows",
+                                info: "Showing _START_ to _END_ of _TOTAL_ entries",
+                                paginate: { first: "First", last: "Last", next: "Next", previous: "Previous" }
                             },
-                            "language": {
-                                "search": "Search:",
-                                "lengthMenu": "Show _MENU_ rows",
-                                "info": "Showing _START_ to _END_ of _TOTAL_ entries",
-                                "paginate": {
-                                    "first": "First",
-                                    "last": "Last",
-                                    "next": "Next",
-                                    "previous": "Previous"
-                                }
-                            },
-                            "createdRow": function (row, data, dataIndex) {
-                                // Add staggered animation delay
+                            createdRow: function (row, data, dataIndex) {
                                 const delayClass = 'row-delay-' + ((dataIndex % 5) + 1);
                                 $(row).addClass(delayClass);
                             }
                         });
-
                         $('#loadingOverlay').fadeOut(400);
-                        console.log('DataTable initialized successfully');
-                        // Fix for alignment
-                        setTimeout(function () {
-                            table.columns.adjust().draw();
-                        }, 200);
+                        setTimeout(function () { table.columns.adjust().draw(); }, 200);
                     }, 50);
                 } catch (error) {
-                    console.error('Error initializing DataTable:', error);
                     $('#loadingOverlay').css('display', 'none');
                 }
-            } else {
-                console.log('Table #dataTable not found');
             }
 
-            // Logic for "Perform Risk Analysis" button
             var originalColumns = tableColumns.slice();
 
             $('#analyzeBtn').on('click', function () {
-                console.log('Analyzing risk...');
                 showLoader('flag', 'Analyzing table...');
 
                 const statuses = [
@@ -1273,14 +1616,11 @@
                     clearInterval(statusInterval);
                     try {
                         var table = $('#dataTable').DataTable();
-
-                        // Get column headers to map names to indices
                         var headers = [];
                         $('#dataTable thead th').each(function () {
                             headers.push($(this).text().trim().toLowerCase());
                         });
 
-                        // Find required column indices
                         var idxPN = headers.indexOf('part number');
                         var idxMfr = headers.indexOf('manufacturer');
                         var idxCPN = headers.indexOf('cpn');
@@ -1290,21 +1630,15 @@
                         var idxUpMfg = headers.indexOf('uploaded mfg');
                         var idxMfgStep = headers.indexOf('manufacturing step');
 
-
-                        // Check if risk columns already exist
-                        var hasRiskCols = headers.indexOf('mpn risk') > -1;
-
                         if (idxPN === -1 || idxMfr === -1 || idxUpPart === -1 || idxUpMfg === -1) {
                             alert('Error: Could not find required columns (Part Number, Manufacturer, Uploaded Part, Uploaded Mfg).');
                             $('#loadingOverlay').hide();
                             return;
                         }
 
-
                         function superNormalize(val) {
                             if (!val) return '';
                             let s = String(val).toLowerCase();
-                            // Remove common suffixes/modifiers/junk
                             s = s.replace(/\(obs\)/g, '')
                                 .replace(/\(strip\)/g, '')
                                 .replace(/\(lf\)\(sn\)/g, '')
@@ -1313,14 +1647,9 @@
                                 .replace(/pbfree/g, '')
                                 .replace(/pbf/g, '')
                                 .replace(/nopb/g, '')
-                                .replace(/tr/g, ''); // tape and reel
-
-                            // Remove all non-alphanumeric
+                                .replace(/tr/g, '');
                             s = s.replace(/[^a-z0-9]/g, '');
-
-                            // Normalize number blocks (e.g., 001 -> 1)
                             s = s.replace(/0+([1-9])/g, '$1');
-
                             return s.trim();
                         }
 
@@ -1346,9 +1675,7 @@
                             let n2 = superNormalize(s2);
                             if (!n1 || !n2) return false;
                             if (n1 === n2) return true;
-                            // Containment check
                             if (n1.length > 5 && n2.length > 5 && (n1.indexOf(n2) !== -1 || n2.indexOf(n1) !== -1)) return true;
-
                             let dist = levenshtein(n1, n2);
                             let maxLen = Math.max(n1.length, n2.length);
                             return (maxLen - dist) / maxLen >= threshold;
@@ -1366,17 +1693,9 @@
                             return (maxLen - dist) / maxLen;
                         }
 
-                        function normalizeText(val) {
-                            return String(val || '')
-                                .replace(/\s+/g, '')
-                                .trim()
-                                .toLowerCase();
-                        }
-
-
                         var allData = table.rows().data().toArray();
                         var matchedRows = [];
-                        var uploadSummary = {}; 
+                        var uploadSummary = {};
 
                         function uploadKey(upPart, upMfg) {
                             var p = String(upPart || '').trim();
@@ -1410,7 +1729,6 @@
 
                         for (var i = 0; i < allData.length; i++) {
                             var row = allData[i];
-
                             var sysPnRaw = String(row[idxPN] || "").trim();
                             var upPnRaw = String(row[idxUpPart] || "").trim();
                             var sysMfrRaw = String(row[idxMfr] || "").trim();
@@ -1424,7 +1742,6 @@
                             var combinedScore = (pnScore + mfrScore) / 2;
                             updateBestCandidate(key, row[idxPN], row[idxMfr], combinedScore);
 
-                            // Match logic using fuzzy logic (superNormalization + Levenshtein)
                             var isPnMatch = isFuzzyMatch(sysPnRaw, upPnRaw);
                             var isMfrMatch = isFuzzyMatch(sysMfrRaw, upMfrRaw);
 
@@ -1441,7 +1758,6 @@
                                 return [u.bestPn, u.bestMfr, u.upPart, u.upMfg];
                             });
 
-                        // Helper for split results tables (High Risk / No+Low Risk)
                         function initResultTable(id, data, emptyMsg) {
                             if ($.fn.DataTable.isDataTable(id)) {
                                 $(id).DataTable().clear().destroy();
@@ -1453,29 +1769,65 @@
                                     { title: "CPN" },
                                     { title: "Country" }
                                 ],
-                                "pageLength": 10,
-                                "lengthMenu": [[10, 25, 50, -1], [10, 25, 50, "All"]],
-                                "scrollY": "40vh",
-                                "scrollCollapse": true,
-                                "scrollX": true,
-                                "fixedColumns": {
-                                    left: 2
-                                },
-                                "dom": 'Blfrtip',
-                                "buttons": [{
+                                pageLength: 10,
+                                lengthMenu: [[10, 25, 50, -1], [10, 25, 50, "All"]],
+                                scrollY: "40vh",
+                                scrollCollapse: true,
+                                scrollX: true,
+                                fixedColumns: { left: 2 },
+                                dom: 'Blfrtip',
+                                buttons: [{
                                     extend: 'excel',
                                     text: '<i class="bi bi-download"></i>',
                                     className: 'btn btn-circle me-1',
                                     title: (id === '#highRiskTable') ? 'FlagRisk_High_Risk' : 'FlagRisk_No_and_low_Risk'
                                 }],
-                                "ordering": false,
-                                "language": {
-                                    "search": "Search:",
-                                    "emptyTable": emptyMsg || "No records found"
+                                ordering: false,
+                                language: {
+                                    search: "Search:",
+                                    emptyTable: emptyMsg || "No records found"
                                 }
                             });
 
-                            // Adjust columns after a small delay to ensure visibility
+                            setTimeout(function () {
+                                var t = $(id).DataTable();
+                                t.columns.adjust().draw();
+                            }, 250);
+                        }
+
+                        function initUnmatchedTable(data, emptyMsg) {
+                            var id = '#unmatchedTable';
+                            if ($.fn.DataTable.isDataTable(id)) {
+                                $(id).DataTable().clear().destroy();
+                            }
+                            $(id).DataTable({
+                                data: data,
+                                columns: [
+                                    { title: "Part Number" },
+                                    { title: "Manufacturer" },
+                                    { title: "Uploaded Part" },
+                                    { title: "Uploaded Mfg" }
+                                ],
+                                pageLength: 10,
+                                lengthMenu: [[10, 25, 50, -1], [10, 25, 50, "All"]],
+                                scrollY: "40vh",
+                                scrollCollapse: true,
+                                scrollX: true,
+                                fixedColumns: { left: 2 },
+                                dom: 'Blfrtip',
+                                buttons: [{
+                                    extend: 'excel',
+                                    text: '<i class="bi bi-download"></i>',
+                                    className: 'btn btn-circle me-1',
+                                    title: 'FlagRisk_Unmatched_Uploads'
+                                }],
+                                ordering: false,
+                                language: {
+                                    search: "Search:",
+                                    emptyTable: emptyMsg || "No unmatched uploads found"
+                                }
+                            });
+
                             setTimeout(function () {
                                 var t = $(id).DataTable();
                                 t.columns.adjust().draw();
@@ -1484,9 +1836,7 @@
 
                         function bindExportCompleteBtn() {
                             $('#exportCompleteBtn').off('click').on('click', function () {
-                                console.log('Exporting complete report...');
                                 showLoader('download', 'Generating complete report...');
-
                                 setTimeout(function () {
                                     try {
                                         var mainTable = $('#dataTable').DataTable();
@@ -1546,30 +1896,24 @@
                                         }
 
                                         var wb = XLSX.utils.book_new();
-
                                         var mainWS = XLSX.utils.aoa_to_sheet([exportData.Main_Report.headers].concat(exportData.Main_Report.data));
                                         XLSX.utils.book_append_sheet(wb, mainWS, 'Main_Report');
-
                                         var highWS = XLSX.utils.aoa_to_sheet([exportData.High_Risk.headers].concat(exportData.High_Risk.data));
                                         XLSX.utils.book_append_sheet(wb, highWS, 'High_Risk');
-
                                         var noLowWS = XLSX.utils.aoa_to_sheet([exportData.No_Low_Risk.headers].concat(exportData.No_Low_Risk.data));
                                         XLSX.utils.book_append_sheet(wb, noLowWS, 'No_and_Low_Risk');
-
                                         var unmatchedWS = XLSX.utils.aoa_to_sheet([exportData.Unmatched_Uploads.headers].concat(exportData.Unmatched_Uploads.data));
                                         XLSX.utils.book_append_sheet(wb, unmatchedWS, 'Unmatched_Uploads');
 
                                         function autofitColumns(ws) {
                                             const colWidths = [];
                                             const data = XLSX.utils.sheet_to_json(ws, { header: 1 });
-
                                             data.forEach(row => {
                                                 row.forEach((cell, colIndex) => {
                                                     const len = String(cell || '').length;
                                                     colWidths[colIndex] = Math.max(colWidths[colIndex] || 10, len + 2);
                                                 });
                                             });
-
                                             ws['!cols'] = colWidths.map(w => ({ wch: Math.min(w, 50) }));
                                         }
 
@@ -1581,19 +1925,13 @@
                                         var now = new Date();
                                         var timestamp = now.toISOString().slice(0, 19).replace(/:/g, '-');
                                         var filename = 'FlagRisk_Complete_Report_' + timestamp + '.xlsx';
-
                                         var wbout = XLSX.write(wb, { bookType: 'xlsx', type: 'binary' });
                                         var blob = new Blob([s2ab(wbout)], { type: 'application/octet-stream' });
-
                                         var a = document.createElement('a');
                                         a.href = URL.createObjectURL(blob);
                                         a.download = filename;
                                         a.click();
-
-                                        console.log('Complete report exported:', filename);
-
                                     } catch (e) {
-                                        console.error('Export error:', e);
                                         alert('Error generating report: ' + e.message);
                                     } finally {
                                         $('#loadingOverlay').hide();
@@ -1608,116 +1946,64 @@
                             }
                         }
 
-                        // Helper for Unmatched table
-                        var initUnmatchedTable = function (data, emptyMsg) {
-                            var id = '#unmatchedTable';
-                            if ($.fn.DataTable.isDataTable(id)) {
-                                $(id).DataTable().clear().destroy();
-                            }
-                            $(id).DataTable({
-                                data: data,
-                                columns: [
-                                    { title: "Part Number" },
-                                    { title: "Manufacturer" },
-                                    { title: "Uploaded Part" },
-                                    { title: "Uploaded Mfg" }
-                                ],
-                                "pageLength": 10,
-                                "lengthMenu": [[10, 25, 50, -1], [10, 25, 50, "All"]],
-                                "scrollY": "40vh",
-                                "scrollCollapse": true,
-                                "scrollX": true,
-                                "fixedColumns": {
-                                    left: 2
-                                },
-                                "dom": 'Blfrtip',
-                                "buttons": [{
-                                    extend: 'excel',
-                                    text: '<i class="bi bi-download"></i>',
-                                    className: 'btn btn-circle me-1',
-                                    title: 'FlagRisk_Unmatched_Uploads'
-                                }],
-                                "ordering": false,
-                                "language": {
-                                    "search": "Search:",
-                                    "emptyTable": emptyMsg || "No unmatched uploads found"
-                                }
-                            });
-
-                            setTimeout(function () {
-                                var t = $(id).DataTable();
-                                t.columns.adjust().draw();
-                            }, 250);
-                        };
-
-                        // If there are no matches, still show unmatched uploads
                         if (matchedRows.length === 0) {
                             initResultTable('#highRiskTable', [], 'No High Risk parts found.');
                             initResultTable('#noRiskTable', [], 'No matched parts in this category.');
                             initUnmatchedTable(unmatchedUploads, 'No unmatched uploads found.');
-
+                            $('#unmatchedCard').show().addClass('animate__animated animate__fadeInUp');
                             $('#resultsCard').show().addClass('animate__animated animate__fadeInUp');
+                            enableAnalysisTab();
                             $('#exportCompleteBtn').show().addClass('animate__animated animate__zoomIn');
                             bindExportCompleteBtn();
                             removeAnalyzeBtn();
-
                             alert('No matches found after normalization. Showing unmatched uploads.');
                             return;
                         }
 
-                        // Build Risk Maps (based on matched rows only)
                         var mpnMap = {};
-                        var cpnToMpns = {}; // NEW: map CPN to set of unique MPNs
+                        var cpnToMpns = {};
                         var mpnSiteMap = {};
 
-                        var isRisky = function (c) {
-                            return c.includes('china') || c.includes('taiwan');
-                        };
+                        var isRisky = function (c) { return c.includes('china') || c.includes('taiwan'); };
 
-                        // Pass 1: populate maps
                         for (var i = 0; i < matchedRows.length; i++) {
-                            var row = matchedRows[i];
-                            var pn = String(row[idxPN] || '').trim().toLowerCase();
-                            var cpn = idxCPN > -1 ? String(row[idxCPN] || '').trim().toLowerCase() : '';
-                            var country = idxCountry > -1 ? String(row[idxCountry] || '').trim().toLowerCase() : '';
-                            var mfgStep = idxMfgStep > -1 ? String(row[idxMfgStep] || '').trim() : '';
+                            var rowM = matchedRows[i];
+                            var pnM = String(rowM[idxPN] || '').trim().toLowerCase();
+                            var cpnM = idxCPN > -1 ? String(rowM[idxCPN] || '').trim().toLowerCase() : '';
+                            var countryM = idxCountry > -1 ? String(rowM[idxCountry] || '').trim().toLowerCase() : '';
+                            var mfgStepM = idxMfgStep > -1 ? String(rowM[idxMfgStep] || '').trim() : '';
 
-                            if (pn) {
-                                if (!mpnMap[pn]) mpnMap[pn] = [];
-                                mpnMap[pn].push(country);
-
-                                if (isRisky(country)) {
-                                    if (!mpnSiteMap[pn]) mpnSiteMap[pn] = [];
-                                    if (mfgStep && mpnSiteMap[pn].indexOf(mfgStep) === -1) {
-                                        mpnSiteMap[pn].push(mfgStep);
+                            if (pnM) {
+                                if (!mpnMap[pnM]) mpnMap[pnM] = [];
+                                mpnMap[pnM].push(countryM);
+                                if (isRisky(countryM)) {
+                                    if (!mpnSiteMap[pnM]) mpnSiteMap[pnM] = [];
+                                    if (mfgStepM && mpnSiteMap[pnM].indexOf(mfgStepM) === -1) {
+                                        mpnSiteMap[pnM].push(mfgStepM);
                                     }
                                 }
                             }
-                            if (cpn && pn) {
-                                if (!cpnToMpns[cpn]) cpnToMpns[cpn] = new Set();
-                                cpnToMpns[cpn].add(pn);
+                            if (cpnM && pnM) {
+                                if (!cpnToMpns[cpnM]) cpnToMpns[cpnM] = new Set();
+                                cpnToMpns[cpnM].add(pnM);
                             }
                         }
 
-                        // Helper to get raw risk level from countries
                         var getRawLevelFromCountries = function (countries) {
                             if (!countries || countries.length === 0) return "No Risk";
                             var allRisky = countries.every(function (c) { return isRisky(c); });
                             return allRisky ? "High Risk" : "No Risk";
                         };
 
-                        // Calculate MPN Risk Map
                         var mpnRiskMap = {};
                         Object.keys(mpnMap).forEach(function (pn) {
                             mpnRiskMap[pn] = getRawLevelFromCountries(mpnMap[pn]);
                         });
 
-                        // Calculate CPN Risk Map based on user's new rules
                         var cpnRiskMap = {};
                         Object.keys(cpnToMpns).forEach(function (cpn) {
                             var associatedMpns = Array.from(cpnToMpns[cpn]);
                             var risks = associatedMpns.map(function (pn) { return mpnRiskMap[pn]; });
-
                             var allNoRisk = risks.every(function (r) { return r === "No Risk"; });
                             var allHighRisk = risks.every(function (r) { return r === "High Risk"; });
                             var someHighRisk = risks.some(function (r) { return r === "High Risk"; });
@@ -1728,49 +2014,29 @@
                             else cpnRiskMap[cpn] = "No Risk";
                         });
 
-                        // Pass 2: Build main table & split tables using only matched rows
                         var newData = [];
                         var highRiskResults = [];
                         var noRiskResults = [];
 
                         for (var i = 0; i < allData.length; i++) {
                             var row = allData[i];
-
-                            var sysPnRaw = String(row[idxPN] || "").trim();
-                            var upPnRaw = String(row[idxUpPart] || "").trim();
-                            var sysMfrRaw = String(row[idxMfr] || "").trim();
-                            var upMfrRaw = String(row[idxUpMfg] || "").trim();
-                            var isPnMatch = isFuzzyMatch(sysPnRaw, upPnRaw);
-                            var isMfrMatch = isFuzzyMatch(sysMfrRaw, upMfrRaw);
-                            var isMatched = (sysPnRaw && sysMfrRaw && upPnRaw && upMfrRaw && isPnMatch && isMfrMatch);
-
-                            // Skip unmatched rows in the main table
-                            if (!isMatched) {
-                                continue;
-                            }
+                            var sysPnRaw2 = String(row[idxPN] || "").trim();
+                            var upPnRaw2 = String(row[idxUpPart] || "").trim();
+                            var sysMfrRaw2 = String(row[idxMfr] || "").trim();
+                            var upMfrRaw2 = String(row[idxUpMfg] || "").trim();
+                            var isPnMatch2 = isFuzzyMatch(sysPnRaw2, upPnRaw2);
+                            var isMfrMatch2 = isFuzzyMatch(sysMfrRaw2, upMfrRaw2);
+                            var isMatched2 = (sysPnRaw2 && sysMfrRaw2 && upPnRaw2 && upMfrRaw2 && isPnMatch2 && isMfrMatch2);
+                            if (!isMatched2) continue;
 
                             var pn = String(row[idxPN] || '').trim().toLowerCase();
-                            var mfr = String(row[idxMfr] || '').trim().toLowerCase();
-                            var upPart = String(row[idxUpPart] || '').trim().toLowerCase();
-                            var idxUpMfg = headers.indexOf('uploaded mfg');
                             var cpn = idxCPN > -1 ? String(row[idxCPN] || '').trim().toLowerCase() : '';
                             var country = idxCountry > -1 ? String(row[idxCountry] || '').trim().toLowerCase() : '';
 
-                            // Apply Pre-calculated Risks (matched rows only)
                             var mpnRisk = mpnRiskMap[pn] || "No Risk";
                             var cpnRisk = cpnRiskMap[cpn] || "No Risk";
 
                             var remark = '';
-                            var riskySteps = [];
-                            if (cpnRisk !== 'No Risk' && mpnSiteMap[pn]) {
-                                mpnSiteMap[pn].forEach(function (step) {
-                                    if (step.toLowerCase().includes('china') || step.toLowerCase().includes('taiwan')) {
-                                        riskySteps.push(step);
-                                    }
-                                });
-                            }
-                            var riskyStepsList = riskySteps.length > 0 ? riskySteps.join(', ') : '';
-
                             switch (mpnRisk + '|' + cpnRisk) {
                                 case 'No Risk|No Risk':
                                     remark = 'The CPN is completely safe from all risks.';
@@ -1778,71 +2044,10 @@
                                 case 'No Risk|Low Risk':
                                     remark = 'The CPN has non preferred countries but the MPN has atleast one preferred country, so low risk';
                                     break;
-                                case 'High Risk|Low Risk':
-                                    var allSteps = '';
-                                    if (mpnSiteMap[pn]) {
-                                        allSteps = mpnSiteMap[pn].map(function (step) {
-                                            var lower = step.toLowerCase();
-
-                                            if (lower.includes('assembly')) {
-                                                return '<span class="assembly">' + step + '</span>';
-                                            }
-                                            if (lower.includes('origin')) {
-                                                return '<span class="origin">' + step + '</span>';
-                                            }
-                                            if (lower.includes('fabrication')) {
-                                                return '<span class="fabrication">' + step + '</span>';
-                                            }
-                                            if (lower.includes('final')) {
-                                                return '<span class="final-test">' + step + '</span>';
-                                            }
-                                            if (lower.includes('wafer')) {
-                                                return '<span class="wafer-test">' + step + '</span>';
-                                            }
-
-                                            return step;
-                                        }).join(', ');
-                                    } else {
-                                        allSteps = 'no steps found';
-                                    }
-                                    remark = `The CPN has non preferred country for ${row[idxPN]} (${allSteps})`;
-                                    break;
-                                case 'High Risk|High Risk':
-                                    var allSteps = '';
-                                    if (mpnSiteMap[pn]) {
-                                        allSteps = mpnSiteMap[pn].map(function (step) {
-                                            var lower = step.toLowerCase();
-
-                                            if (lower.includes('assembly')) {
-                                                return '<span class="assembly">' + step + '</span>';
-                                            }
-                                            if (lower.includes('origin')) {
-                                                return '<span class="origin">' + step + '</span>';
-                                            }
-                                            if (lower.includes('fabrication')) {
-                                                return '<span class="fabrication">' + step + '</span>';
-                                            }
-                                            if (lower.includes('final')) {
-                                                return '<span class="final-test">' + step + '</span>';
-                                            }
-                                            if (lower.includes('wafer')) {
-                                                return '<span class="wafer-test">' + step + '</span>';
-                                            }
-
-                                            return step;
-                                        }).join(', ');
-                                    } else {
-                                        allSteps = 'no steps found';
-                                    }
-                                    remark = `The CPN has non preferred country for ${row[idxPN]} in all sites (${allSteps})`;
-                                    break;
                                 default:
                                     remark = `CPN ${cpnRisk.toLowerCase()} | MPN ${mpnRisk.toLowerCase()}`;
                             }
 
-
-
-                            // Calculate slice index based on where 'mpn risk' starts
                             var idxMpnRisk = headers.indexOf('mpn risk');
                             var sliceIdx = (idxMpnRisk > -1) ? idxMpnRisk : row.length;
                             var baseRow = row.slice(0, sliceIdx);
@@ -1855,21 +2060,17 @@
                                 idxCountry > -1 ? row[idxCountry] : ''
                             ];
 
-                            if (isMatched) {
+                            if (isMatched2) {
                                 if (cpnRisk === "High Risk") {
                                     highRiskResults.push(splitRow);
                                 } else {
-                                    // Includes both Low Risk and No Risk
                                     noRiskResults.push(splitRow);
                                 }
                             }
                         }
 
-                        // Update Main Table
                         table.clear().destroy();
                         $('#dataTable thead tr').empty();
-
-                        // Append original columns + 2 new
                         originalColumns.forEach(function (col) {
                             $('#dataTable thead tr').append('<th>' + col + '</th>');
                         });
@@ -1883,28 +2084,13 @@
                                 { title: "CPN Risk" },
                                 {
                                     title: "Remarks",
-                                    render: function (data, type, row) {
-                                        return data;
-                                    }
+                                    render: function (data) { return data; }
                                 }
                             ],
-                            "createdRow": function (row, data, dataIndex) {
-                                var mpnRisk = data[data.length - 3];  // MPN Risk
-                                var cpnRisk = data[data.length - 2];  // CPN Risk
+                            createdRow: function (row, data) {
+                                var mpnRisk = data[data.length - 3];
+                                var cpnRisk = data[data.length - 2];
 
-                                // Get column indices for Part Number and CPN
-                                var headers = originalColumns.map(function (col) {
-                                    return col.trim().toLowerCase();
-                                });
-                                var pnIdx = originalColumns
-                                    .map(c => c.toLowerCase().trim())
-                                    .indexOf('part number');
-
-                                var cpnIdx = originalColumns
-                                    .map(c => c.toLowerCase().trim())
-                                    .indexOf('cpn');
-
-    
                                 var mpnRiskIdx = data.length - 3;
                                 var cpnRiskIdx = data.length - 2;
 
@@ -1912,52 +2098,44 @@
                                     var $cell = $('td:eq(' + idx + ')', row);
                                     var text = $cell.text();
                                     var badgeClass = '';
-
                                     if (risk === 'High Risk') badgeClass = 'risk-high';
                                     else if (risk === 'Low Risk') badgeClass = 'risk-low';
                                     else if (risk === 'No Risk') badgeClass = 'risk-none';
-
                                     if (badgeClass) {
                                         $cell.html('<span class="risk-badge ' + badgeClass + '">' + text + '</span>');
-                                        $cell.css('background-color', 'transparent'); // Reset any potential background
+                                        $cell.css('background-color', 'transparent');
                                     }
                                 }
 
                                 applyRiskStyle(mpnRiskIdx, mpnRisk);
                                 applyRiskStyle(cpnRiskIdx, cpnRisk);
-
-
                             },
-
-                            "paging": true,
-                            "pageLength": 50,
-                            "lengthMenu": [[10, 25, 50, 100, 500, 1000], [10, 25, 50, 100, 500, 1000]],
-                            "pagingType": "full_numbers",
-                            "searching": true,
-                            "ordering": false,
-                            "info": true,
-                            "autoWidth": false,
-                            "deferRender": true,
-                            "scrollY": "60vh",
-                            "scrollCollapse": true,
-                            "scrollX": true,
-                            "fixedColumns": {
-                                left: 2
-                            },
-                            "dom": 'Blfrtip',
-                            "buttons": [{
+                            paging: true,
+                            pageLength: 50,
+                            lengthMenu: [[10, 25, 50, 100, 500, 1000], [10, 25, 50, 100, 500, 1000]],
+                            pagingType: "full_numbers",
+                            searching: true,
+                            ordering: false,
+                            info: true,
+                            autoWidth: false,
+                            deferRender: true,
+                            scrollY: "60vh",
+                            scrollCollapse: true,
+                            scrollX: true,
+                            fixedColumns: { left: 2 },
+                            dom: 'Blfrtip',
+                            buttons: [{
                                 extend: 'excel',
                                 text: '<i class="bi bi-download"></i>',
                                 className: 'btn btn-circle me-1',
                                 title: 'FlagRisk_Analysis_Main_Export'
                             }],
-                            "language": {
-                                "search": "Search:",
-                                "lengthMenu": "Show _MENU_ rows"
+                            language: {
+                                search: "Search:",
+                                lengthMenu: "Show _MENU_ rows"
                             }
                         });
 
-                        // Fix for alignment after risk analysis
                         setTimeout(function () {
                             var t = $('#dataTable').DataTable();
                             t.columns.adjust().draw();
@@ -1967,18 +2145,54 @@
                         initResultTable('#noRiskTable', noRiskResults, 'No matched parts in this category.');
                         initUnmatchedTable(unmatchedUploads, 'No unmatched uploads found.');
 
+                        // Compute counts for dashboard
+                        const highRiskCount = highRiskResults.length;
+                        const lowAndNoCount = noRiskResults.length;
+
+                        // Split low vs no risk by inspecting cpnRisk in newData
+                        let lowRiskCount = 0;
+                        let noRiskOnlyCount = 0;
+                        newData.forEach(row => {
+                            const cpnRiskVal = row[row.length - 2];
+                            if (cpnRiskVal === 'Low Risk') lowRiskCount += 1;
+                            else if (cpnRiskVal === 'No Risk') noRiskOnlyCount += 1;
+                        });
+
+                        $('#unmatchedCard').show().addClass('animate__animated animate__fadeInUp');
                         $('#resultsCard').show().addClass('animate__animated animate__fadeInUp');
+                        enableAnalysisTab();
                         $('#exportCompleteBtn').show().addClass('animate__animated animate__zoomIn');
                         bindExportCompleteBtn();
                         removeAnalyzeBtn();
 
+                        // Update animated dashboard
+                        updateDashboard(highRiskCount, lowRiskCount, noRiskOnlyCount, mpnRiskMap, cpnRiskMap);
+
                     } catch (e) {
-                        console.error(e);
                         alert('An error occurred during analysis: ' + e.message);
                     } finally {
                         $('#loadingOverlay').hide();
                     }
                 }, 100);
+            });
+
+            // ===== NAV TAB SWITCHING =====
+            function enableAnalysisTab() {
+                $('#navAnalysis').removeClass('disabled');
+            }
+
+            $('#mainNavTabs').on('click', '.nav-link-custom:not(.disabled)', function () {
+                var targetTab = $(this).data('tab');
+                // Update active button
+                $('#mainNavTabs .nav-link-custom').removeClass('active');
+                $(this).addClass('active');
+                // Switch tab panes
+                $('.tab-pane-custom').removeClass('active');
+                $('#' + targetTab).addClass('active');
+                // After switching, readjust DataTables columns for visibility
+                setTimeout(function () {
+                    $.fn.DataTable.tables({ visible: true, api: true }).columns.adjust().draw();
+                }, 150);
             });
         });
     </script>
