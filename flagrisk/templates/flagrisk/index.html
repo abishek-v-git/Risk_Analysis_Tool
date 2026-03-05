@@ -177,10 +177,10 @@
         }
 
         .data-table tbody tr {
-            transition: background-color 0.15s;
+            transition: background-color 0.25s ease;
             opacity: 0;
-            transform: translateY(10px);
-            animation: fadeInUpCustom 0.4s ease forwards;
+            transform: translateY(8px);
+            animation: fadeInUpCustom 0.5s cubic-bezier(0.22, 1, 0.36, 1) forwards;
         }
 
         .data-table tbody tr:hover {
@@ -429,6 +429,10 @@
             border: 2px solid #198754 !important;
         }
 
+        .card-unmatched {
+            border: 2px solid #ffc107 !important;
+        }
+
         #highRiskTable_wrapper .dataTables_scrollHead thead th,
         #highRiskTable thead th {
             background-color: #dc3545 !important;
@@ -516,7 +520,7 @@
         @keyframes fadeInUpCustom {
             from {
                 opacity: 0;
-                transform: translateY(30px);
+                transform: translateY(20px);
             }
 
             to {
@@ -602,32 +606,32 @@
         }
 
         .animate-fade-in-up {
-            animation: fadeInUpCustom 0.6s cubic-bezier(0.16, 1, 0.3, 1) both;
+            animation: fadeInUpCustom 0.7s cubic-bezier(0.22, 1, 0.36, 1) both;
         }
 
         .delay-1 {
-            animation-delay: 0.1s;
+            animation-delay: 0.15s;
         }
 
         .delay-2 {
-            animation-delay: 0.2s;
-        }
-
-        .delay-3 {
             animation-delay: 0.3s;
         }
 
+        .delay-3 {
+            animation-delay: 0.45s;
+        }
+
         .delay-4 {
-            animation-delay: 0.4s;
+            animation-delay: 0.6s;
         }
 
         .card {
-            transition: all 0.4s cubic-bezier(0.165, 0.84, 0.44, 1);
+            transition: all 0.5s cubic-bezier(0.22, 1, 0.36, 1);
         }
 
         .card:hover {
-            transform: translateY(-5px);
-            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.12);
+            transform: translateY(-4px);
+            box-shadow: 0 16px 35px rgba(0, 0, 0, 0.1);
         }
 
         .upload-area::after {
@@ -846,13 +850,32 @@
         @keyframes tabFadeIn {
             from {
                 opacity: 0;
-                transform: translateY(12px);
+                transform: translateY(8px);
             }
 
             to {
                 opacity: 1;
                 transform: translateY(0);
             }
+        }
+
+        /* STICKY ACTION BAR */
+        .sticky-action-bar {
+            position: sticky;
+            top: 0;
+            z-index: 100;
+            background: rgba(248, 250, 252, 0.85);
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+            padding: 12px 0;
+            margin: 0 -0.75rem;
+            padding-left: 0.75rem;
+            padding-right: 0.75rem;
+            transition: box-shadow 0.3s ease;
+        }
+
+        .sticky-action-bar.is-stuck {
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
         }
 
         /* DASHBOARD STYLES */
@@ -898,8 +921,8 @@
         }
 
         .stat-card:hover {
-            transform: translateY(-8px);
-            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.15);
+            transform: translateY(-6px);
+            box-shadow: 0 16px 35px rgba(0, 0, 0, 0.12);
         }
 
         .stat-number {
@@ -1009,32 +1032,42 @@
 
         {% if is_uploaded %}
 
-        <!-- Action Buttons Row -->
-        <div class="d-flex justify-content-between align-items-center flex-wrap gap-2 mb-3 animate-fade-in-up">
-            <div></div>
-            <div class="d-flex gap-2">
-                <button type="button" id="analyzeBtn" class="btn btn-custom btn-sm shadow-sm pe-3">
-                    <i class="bi bi-graph-up-arrow"></i> Perform Risk Analysis
-                </button>
-                <button type="button" id="exportCompleteBtn" class="btn btn-custom btn-sm shadow-sm pe-3"
-                    style="display: none;">
-                    <i class="bi bi-file-earmark-excel"></i> Export Complete Report
-                </button>
-                <a href="/" class="btn btn-custom btn-sm shadow-sm pe-3">
-                    <i class="bi bi-cloud-upload"></i> Upload New File
-                </a>
+        <!-- Sticky Action Bar -->
+        <div class="sticky-action-bar" id="stickyBar">
+            <!-- Action Buttons Row -->
+            <div class="d-flex justify-content-between align-items-center flex-wrap gap-2 mb-2">
+                <!-- FlagRisk branding (hidden by default, shown when main header scrolls away) -->
+                <div class="d-flex align-items-center gap-2" id="stickyLogo"
+                    style="opacity: 0; transform: translateX(-10px); transition: all 0.3s ease; pointer-events: none;">
+                    <div class="bg-danger bg-opacity-10 p-1 px-2 rounded-3">
+                        <i class="bi bi-flag-fill text-danger"></i>
+                    </div>
+                    <span class="fw-bold text-dark" style="font-size: 0.95rem;">FlagRisk</span>
+                </div>
+                <div class="d-flex gap-2">
+                    <button type="button" id="analyzeBtn" class="btn btn-custom btn-sm shadow-sm pe-3">
+                        <i class="bi bi-graph-up-arrow"></i> Perform Risk Analysis
+                    </button>
+                    <button type="button" id="exportCompleteBtn" class="btn btn-custom btn-sm shadow-sm pe-3"
+                        style="display: none;">
+                        <i class="bi bi-file-earmark-excel"></i> Export Complete Report
+                    </button>
+                    <a href="/" class="btn btn-custom btn-sm shadow-sm pe-3">
+                        <i class="bi bi-cloud-upload"></i> Upload New File
+                    </a>
+                </div>
             </div>
-        </div>
 
-        <!-- Centered Nav Tabs -->
-        <div class="nav-tabs-container animate-fade-in-up">
-            <div class="nav-pills-custom" id="mainNavTabs">
-                <button class="nav-link-custom active" data-tab="dataPreviewTab" id="navDataPreview">
-                    <i class="bi bi-table"></i> Data Preview
-                </button>
-                <button class="nav-link-custom disabled" data-tab="analysisTab" id="navAnalysis">
-                    <i class="bi bi-graph-up-arrow"></i> Analysis & Dashboard
-                </button>
+            <!-- Centered Nav Tabs -->
+            <div class="nav-tabs-container">
+                <div class="nav-pills-custom" id="mainNavTabs">
+                    <button class="nav-link-custom active" data-tab="dataPreviewTab" id="navDataPreview">
+                        <i class="bi bi-table"></i> Data Preview
+                    </button>
+                    <button class="nav-link-custom disabled" data-tab="analysisTab" id="navAnalysis">
+                        <i class="bi bi-graph-up-arrow"></i> Analysis & Dashboard
+                    </button>
+                </div>
             </div>
         </div>
 
@@ -1064,7 +1097,7 @@
             <!-- Unmatched Table (inside Data Preview tab) -->
             <div id="unmatchedCard" class="row mt-4 g-4" style="display: none;">
                 <div class="col-12">
-                    <div class="card animate-fade-in-up delay-1">
+                    <div class="card card-unmatched animate-fade-in-up delay-1">
                         <div class="card-header d-flex align-items-center bg-warning bg-opacity-25 py-3">
                             <h3 class="h6 text-warning mb-0 fw-bold">
                                 <i class="bi bi-info-circle-fill me-2"></i>
@@ -1307,12 +1340,62 @@
             showLoader('magnifier', 'Uploading and processing file...');
         });
 
+        // Animated counter
+        function animateCounter(element, target, duration) {
+            duration = duration || 1500;
+            var start = 0;
+            var startTime = null;
+            var $el = $(element);
+            target = parseInt(target) || 0;
+            if (target === 0) { $el.text('0'); return; }
+
+            function easeOutExpo(t) {
+                return t === 1 ? 1 : 1 - Math.pow(2, -10 * t);
+            }
+
+            function step(timestamp) {
+                if (!startTime) startTime = timestamp;
+                var elapsed = timestamp - startTime;
+                var progress = Math.min(elapsed / duration, 1);
+                var easedProgress = easeOutExpo(progress);
+                var current = Math.floor(easedProgress * target);
+                $el.text(current);
+                if (progress < 1) {
+                    requestAnimationFrame(step);
+                } else {
+                    $el.text(target);
+                }
+            }
+            requestAnimationFrame(step);
+        }
+
         // Dashboard updater
+        var pendingCounterData = null;
+        var counterAnimated = false;
+
+        function triggerCountersWhenVisible() {
+            var statsEl = document.getElementById('riskStats');
+            if (!statsEl || !pendingCounterData) return;
+
+            var dashObserver = new IntersectionObserver(function (entries) {
+                entries.forEach(function (entry) {
+                    if (entry.isIntersecting && !counterAnimated) {
+                        counterAnimated = true;
+                        animateCounter('#highRiskCount', pendingCounterData.high, 1500);
+                        animateCounter('#lowRiskCount', pendingCounterData.low, 1800);
+                        animateCounter('#noRiskOnlyCount', pendingCounterData.none, 2000);
+                        dashObserver.disconnect();
+                    }
+                });
+            }, { threshold: 0.2 });
+            dashObserver.observe(statsEl);
+        }
+
         function updateDashboard(highRiskCount, lowRiskCount, noRiskOnlyCount, mpnRiskMap, cpnRiskMap) {
-            // Update stats cards
-            $('#highRiskCount').text(highRiskCount);
-            $('#lowRiskCount').text(lowRiskCount);
-            $('#noRiskOnlyCount').text(noRiskOnlyCount);
+            // Store counts and defer animation until visible
+            pendingCounterData = { high: highRiskCount, low: lowRiskCount, none: noRiskOnlyCount };
+            counterAnimated = false;
+            triggerCountersWhenVisible();
 
             // Calculate MPN-specific counts
             const mpnHighRisk = Object.values(mpnRiskMap || {}).filter(r => r === 'High Risk').length;
@@ -2194,6 +2277,53 @@
                     $.fn.DataTable.tables({ visible: true, api: true }).columns.adjust().draw();
                 }, 150);
             });
+
+            // ===== STICKY BAR SHADOW + LOGO DETECTION =====
+            var stickyBar = document.getElementById('stickyBar');
+            var mainHeader = document.querySelector('header');
+            var stickyLogo = document.getElementById('stickyLogo');
+
+            if (stickyBar) {
+                var sentinel = document.createElement('div');
+                sentinel.style.height = '1px';
+                sentinel.style.width = '100%';
+                sentinel.style.position = 'absolute';
+                sentinel.style.top = '0';
+                sentinel.style.left = '0';
+                sentinel.style.pointerEvents = 'none';
+                stickyBar.parentElement.insertBefore(sentinel, stickyBar);
+
+                var observer = new IntersectionObserver(function (entries) {
+                    entries.forEach(function (entry) {
+                        if (!entry.isIntersecting) {
+                            stickyBar.classList.add('is-stuck');
+                        } else {
+                            stickyBar.classList.remove('is-stuck');
+                        }
+                    });
+                }, { threshold: 0 });
+                observer.observe(sentinel);
+            }
+
+            // Show/hide sticky logo based on main header visibility
+            if (mainHeader && stickyLogo) {
+                var headerObserver = new IntersectionObserver(function (entries) {
+                    entries.forEach(function (entry) {
+                        if (!entry.isIntersecting) {
+                            // Header scrolled out — show sticky logo
+                            stickyLogo.style.opacity = '1';
+                            stickyLogo.style.transform = 'translateX(0)';
+                            stickyLogo.style.pointerEvents = 'auto';
+                        } else {
+                            // Header visible — hide sticky logo
+                            stickyLogo.style.opacity = '0';
+                            stickyLogo.style.transform = 'translateX(-10px)';
+                            stickyLogo.style.pointerEvents = 'none';
+                        }
+                    });
+                }, { threshold: 0 });
+                headerObserver.observe(mainHeader);
+            }
         });
     </script>
 </body>
