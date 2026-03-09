@@ -2127,6 +2127,64 @@
                                 case 'No Risk|Low Risk':
                                     remark = 'The CPN has non preferred countries but the MPN has atleast one preferred country, so low risk';
                                     break;
+                                case 'High Risk|Low Risk':
+                                    var allSteps = '';
+                                    if (mpnSiteMap[pn]) {
+                                        allSteps = mpnSiteMap[pn].map(function (step) {
+                                            var lower = step.toLowerCase();
+
+                                            if (lower.includes('assembly')) {
+                                                return '<span class="assembly">' + step + '</span>';
+                                            }
+                                            if (lower.includes('origin')) {
+                                                return '<span class="origin">' + step + '</span>';
+                                            }
+                                            if (lower.includes('fabrication')) {
+                                                return '<span class="fabrication">' + step + '</span>';
+                                            }
+                                            if (lower.includes('final')) {
+                                                return '<span class="final-test">' + step + '</span>';
+                                            }
+                                            if (lower.includes('wafer')) {
+                                                return '<span class="wafer-test">' + step + '</span>';
+                                            }
+
+                                            return step;
+                                        }).join(', ');
+                                    } else {
+                                        allSteps = 'no steps found';
+                                    }
+                                    remark = `The CPN has non preferred country for ${row[idxPN]} (${allSteps})`;
+                                    break;
+                                case 'High Risk|High Risk':
+                                    var allSteps = '';
+                                    if (mpnSiteMap[pn]) {
+                                        allSteps = mpnSiteMap[pn].map(function (step) {
+                                            var lower = step.toLowerCase();
+
+                                            if (lower.includes('assembly')) {
+                                                return '<span class="assembly">' + step + '</span>';
+                                            }
+                                            if (lower.includes('origin')) {
+                                                return '<span class="origin">' + step + '</span>';
+                                            }
+                                            if (lower.includes('fabrication')) {
+                                                return '<span class="fabrication">' + step + '</span>';
+                                            }
+                                            if (lower.includes('final')) {
+                                                return '<span class="final-test">' + step + '</span>';
+                                            }
+                                            if (lower.includes('wafer')) {
+                                                return '<span class="wafer-test">' + step + '</span>';
+                                            }
+
+                                            return step;
+                                        }).join(', ');
+                                    } else {
+                                        allSteps = 'no steps found';
+                                    }
+                                    remark = `The CPN has non preferred country for ${row[idxPN]} in all sites (${allSteps})`;
+                                    break;
                                 default:
                                     remark = `CPN ${cpnRisk.toLowerCase()} | MPN ${mpnRisk.toLowerCase()}`;
                             }
