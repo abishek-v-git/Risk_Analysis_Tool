@@ -429,6 +429,60 @@
             border: 2px solid #198754 !important;
         }
 
+        /* Recent Reports Tab Styles */
+        #recentFilesTab .card {
+            border-radius: 16px;
+            overflow: hidden;
+            border: none;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.08) !important;
+        }
+
+        #recentFilesTab .table thead th {
+            background-color: #f8fafc;
+            border-bottom: 2px solid #e2e8f0;
+            color: #64748b;
+            font-size: 0.8rem;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            padding: 1.25rem 1rem;
+        }
+
+        #recentFilesTab .table tbody td {
+            padding: 1.25rem 1rem;
+            border-bottom: 1px solid #f1f5f9;
+        }
+
+        #recentFilesTab .table tbody tr {
+            transition: all 0.2s;
+        }
+
+        #recentFilesTab .table tbody tr:hover {
+            background-color: #f8fafc;
+            transform: scale(1.002);
+        }
+
+        .empty-state {
+            padding: 4rem 2rem;
+            text-align: center;
+        }
+
+        /* Animation for table rows */
+        @keyframes fadeInUp {
+            from {
+                opacity: 0;
+                transform: translateY(20px);
+            }
+
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .animate-fade-in-up {
+            animation: fadeInUp 0.5s ease forwards;
+        }
+
         .card-unmatched {
             border: 2px solid #ffc107 !important;
         }
@@ -1067,6 +1121,10 @@
                     <button class="nav-link-custom disabled" data-tab="analysisTab" id="navAnalysis">
                         <i class="bi bi-graph-up-arrow"></i> Analysis & Dashboard
                     </button>
+                    <button class="nav-link-custom {% if not recent_reports %}disabled{% endif %}"
+                        data-tab="recentFilesTab" id="navRecentFiles">
+                        <i class="bi bi-clock-history"></i> Recent Uploads
+                    </button>
                 </div>
             </div>
         </div>
@@ -1236,6 +1294,80 @@
                                 <div class="chart-container">
                                     <canvas id="cpnBarChart"></canvas>
                                 </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- TAB 3: Recent Uploads -->
+        <div class="tab-pane-custom mt-4" id="recentFilesTab">
+            <div class="row">
+                <div class="col-12">
+                    <div class="card card-main animate-fade-in-up shadow">
+                        <div
+                            class="card-header d-flex justify-content-between align-items-center bg-white py-3 border-bottom">
+                            <h3 class="h5 mb-0 fw-bold text-primary">
+                                <i class="bi bi-clock-history me-2"></i>Recently Uploaded Files Analysis
+                            </h3>
+                            <div class="d-flex gap-2">
+                                <button class="btn btn-sm btn-outline-danger rounded-pill px-3"
+                                    onclick="if(confirm('Are you sure you want to delete all history and files?')) window.location.href='/?clear=1'">
+                                    <i class="bi bi-trash-fill me-1"></i>Clear History and Files
+                                </button>
+                                <button class="btn btn-sm btn-outline-primary rounded-pill px-3"
+                                    onclick="location.reload()">
+                                    <i class="bi bi-arrow-clockwise me-1"></i>Refresh
+                                </button>
+                            </div>
+                        </div>
+                        <div class="card-body p-4">
+                            <div class="table-responsive">
+                                <table id="recentReportsTable" class="table table-hover align-middle border">
+                                    <thead class="bg-light">
+                                        <tr>
+                                            <th class="py-3 text-secondary text-uppercase small fw-bold">Upload Date &
+                                                Time</th>
+                                            <th class="py-3 text-secondary text-uppercase small fw-bold">Filename</th>
+                                            <th class="py-3 text-secondary text-uppercase small fw-bold text-center">
+                                                Action</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        {% for report in recent_reports %}
+                                        <tr>
+                                            <td class="text-nowrap fw-medium text-dark">{{ report.date }}</td>
+                                            <td>
+                                                <div class="d-flex align-items-center">
+                                                    <i
+                                                        class="bi bi-file-earmark-spreadsheet text-success me-2 fs-5"></i>
+                                                    <span class="text-truncate" style="max-width: 400px;"
+                                                        title="{{ report.name }}">{{ report.name }}</span>
+                                                </div>
+                                            </td>
+                                            <td class="text-center">
+                                                <a href="?view_file={{ report.file }}"
+                                                    class="btn btn-sm btn-primary rounded-pill px-4 shadow-sm btn-view-analysis">
+                                                    <i class="bi bi-eye me-1"></i> View Analysis
+                                                </a>
+                                            </td>
+                                        </tr>
+                                        {% empty %}
+                                        <tr>
+                                            <td colspan="3" class="text-center py-5">
+                                                <div class="empty-state">
+                                                    <i class="bi bi-file-earmark-excel text-muted"
+                                                        style="font-size: 3rem;"></i>
+                                                    <h5 class="mt-3 text-muted">No recent analysis reports found</h5>
+                                                    <p class="text-muted small">Upload a file to see its history here.
+                                                    </p>
+                                                </div>
+                                            </td>
+                                        </tr>
+                                        {% endfor %}
+                                    </tbody>
+                                </table>
                             </div>
                         </div>
                     </div>
@@ -1583,6 +1715,19 @@
             if (document.getElementById('table-data')) {
                 try { tableData = JSON.parse(document.getElementById('table-data').textContent); } catch (e) { }
             }
+
+            // Auto-trigger analysis if viewing a historical file
+            const urlParams = new URLSearchParams(window.location.search);
+            if (urlParams.has('view_file')) {
+                setTimeout(function () {
+                    $('#analyzeBtn').click();
+                }, 800);
+            }
+
+            // Show loader when clicking View Analysis in the history table
+            $('.btn-view-analysis').on('click', function (e) {
+                showLoader('magnifier', 'Retrieving file from history...');
+            });
 
             var colLower = tableColumns.map(function (c) { return String(c).toLowerCase().trim(); });
             var georiskIdx = colLower.indexOf('georisk');
