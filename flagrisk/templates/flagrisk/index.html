@@ -2654,7 +2654,7 @@
                         initResultTable('#lowRiskTable', lowRiskResults, 'No Low Risk parts found.');
                         initUnmatchedTable(unmatchedUploads, 'No unmatched uploads found.');
 
-                        // Compute unique CPN counts for dashboard
+                        // Compute unique CPN counts for dashboard (already accurate)
                         let finalHighRiskCpnCount = 0;
                         let finalLowRiskCpnCount = 0;
                         let finalNoRiskCpnCount = 0;
@@ -2665,6 +2665,33 @@
                             else if (risk === 'No Risk') finalNoRiskCpnCount++;
                         });
 
+                        // Compute unique MPN counts for dashboard by de-duplicating part numbers
+                        const uniqueHighRiskMpns = new Set();
+                        const uniqueNoRiskMpns = new Set();
+
+                        for (let i = 0; i < newData.length; i++) {
+                            const rowND = newData[i];
+                            const pnVal = String(rowND[idxPN] || '').trim();
+                            const pnKeyDash = superNormalize(pnVal);
+                            if (!pnKeyDash) continue;
+
+                            const mpnRiskVal = rowND[rowND.length - 3]; // "MPN Risk" column in newData
+
+                            if (mpnRiskVal === 'High Risk') {
+                                uniqueHighRiskMpns.add(pnKeyDash);
+                                // ensure any "No Risk" classification for same MPN does not double-count
+                                uniqueNoRiskMpns.delete(pnKeyDash);
+                            } else if (mpnRiskVal === 'No Risk') {
+                                if (!uniqueHighRiskMpns.has(pnKeyDash)) {
+                                    uniqueNoRiskMpns.add(pnKeyDash);
+                                }
+                            }
+                        }
+
+                        const mpnDashboardRiskMap = {};
+                        uniqueHighRiskMpns.forEach(function (k) { mpnDashboardRiskMap[k] = 'High Risk'; });
+                        uniqueNoRiskMpns.forEach(function (k) { if (!mpnDashboardRiskMap[k]) mpnDashboardRiskMap[k] = 'No Risk'; });
+
                         $('#unmatchedCard').show().addClass('animate__animated animate__fadeInUp');
                         $('#resultsCard').show().addClass('animate__animated animate__fadeInUp');
                         enableAnalysisTab();
@@ -2672,8 +2699,10 @@
                         bindExportCompleteBtn();
                         removeAnalyzeBtn();
 
-                        // Update animated dashboard
-                        updateDashboard(finalHighRiskCpnCount, finalLowRiskCpnCount, finalNoRiskCpnCount, mpnRiskMap, cpnRiskMap);
+                        // Update animated dashboard:
+                        // - CPN counts use unique CPNs (final*RiskCpnCount)
+                        // - MPN counts use unique MPNs after de-duplicating (mpnDashboardRiskMap)
+                        updateDashboard(finalHighRiskCpnCount, finalLowRiskCpnCount, finalNoRiskCpnCount, mpnDashboardRiskMap, cpnRiskMap);
 
                     } catch (e) {
                         alert('An error occurred during analysis: ' + e.message);
