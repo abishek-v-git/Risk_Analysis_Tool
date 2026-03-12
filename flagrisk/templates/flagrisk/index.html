@@ -1281,9 +1281,10 @@
                                     <thead>
                                         <tr>
                                             <th>Part Number</th>
-                                            <th>Manufacturer</th>
                                             <th>Uploaded Part</th>
+                                            <th>Manufacturer</th>
                                             <th>Uploaded Mfg</th>
+                                            <th>Mismatch Type</th>
                                         </tr>
                                     </thead>
                                     <tbody></tbody>
@@ -2193,7 +2194,10 @@
                             .filter(function (k) { return uploadSummary[k] && !uploadSummary[k].matched; })
                             .map(function (k) {
                                 var u = uploadSummary[k];
-                                return [u.bestPn, u.bestMfr, u.upPart, u.upMfg];
+                                var labels = [];
+                                if (!isFuzzyMatch(u.bestPn, u.upPart)) labels.push("Part Number Mismatch");
+                                if (!isFuzzyMatch(u.bestMfr, u.upMfg)) labels.push("Manufacturer Mismatch");
+                                return [u.bestPn, u.upPart, u.bestMfr, u.upMfg, labels.join(' & ')];
                             });
 
                         function initResultTable(id, data, emptyMsg) {
@@ -2242,10 +2246,19 @@
                                 data: data,
                                 columns: [
                                     { title: "Part Number" },
-                                    { title: "Manufacturer" },
                                     { title: "Uploaded Part" },
-                                    { title: "Uploaded Mfg" }
+                                    { title: "Manufacturer" },
+                                    { title: "Uploaded Mfg" },
+                                    { title: "Mismatch Type" }
                                 ],
+                                createdRow: function (row, data) {
+                                    var mismatchIdx = 4;
+                                    var $cell = $('td:eq(' + mismatchIdx + ')', row);
+                                    var text = $cell.text();
+                                    if (text) {
+                                        $cell.html('<span class="risk-badge risk-high">' + text + '</span>');
+                                    }
+                                },
                                 pageLength: 10,
                                 lengthMenu: [[10, 25, 50, -1], [10, 25, 50, "All"]],
                                 scrollY: "40vh",
@@ -2321,7 +2334,7 @@
                                                 data: cleanData(noRiskData)
                                             },
                                             Unmatched_Uploads: {
-                                                headers: ['Part Number', 'Manufacturer', 'Uploaded Part', 'Uploaded Mfg'],
+                                                headers: ['Part Number', 'Uploaded Part', 'Manufacturer', 'Uploaded Mfg', 'Mismatch Type'],
                                                 data: cleanData(unmatchedData)
                                             }
                                         };
