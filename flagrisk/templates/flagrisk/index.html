@@ -326,6 +326,13 @@
             box-shadow: 0 4px 6px rgba(25, 135, 84, 0.2);
         }
 
+        #lowRiskTable_wrapper .dataTables_paginate .paginate_button.active a,
+        #lowRiskTable_wrapper .dataTables_paginate .paginate_button.current a {
+            background: #f59e0b !important;
+            border-color: #f59e0b !important;
+            box-shadow: 0 4px 6px rgba(245, 158, 11, 0.2);
+        }
+
         .dataTables_wrapper .dataTables_paginate .paginate_button:hover:not(.active):not(.current) a {
             background: #f1f5f9 !important;
             border-color: #cbd5e1 !important;
@@ -338,6 +345,10 @@
 
         #noRiskTable_wrapper .dataTables_paginate .paginate_button:hover:not(.active):not(.current) a {
             color: #198754 !important;
+        }
+
+        #lowRiskTable_wrapper .dataTables_paginate .paginate_button:hover:not(.active):not(.current) a {
+            color: #f59e0b !important;
         }
 
         .btn-circle {
@@ -429,6 +440,44 @@
             border: 2px solid #198754 !important;
         }
 
+        .card-low-risk {
+            border: 2px solid #f59e0b !important;
+        }
+
+        .risk-switch {
+            display: inline-flex;
+            background: #f1f5f9;
+            padding: 3px;
+            border-radius: 10px;
+            border: 1px solid var(--border-color);
+        }
+
+        .risk-switch .switch-btn {
+            border: none;
+            background: transparent;
+            font-size: 0.7rem;
+            font-weight: 700;
+            padding: 4px 12px;
+            border-radius: 8px;
+            color: #64748b;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            text-transform: uppercase;
+            letter-spacing: 0.025em;
+        }
+
+        .risk-switch .switch-btn.active {
+            background: white;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+        }
+
+        .risk-switch .switch-btn[data-target="noRisk"].active {
+            color: #198754;
+        }
+
+        .risk-switch .switch-btn[data-target="lowRisk"].active {
+            color: #d97706;
+        }
+
         /* Recent Reports Tab Styles */
         #recentFilesTab .card {
             border-radius: 16px;
@@ -509,6 +558,18 @@
         #noRiskTable_wrapper .dataTables_scrollHead thead th.dtfc-fixed-left,
         #noRiskTable thead th.dtfc-fixed-left {
             background-color: #198754 !important;
+        }
+
+        #lowRiskTable_wrapper .dataTables_scrollHead thead th,
+        #lowRiskTable thead th {
+            background-color: #f59e0b !important;
+            border-bottom: 2px solid #d97706 !important;
+            color: white !important;
+        }
+
+        #lowRiskTable_wrapper .dataTables_scrollHead thead th.dtfc-fixed-left,
+        #lowRiskTable thead th.dtfc-fixed-left {
+            background-color: #f59e0b !important;
         }
 
         .logo-small {
@@ -1265,16 +1326,35 @@
 
                 <!-- No / Low Risk Table -->
                 <div class="col-lg-6">
-                    <div class="card h-100 card-no-risk animate-fade-in-up delay-3">
-                        <div class="card-header d-flex align-items-center bg-success bg-opacity-25 py-3">
-                            <h3 class="h6 text-success mb-0 fw-bold">
-                                <i class="bi bi-check-circle-fill me-2"></i>
-                                No Risk / Low Risk Parts
+                    <div class="card h-100 card-no-risk animate-fade-in-up delay-3" id="noLowRiskCard">
+                        <div class="card-header d-flex align-items-center bg-success bg-opacity-10 py-3"
+                            id="noLowRiskHeader">
+                            <h3 class="h6 mb-0 fw-bold d-flex align-items-center gap-2" id="noLowRiskTitle">
+                                <i class="bi bi-check-circle-fill text-success"></i>
+                                <span id="riskHeaderText" class="text-success">No Risk Parts</span>
                             </h3>
+                            <div class="risk-switch ms-auto">
+                                <button class="switch-btn active" data-target="noRisk"
+                                    onclick="switchRiskView('noRisk')">No Risk</button>
+                                <button class="switch-btn" data-target="lowRisk" onclick="switchRiskView('lowRisk')">Low
+                                    Risk</button>
+                            </div>
                         </div>
                         <div class="card-body p-4">
-                            <div class="table-responsive">
+                            <div id="noRiskView" class="table-responsive">
                                 <table id="noRiskTable" class="table data-table display" style="width:100%">
+                                    <thead>
+                                        <tr>
+                                            <th>Part Number</th>
+                                            <th>CPN</th>
+                                            <th>Country</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody></tbody>
+                                </table>
+                            </div>
+                            <div id="lowRiskView" class="table-responsive" style="display: none;">
+                                <table id="lowRiskTable" class="table data-table display" style="width:100%">
                                     <thead>
                                         <tr>
                                             <th>Part Number</th>
@@ -1523,6 +1603,35 @@
         document.getElementById('uploadForm')?.addEventListener('submit', function () {
             showLoader('magnifier', 'Uploading and processing file...');
         });
+
+        function switchRiskView(type) {
+            const $card = $('#noLowRiskCard');
+            const $header = $('#noLowRiskHeader');
+            const $title = $('#noLowRiskTitle');
+            const $headerText = $('#riskHeaderText');
+            const $btns = $('.risk-switch .switch-btn');
+
+            $btns.removeClass('active');
+            $(`.risk-switch .switch-btn[data-target="${type}"]`).addClass('active');
+
+            if (type === 'noRisk') {
+                $('#noRiskView').show();
+                $('#lowRiskView').hide();
+                $card.removeClass('card-low-risk').addClass('card-no-risk');
+                $header.removeClass('bg-warning bg-opacity-10').addClass('bg-success bg-opacity-10');
+                $title.find('i').removeClass('bi-exclamation-triangle-fill text-warning').addClass('bi-check-circle-fill text-success');
+                $headerText.text('No Risk Parts').removeClass('text-warning').addClass('text-success');
+                setTimeout(() => { $('#noRiskTable').DataTable().columns.adjust().draw(); }, 10);
+            } else {
+                $('#noRiskView').hide();
+                $('#lowRiskView').show();
+                $card.removeClass('card-no-risk').addClass('card-low-risk');
+                $header.removeClass('bg-success bg-opacity-10').addClass('bg-warning bg-opacity-10');
+                $title.find('i').removeClass('bi-check-circle-fill text-success').addClass('bi-exclamation-triangle-fill text-warning');
+                $headerText.text('Low Risk Parts').removeClass('text-success').addClass('text-warning');
+                setTimeout(() => { $('#lowRiskTable').DataTable().columns.adjust().draw(); }, 10);
+            }
+        }
 
         // Animated counter
         function animateCounter(element, target, duration) {
@@ -1975,6 +2084,9 @@
 
                         var allData = table.rows().data().toArray();
                         var matchedRows = [];
+                        var highRiskResults = [];
+                        var noRiskResults = [];
+                        var lowRiskResults = [];
                         var uploadSummary = {};
 
                         function uploadKey(upPart, upMfg) {
@@ -2060,7 +2172,7 @@
                                     extend: 'excel',
                                     text: '<i class="bi bi-download"></i>',
                                     className: 'btn btn-circle me-1',
-                                    title: (id === '#highRiskTable') ? 'FlagRisk_High_Risk' : 'FlagRisk_No_and_low_Risk'
+                                    title: (id === '#highRiskTable') ? 'FlagRisk_High_Risk' : (id === '#noRiskTable' ? 'FlagRisk_No_Risk' : 'FlagRisk_Low_Risk')
                                 }],
                                 ordering: false,
                                 language: {
@@ -2306,8 +2418,6 @@
                         });
 
                         var newData = [];
-                        var highRiskResults = [];
-                        var noRiskResults = [];
 
                         for (var i = 0; i < allData.length; i++) {
                             var row = allData[i];
@@ -2412,6 +2522,8 @@
                             if (isMatched2) {
                                 if (cpnRisk === "High Risk") {
                                     highRiskResults.push(splitRow);
+                                } else if (cpnRisk === "Low Risk") {
+                                    lowRiskResults.push(splitRow);
                                 } else {
                                     noRiskResults.push(splitRow);
                                 }
@@ -2492,6 +2604,7 @@
 
                         initResultTable('#highRiskTable', highRiskResults, 'No High Risk parts found.');
                         initResultTable('#noRiskTable', noRiskResults, 'No matched parts in this category.');
+                        initResultTable('#lowRiskTable', lowRiskResults, 'No Low Risk parts found.');
                         initUnmatchedTable(unmatchedUploads, 'No unmatched uploads found.');
 
                         // Compute counts for dashboard
