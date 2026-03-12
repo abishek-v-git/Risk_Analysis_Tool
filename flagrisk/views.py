@@ -86,6 +86,14 @@ def index(request):
                     df = pd.read_excel(file_path)
                 else:
                     df = pd.read_excel(file_path, header=header_row_idx)
+                    cpn_col_idx = None
+                col_lower = [str(col).lower().strip() for col in df.columns]
+                for i, col_name in enumerate(col_lower):
+                    if 'cpn' in col_name:
+                        cpn_col_idx = i
+                        break
+                if cpn_col_idx is not None:
+                    df.iloc[:, cpn_col_idx] = df.iloc[:, cpn_col_idx].replace('?', 'QMR123')
                 
                 df = df.dropna(how='all').loc[:, df.columns.notna()]
                 df = df[[c for c in df.columns if not str(c).startswith('Unnamed')]].reset_index(drop=True).fillna('')
