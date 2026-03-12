@@ -1372,24 +1372,48 @@
                 <!-- RISK ANALYSIS DASHBOARD -->
                 <div class="col-12">
                     <div class="dashboard-section animate-fade-in-up" style="animation-delay: 0.5s;">
-                        <h3 class="mb-4 fw-bold text-primary text-center">
-                            <i class="bi bi-bar-chart-line-fill me-2"></i>Risk Analysis Dashboard
-                        </h3>
-                        <div class="stats-grid" id="riskStats">
+                        <div class="d-flex justify-content-center align-items-center flex-column mb-4">
+                            <h3 class="mb-3 fw-bold text-primary text-center">
+                                <i class="bi bi-bar-chart-line-fill me-2"></i>Risk Analysis Dashboard
+                            </h3>
+                            <div class="risk-switch">
+                                <button class="switch-btn active" data-target="cpnDashboard"
+                                    onclick="switchDashboardView('cpnDashboard')">CPN Analysis</button>
+                                <button class="switch-btn" data-target="mpnDashboard"
+                                    onclick="switchDashboardView('mpnDashboard')">MPN Analysis</button>
+                            </div>
+                        </div>
+
+                        <!-- CPN Stats Grid -->
+                        <div class="stats-grid" id="cpnStatsGrid">
                             <div class="stat-card stat-high animate-fade-in-up" style="animation-delay: 0.1s;">
                                 <div class="stat-number" id="highRiskCount">0</div>
-                                <div class="text-danger fw-semibold">High Risk</div>
-                                <div class="text-muted small">Critical parts requiring attention</div>
+                                <div class="text-danger fw-semibold">High Risk CPNs</div>
+                                <div class="text-muted small">Unique customer parts with critical risk</div>
                             </div>
                             <div class="stat-card stat-low animate-fade-in-up" style="animation-delay: 0.2s;">
                                 <div class="stat-number" id="lowRiskCount">0</div>
-                                <div class="text-warning fw-semibold">Low Risk</div>
-                                <div class="text-muted small">Parts with moderate risk exposure</div>
+                                <div class="text-warning fw-semibold">Low Risk CPNs</div>
+                                <div class="text-muted small">Unique customer parts with moderate risk</div>
                             </div>
                             <div class="stat-card stat-none animate-fade-in-up" style="animation-delay: 0.3s;">
                                 <div class="stat-number" id="noRiskOnlyCount">0</div>
-                                <div class="text-success fw-semibold">No Risk</div>
-                                <div class="text-muted small">Safe and compliant parts</div>
+                                <div class="text-success fw-semibold">No Risk CPNs</div>
+                                <div class="text-muted small">Unique customer parts that are safe</div>
+                            </div>
+                        </div>
+
+                        <!-- MPN Stats Grid -->
+                        <div class="stats-grid" id="mpnStatsGrid" style="display: none;">
+                            <div class="stat-card stat-high animate-fade-in-up" style="animation-delay: 0.1s;">
+                                <div class="stat-number" id="mpnHighRiskCount">0</div>
+                                <div class="text-danger fw-semibold">High Risk MPNs</div>
+                                <div class="text-muted small">Manufacturer parts requiring attention</div>
+                            </div>
+                            <div class="stat-card stat-none animate-fade-in-up" style="animation-delay: 0.3s;">
+                                <div class="stat-number" id="mpnNoRiskCount">0</div>
+                                <div class="text-success fw-semibold">No Risk MPNs</div>
+                                <div class="text-muted small">Safe and compliant manufacturer parts</div>
                             </div>
                         </div>
                         <div class="row mb-4">
@@ -1633,6 +1657,20 @@
             }
         }
 
+        function switchDashboardView(type) {
+            const $btns = $('.dashboard-section .risk-switch .switch-btn');
+            $btns.removeClass('active');
+            $(`.dashboard-section .risk-switch .switch-btn[data-target="${type}"]`).addClass('active');
+
+            if (type === 'cpnDashboard') {
+                $('#cpnStatsGrid').show();
+                $('#mpnStatsGrid').hide();
+            } else {
+                $('#cpnStatsGrid').hide();
+                $('#mpnStatsGrid').show();
+            }
+        }
+
         // Animated counter
         function animateCounter(element, target, duration) {
             duration = duration || 1500;
@@ -1667,7 +1705,7 @@
         var counterAnimated = false;
 
         function triggerCountersWhenVisible() {
-            var statsEl = document.getElementById('riskStats');
+            var statsEl = document.querySelector('.dashboard-section');
             if (!statsEl || !pendingCounterData) return;
 
             var dashObserver = new IntersectionObserver(function (entries) {
@@ -1677,6 +1715,8 @@
                         animateCounter('#highRiskCount', pendingCounterData.high, 1500);
                         animateCounter('#lowRiskCount', pendingCounterData.low, 1800);
                         animateCounter('#noRiskOnlyCount', pendingCounterData.none, 2000);
+                        animateCounter('#mpnHighRiskCount', pendingCounterData.mpnHigh, 1500);
+                        animateCounter('#mpnNoRiskCount', pendingCounterData.mpnNone, 2000);
                         dashObserver.disconnect();
                     }
                 });
@@ -1685,14 +1725,20 @@
         }
 
         function updateDashboard(highRiskCount, lowRiskCount, noRiskOnlyCount, mpnRiskMap, cpnRiskMap) {
-            // Store counts and defer animation until visible
-            pendingCounterData = { high: highRiskCount, low: lowRiskCount, none: noRiskOnlyCount };
-            counterAnimated = false;
-            triggerCountersWhenVisible();
-
             // Calculate MPN-specific counts
             const mpnHighRisk = Object.values(mpnRiskMap || {}).filter(r => r === 'High Risk').length;
             const mpnNoRisk = Object.values(mpnRiskMap || {}).filter(r => r === 'No Risk').length;
+
+            // Store counts and defer animation until visible
+            pendingCounterData = {
+                high: highRiskCount,
+                low: lowRiskCount,
+                none: noRiskOnlyCount,
+                mpnHigh: mpnHighRisk,
+                mpnNone: mpnNoRisk
+            };
+            counterAnimated = false;
+            triggerCountersWhenVisible();
 
             // CPN counts from parameters
             const cpnHighRisk = highRiskCount;
@@ -2607,17 +2653,15 @@
                         initResultTable('#lowRiskTable', lowRiskResults, 'No Low Risk parts found.');
                         initUnmatchedTable(unmatchedUploads, 'No unmatched uploads found.');
 
-                        // Compute counts for dashboard
-                        const highRiskCount = highRiskResults.length;
-                        const lowAndNoCount = noRiskResults.length;
+                        // Compute unique CPN counts for dashboard
+                        let finalHighRiskCpnCount = 0;
+                        let finalLowRiskCpnCount = 0;
+                        let finalNoRiskCpnCount = 0;
 
-                        // Split low vs no risk by inspecting cpnRisk in newData
-                        let lowRiskCount = 0;
-                        let noRiskOnlyCount = 0;
-                        newData.forEach(row => {
-                            const cpnRiskVal = row[row.length - 2];
-                            if (cpnRiskVal === 'Low Risk') lowRiskCount += 1;
-                            else if (cpnRiskVal === 'No Risk') noRiskOnlyCount += 1;
+                        Object.values(cpnRiskMap).forEach(risk => {
+                            if (risk === 'High Risk') finalHighRiskCpnCount++;
+                            else if (risk === 'Low Risk') finalLowRiskCpnCount++;
+                            else if (risk === 'No Risk') finalNoRiskCpnCount++;
                         });
 
                         $('#unmatchedCard').show().addClass('animate__animated animate__fadeInUp');
@@ -2628,7 +2672,7 @@
                         removeAnalyzeBtn();
 
                         // Update animated dashboard
-                        updateDashboard(highRiskCount, lowRiskCount, noRiskOnlyCount, mpnRiskMap, cpnRiskMap);
+                        updateDashboard(finalHighRiskCpnCount, finalLowRiskCpnCount, finalNoRiskCpnCount, mpnRiskMap, cpnRiskMap);
 
                     } catch (e) {
                         alert('An error occurred during analysis: ' + e.message);
