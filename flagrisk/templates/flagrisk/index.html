@@ -2417,24 +2417,25 @@
 
                         for (var i = 0; i < matchedRows.length; i++) {
                             var rowM = matchedRows[i];
-                            var pnM = String(rowM[idxPN] || '').trim().toLowerCase();
+                            var pnRawM = String(rowM[idxPN] || '').trim();
+                            var pnNormM = superNormalize(pnRawM); // normalized MPN key (for de-duplicated counting)
                             var cpnM = idxCPN > -1 ? String(rowM[idxCPN] || '').trim().toLowerCase() : '';
                             var countryM = idxCountry > -1 ? String(rowM[idxCountry] || '').trim().toLowerCase() : '';
                             var mfgStepM = idxMfgStep > -1 ? String(rowM[idxMfgStep] || '').trim() : '';
 
-                            if (pnM) {
-                                if (!mpnMap[pnM]) mpnMap[pnM] = [];
-                                mpnMap[pnM].push(countryM);
+                            if (pnNormM) {
+                                if (!mpnMap[pnNormM]) mpnMap[pnNormM] = [];
+                                mpnMap[pnNormM].push(countryM);
                                 if (isRisky(countryM)) {
-                                    if (!mpnSiteMap[pnM]) mpnSiteMap[pnM] = [];
-                                    if (mfgStepM && mpnSiteMap[pnM].indexOf(mfgStepM) === -1) {
-                                        mpnSiteMap[pnM].push(mfgStepM);
+                                    if (!mpnSiteMap[pnNormM]) mpnSiteMap[pnNormM] = [];
+                                    if (mfgStepM && mpnSiteMap[pnNormM].indexOf(mfgStepM) === -1) {
+                                        mpnSiteMap[pnNormM].push(mfgStepM);
                                     }
                                 }
                             }
-                            if (cpnM && pnM) {
+                            if (cpnM && pnNormM) {
                                 if (!cpnToMpns[cpnM]) cpnToMpns[cpnM] = new Set();
-                                cpnToMpns[cpnM].add(pnM);
+                                cpnToMpns[cpnM].add(pnNormM);
                             }
                         }
 
@@ -2445,8 +2446,8 @@
                         };
 
                         var mpnRiskMap = {};
-                        Object.keys(mpnMap).forEach(function (pn) {
-                            mpnRiskMap[pn] = getRawLevelFromCountries(mpnMap[pn]);
+                        Object.keys(mpnMap).forEach(function (pnKey) {
+                            mpnRiskMap[pnKey] = getRawLevelFromCountries(mpnMap[pnKey]);
                         });
 
                         var cpnRiskMap = {};
@@ -2476,11 +2477,11 @@
                             var isMatched2 = (sysPnRaw2 && sysMfrRaw2 && upPnRaw2 && upMfrRaw2 && isPnMatch2 && isMfrMatch2);
                             if (!isMatched2) continue;
 
-                            var pn = String(row[idxPN] || '').trim().toLowerCase();
+                            var pnKey = superNormalize(sysPnRaw2); // use normalized MPN key to align with mpnRiskMap
                             var cpn = idxCPN > -1 ? String(row[idxCPN] || '').trim().toLowerCase() : '';
                             var country = idxCountry > -1 ? String(row[idxCountry] || '').trim().toLowerCase() : '';
 
-                            var mpnRisk = mpnRiskMap[pn] || "No Risk";
+                            var mpnRisk = mpnRiskMap[pnKey] || "No Risk";
                             var cpnRisk = cpnRiskMap[cpn] || "No Risk";
 
                             var remark = '';
@@ -2493,8 +2494,8 @@
                                     break;
                                 case 'High Risk|Low Risk':
                                     var allSteps = '';
-                                    if (mpnSiteMap[pn]) {
-                                        allSteps = mpnSiteMap[pn].map(function (step) {
+                                    if (mpnSiteMap[pnKey]) {
+                                        allSteps = mpnSiteMap[pnKey].map(function (step) {
                                             var lower = step.toLowerCase();
 
                                             if (lower.includes('assembly')) {
@@ -2522,8 +2523,8 @@
                                     break;
                                 case 'High Risk|High Risk':
                                     var allSteps = '';
-                                    if (mpnSiteMap[pn]) {
-                                        allSteps = mpnSiteMap[pn].map(function (step) {
+                                    if (mpnSiteMap[pnKey]) {
+                                        allSteps = mpnSiteMap[pnKey].map(function (step) {
                                             var lower = step.toLowerCase();
 
                                             if (lower.includes('assembly')) {
