@@ -1073,6 +1073,58 @@
                         </div>
                     </form>
                 </div>
+
+                <!-- Recent Uploads Card on Initial Page -->
+                {% if recent_reports %}
+                <div class="card card-main animate-fade-in-up shadow mt-5">
+                    <div
+                        class="card-header d-flex justify-content-between align-items-center bg-white py-3 border-bottom">
+                        <h3 class="h5 mb-0 fw-bold text-primary">
+                            <i class="bi bi-clock-history me-2"></i>Recently Uploaded Files Analysis
+                        </h3>
+                        <div class="d-flex gap-2">
+                            <button class="btn btn-sm btn-outline-danger rounded-pill px-3"
+                                onclick="if(confirm('Are you sure you want to delete all history and files?')) window.location.href='/?clear=1'">
+                                <i class="bi bi-trash-fill me-1"></i>Clear History
+                            </button>
+                        </div>
+                    </div>
+                    <div class="card-body p-4">
+                        <div class="table-responsive">
+                            <table class="table table-hover align-middle border">
+                                <thead class="bg-light">
+                                    <tr>
+                                        <th class="py-3 text-secondary text-uppercase small fw-bold">Date & Time</th>
+                                        <th class="py-3 text-secondary text-uppercase small fw-bold">Filename</th>
+                                        <th class="py-3 text-secondary text-uppercase small fw-bold text-center">Action
+                                        </th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {% for report in recent_reports %}
+                                    <tr>
+                                        <td class="text-nowrap fw-medium text-dark">{{ report.date }}</td>
+                                        <td>
+                                            <div class="d-flex align-items-center">
+                                                <i class="bi bi-file-earmark-spreadsheet text-success me-2 fs-5"></i>
+                                                <span class="text-truncate" style="max-width: 300px;"
+                                                    title="{{ report.name }}">{{ report.name }}</span>
+                                            </div>
+                                        </td>
+                                        <td class="text-center">
+                                            <a href="?view_file={{ report.file }}"
+                                                class="btn btn-sm btn-primary rounded-pill px-4 shadow-sm btn-view-analysis">
+                                                <i class="bi bi-eye me-1"></i> View
+                                            </a>
+                                        </td>
+                                    </tr>
+                                    {% endfor %}
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+                {% endif %}
             </div>
         </div>
         {% endif %}
@@ -2150,8 +2202,17 @@
                                         autofitColumns(noLowWS);
                                         autofitColumns(unmatchedWS);
 
-                                        var now = new Date();
-                                        var timestamp = now.toISOString().slice(0, 19).replace(/:/g, '-');
+                                        var now = new Date(); 
+                                        var pad = n => n.toString().padStart(2, '0');
+
+                                        var year = now.getFullYear();
+                                        var month = pad(now.getMonth() + 1);
+                                        var day = pad(now.getDate());
+                                        var hours = pad(now.getHours());
+                                        var minutes = pad(now.getMinutes());
+                                        var seconds = pad(now.getSeconds());
+
+                                        var timestamp = `${year}-${month}-${day}T${hours}-${minutes}-${seconds}`;
                                         var filename = 'FlagRisk_Complete_Report_' + timestamp + '.xlsx';
                                         var wbout = XLSX.write(wb, { bookType: 'xlsx', type: 'binary' });
                                         var blob = new Blob([s2ab(wbout)], { type: 'application/octet-stream' });
