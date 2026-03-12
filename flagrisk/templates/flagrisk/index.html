@@ -2202,15 +2202,17 @@
                                         autofitColumns(noLowWS);
                                         autofitColumns(unmatchedWS);
 
-                                        var now = new Date(); 
-                                        var pad = n => n.toString().padStart(2, '0');
+                                        var nowUtc = new Date();
+                                        var istOffsetMs = (5 * 60 + 30) * 60 * 1000;
+                                        var ist = new Date(nowUtc.getTime() + istOffsetMs);
 
-                                        var year = now.getFullYear();
-                                        var month = pad(now.getMonth() + 1);
-                                        var day = pad(now.getDate());
-                                        var hours = pad(now.getHours());
-                                        var minutes = pad(now.getMinutes());
-                                        var seconds = pad(now.getSeconds());
+                                        var pad = n => n.toString().padStart(2, '0');
+                                        var year = ist.getUTCFullYear();
+                                        var month = pad(ist.getUTCMonth() + 1);
+                                        var day = pad(ist.getUTCDate());
+                                        var hours = pad(ist.getUTCHours());
+                                        var minutes = pad(ist.getUTCMinutes());
+                                        var seconds = pad(ist.getUTCSeconds());
 
                                         var timestamp = `${year}-${month}-${day}T${hours}-${minutes}-${seconds}`;
                                         var filename = 'FlagRisk_Complete_Report_' + timestamp + '.xlsx';
