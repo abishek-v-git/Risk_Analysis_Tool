@@ -1,10 +1,12 @@
 import pandas as pd
 from django.shortcuts import render
+from django.contrib.auth.decorators import login_required
 from django.core.files.storage import FileSystemStorage
 from django.conf import settings
 import os
 import datetime
 import glob
+from .models import ReportAnalysis
 
 def ensure_limit(reports_dir):
     all_hist = glob.glob(os.path.join(reports_dir, "report_*.xlsx"))
@@ -14,6 +16,7 @@ def ensure_limit(reports_dir):
             if os.path.isfile(old):
                 os.remove(old)
 
+@login_required
 def index(request):
     fs = FileSystemStorage()
     reports_dir = os.path.join(settings.MEDIA_ROOT, 'reports')
@@ -22,13 +25,15 @@ def index(request):
 
     # 1. Handle Clear History request
     if request.GET.get('clear') == '1':
+        # Clear database records
+        ReportAnalysis.objects.filter(user=request.user).delete()
+        
+        # Clear physical files (optional, but keeps things clean)
         files = glob.glob(os.path.join(reports_dir, "*"))
         for f in files:
             if os.path.isfile(f):
                 os.remove(f)
-        main_file = os.path.join(settings.MEDIA_ROOT, "uploaded_file.xlsx")
-        if os.path.exists(main_file):
-            os.remove(main_file)
+        
         from django.shortcuts import redirect
         return redirect('/')
 
@@ -69,6 +74,13 @@ def index(request):
                     for chunk in file_obj.chunks():
                         dest.write(chunk)
 
+                # Save record to database
+                ReportAnalysis.objects.create(
+                    user=request.user,
+                    filename=original_name,
+                    report_file_path=hist_name
+                )
+
                 ensure_limit(reports_dir)
 
             try:  
@@ -100,15 +112,15 @@ def index(request):
                 columns = df.columns.tolist()
                 data = df.values.tolist()
                 
+                # Fetch from database instead of globbing
+                db_recent = ReportAnalysis.objects.filter(user=request.user)[:5]
                 recent_list = []
-                all_hist = glob.glob(os.path.join(reports_dir, "report_*.xlsx"))
-                all_hist.sort(key=os.path.getmtime, reverse=True)
-                for f in all_hist[:5]:
-                    mtime = os.path.getmtime(f)
-                    dt = datetime.datetime.fromtimestamp(mtime).strftime("%Y-%m-%d %H:%M:%S")
-                    fname = os.path.basename(f)
-                    display_name = fname[22:] if fname.startswith("report_") and len(fname) > 22 else fname
-                    recent_list.append({'name': display_name, 'file': fname, 'date': dt})
+                for entry in db_recent:
+                    recent_list.append({
+                        'name': entry.filename,
+                        'file': entry.report_file_path,
+                        'date': entry.upload_date.strftime("%Y-%m-%d %H:%M:%S")
+                    })
 
                 return render(request, 'flagrisk/index.html', {
                     'data': data,
@@ -120,15 +132,15 @@ def index(request):
             except Exception as e:
                 return render(request, 'flagrisk/index.html', {'error': f"Error parsing Excel: {str(e)}"})
             
+        # Fetch from database instead of globbing
+        db_recent = ReportAnalysis.objects.filter(user=request.user)[:5]
         recent_list = []
-        all_hist = glob.glob(os.path.join(reports_dir, "report_*.xlsx"))
-        all_hist.sort(key=os.path.getmtime, reverse=True)
-        for f in all_hist[:5]:
-            mtime = os.path.getmtime(f)
-            dt = datetime.datetime.fromtimestamp(mtime).strftime("%Y-%m-%d %H:%M:%S")
-            fname = os.path.basename(f)
-            display_name = fname[22:] if fname.startswith("report_") and len(fname) > 22 else fname
-            recent_list.append({'name': display_name, 'file': fname, 'date': dt})
+        for entry in db_recent:
+            recent_list.append({
+                'name': entry.filename,
+                'file': entry.report_file_path,
+                'date': entry.upload_date.strftime("%Y-%m-%d %H:%M:%S")
+            })
 
         return render(request, 'flagrisk/index.html', {'recent_reports': recent_list})
         
