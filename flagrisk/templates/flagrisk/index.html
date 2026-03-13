@@ -2197,8 +2197,13 @@
                                 var labels = [];
                                 if (!isFuzzyMatch(u.bestPn, u.upPart)) labels.push("Part Number Mismatch");
                                 if (!isFuzzyMatch(u.bestMfr, u.upMfg)) labels.push("Manufacturer Mismatch");
+                                
+                                // Do not show rows where both part number and manufacturer are mismatched
+                                if (labels.length === 2) return null;
+                                
                                 return [u.bestPn, u.upPart, u.bestMfr, u.upMfg, labels.join(' & ')];
-                            });
+                            })
+                            .filter(function (row) { return row !== null; });
 
                         function initResultTable(id, data, emptyMsg) {
                             if ($.fn.DataTable.isDataTable(id)) {
