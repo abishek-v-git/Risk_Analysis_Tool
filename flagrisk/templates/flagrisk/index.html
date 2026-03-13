@@ -18,6 +18,10 @@
     <link rel="stylesheet" href="https://cdn.datatables.net/fixedcolumns/4.3.0/css/fixedColumns.bootstrap5.min.css">
     <!-- Animate.css -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/animate.css/4.1.1/animate.min.css" />
+    <!-- Select2 CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/css/select2.min.css" rel="stylesheet" />
+    <link rel="stylesheet"
+        href="https://cdn.jsdelivr.net/npm/select2-bootstrap-5-theme@1.3.0/dist/select2-bootstrap-5-theme.min.css" />
     <!-- Chart.js -->
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 
@@ -1073,6 +1077,41 @@
             margin-bottom: 1.5rem;
             animation: fadeInUpCustom 0.8s ease forwards;
         }
+
+        /* Select2 Custom Styles */
+        .select2-container--bootstrap-5 .select2-selection {
+            border-radius: 10px !important;
+            border: 1px solid var(--border-color) !important;
+            font-size: 0.85rem !important;
+            min-height: 38px !important;
+        }
+
+        .select2-container--bootstrap-5 .select2-selection--multiple .select2-selection__choice {
+            background-color: var(--primary-color) !important;
+            color: white !important;
+            border: none !important;
+            border-radius: 6px !important;
+            padding: 2px 8px !important;
+            font-size: 0.75rem !important;
+        }
+
+        .select2-container--bootstrap-5 .select2-selection--multiple .select2-selection__choice__remove {
+            color: white !important;
+            border-right: 1px solid rgba(255, 255, 255, 0.2) !important;
+            margin-right: 5px !important;
+        }
+
+        .select2-container--bootstrap-5 .select2-selection--multiple .select2-selection__choice__remove:hover {
+            background-color: transparent !important;
+            color: #ffcccc !important;
+        }
+
+        .select2-dropdown {
+            border-radius: 12px !important;
+            border: 1px solid var(--border-color) !important;
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1) !important;
+            overflow: hidden;
+        }
     </style>
 </head>
 
@@ -1242,8 +1281,57 @@
             </div>
         </div>
 
+
+
         <!-- TAB 1: Data Preview -->
         <div class="tab-pane-custom active" id="dataPreviewTab">
+            <!-- Master Filter Panel -->
+            <div id="masterFilterPanel" class="animate-fade-in-up" style="display: none; margin-bottom: 2rem;">
+                <div class="card shadow-sm border-light-subtle rounded-4 bg-white p-3">
+                    <div class="row g-3 align-items-center">
+                        <div class="col-auto">
+                            <div class="bg-primary bg-opacity-10 p-2 rounded-3">
+                                <i class="bi bi-funnel-fill text-primary"></i>
+                            </div>
+                        </div>
+                        <div class="col-md-2">
+                            <label class="form-label small fw-bold text-muted mb-1">Manufacturer</label>
+                            <select id="filterManufacturer" class="form-select select2-multiple" multiple="multiple"
+                                data-placeholder="All Manufacturers">
+                            </select>
+                        </div>
+                        <div class="col-md-2">
+                            <label class="form-label small fw-bold text-muted mb-1">Country</label>
+                            <select id="filterCountry" class="form-select select2-multiple" multiple="multiple"
+                                data-placeholder="All Countries">
+                            </select>
+                        </div>
+                        <div class="col-md-2">
+                            <label class="form-label small fw-bold text-muted mb-1">MPN Risk</label>
+                            <select id="filterMpnRisk" class="form-select select2-multiple" multiple="multiple"
+                                data-placeholder="All MPN Risks">
+                                <option value="High Risk">High Risk</option>
+                                <option value="No Risk">No Risk</option>
+                            </select>
+                        </div>
+                        <div class="col-md-2">
+                            <label class="form-label small fw-bold text-muted mb-1">CPN Risk</label>
+                            <select id="filterCpnRisk" class="form-select select2-multiple" multiple="multiple"
+                                data-placeholder="All CPN Risks">
+                                <option value="High Risk">High Risk</option>
+                                <option value="Low Risk">Low Risk</option>
+                                <option value="No Risk">No Risk</option>
+                            </select>
+                        </div>
+                        <div class="col-auto ms-auto align-self-end">
+                            <button class="btn btn-sm btn-outline-secondary rounded-pill px-3 shadow-sm mb-1"
+                                onclick="resetFilters()">
+                                <i class="bi bi-arrow-counterclockwise me-1"></i> Reset
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
             <div class="row">
                 <div class="col-12">
                     <div class="card card-main animate-fade-in-up">
@@ -1578,6 +1666,8 @@
     <script src="https://cdn.datatables.net/buttons/2.4.2/js/buttons.html5.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
     <script src="https://cdn.datatables.net/fixedcolumns/4.3.0/js/dataTables.fixedColumns.min.js"></script>
+    <!-- Select2 JS -->
+    <script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
 
     <script>
         function showLoader(type, text) {
@@ -2000,7 +2090,7 @@
                             lengthMenu: [[10, 25, 50, 100, 500, 1000], [10, 25, 50, 100, 500, 1000]],
                             pagingType: "full_numbers",
                             searching: true,
-                            ordering: false,
+                            ordering: true,
                             info: true,
                             autoWidth: false,
                             deferRender: true,
@@ -2197,10 +2287,10 @@
                                 var labels = [];
                                 if (!isFuzzyMatch(u.bestPn, u.upPart)) labels.push("Part Number Mismatch");
                                 if (!isFuzzyMatch(u.bestMfr, u.upMfg)) labels.push("Manufacturer Mismatch");
-                                
+
                                 // Do not show rows where both part number and manufacturer are mismatched
                                 if (labels.length === 2) return null;
-                                
+
                                 return [u.bestPn, u.upPart, u.bestMfr, u.upMfg, labels.join(' & ')];
                             })
                             .filter(function (row) { return row !== null; });
@@ -2229,7 +2319,7 @@
                                     className: 'btn btn-circle me-1',
                                     title: (id === '#highRiskTable') ? 'FlagRisk_High_Risk' : (id === '#noRiskTable' ? 'FlagRisk_No_Risk' : 'FlagRisk_Low_Risk')
                                 }],
-                                ordering: false,
+                                ordering: true,
                                 language: {
                                     search: "Search:",
                                     emptyTable: emptyMsg || "No records found"
@@ -2261,7 +2351,7 @@
                                     var $cell = $('td:eq(' + mismatchIdx + ')', row);
                                     var text = $cell.text();
                                     if (text) {
-                                        $cell.html('<span class="risk-badge risk-high">' + text + '</span>');
+                                        $cell.html('<span class="risk-badge risk-low">' + text + '</span>');
                                     }
                                 },
                                 pageLength: 10,
@@ -2277,7 +2367,7 @@
                                     className: 'btn btn-circle me-1',
                                     title: 'FlagRisk_Unmatched_Uploads'
                                 }],
-                                ordering: false,
+                                ordering: true,
                                 language: {
                                     search: "Search:",
                                     emptyTable: emptyMsg || "No unmatched uploads found"
@@ -2641,7 +2731,7 @@
                             lengthMenu: [[10, 25, 50, 100, 500, 1000], [10, 25, 50, 100, 500, 1000]],
                             pagingType: "full_numbers",
                             searching: true,
-                            ordering: false,
+                            ordering: true,
                             info: true,
                             autoWidth: false,
                             deferRender: true,
@@ -2722,6 +2812,9 @@
                         // - MPN counts use unique MPNs after de-duplicating (mpnDashboardRiskMap)
                         updateDashboard(finalHighRiskCpnCount, finalLowRiskCpnCount, finalNoRiskCpnCount, mpnDashboardRiskMap, cpnRiskMap);
 
+                        // Populate Master Filters
+                        populateFilters(newData, [...originalColumns.map(c => c.toLowerCase().trim()), 'mpn risk', 'cpn risk', 'remarks']);
+
                     } catch (e) {
                         alert('An error occurred during analysis: ' + e.message);
                     } finally {
@@ -2729,6 +2822,96 @@
                     }
                 }, 100);
             });
+
+            // ===== MASTER FILTER LOGIC =====
+            window.populateFilters = function (data, headers) {
+                const idxMfr = headers.indexOf('manufacturer');
+                const idxCountry = headers.indexOf('country');
+
+                const mfrs = new Set();
+                const countries = new Set();
+
+                data.forEach(row => {
+                    if (idxMfr !== -1 && row[idxMfr]) mfrs.add(row[idxMfr]);
+                    if (idxCountry !== -1 && row[idxCountry]) countries.add(row[idxCountry]);
+                });
+
+                const $mfrSelect = $('#filterManufacturer');
+                const $countrySelect = $('#filterCountry');
+
+                $mfrSelect.empty();
+                $countrySelect.empty();
+
+                Array.from(mfrs).sort().forEach(m => $mfrSelect.append(`<option value="${m}">${m}</option>`));
+                Array.from(countries).sort().forEach(c => $countrySelect.append(`<option value="${c}">${c}</option>`));
+
+                // Initialize Select2
+                $('.select2-multiple').select2({
+                    theme: 'bootstrap-5',
+                    width: '100%',
+                    closeOnSelect: false,
+                    allowClear: true,
+                    placeholder: function () {
+                        $(this).data('placeholder');
+                    }
+                });
+
+                $('#masterFilterPanel').fadeIn().addClass('animate__animated animate__fadeInDown');
+            };
+
+            window.applyMasterFilters = function () {
+                const selectedMfrs = $('#filterManufacturer').val() || [];
+                const selectedCountries = $('#filterCountry').val() || [];
+                const selectedMpnRisks = $('#filterMpnRisk').val() || [];
+                const selectedCpnRisks = $('#filterCpnRisk').val() || [];
+
+                const tables = [
+                    '#dataTable', '#highRiskTable', '#noRiskTable', '#lowRiskTable', '#unmatchedTable'
+                ];
+
+                tables.forEach(id => {
+                    if ($.fn.DataTable.isDataTable(id)) {
+                        const table = $(id).DataTable();
+                        const headers = [];
+                        $(id + ' thead th').each(function () { headers.push($(this).text().toLowerCase().trim()); });
+
+                        const colIdxMfr = headers.indexOf('manufacturer');
+                        const colIdxCountry = headers.indexOf('country');
+                        const colIdxMpnRisk = headers.indexOf('mpn risk');
+                        const colIdxCpnRisk = headers.indexOf('cpn risk');
+                        const colIdxResCountry = headers.indexOf('country');
+
+                        table.columns().search(''); // clear existing
+
+                        // Multi-select Regex Filter
+                        const buildRegex = (arr) => arr.length ? '^(' + arr.map(v => $.fn.dataTable.util.escapeRegex(v)).join('|') + ')$' : '';
+
+                        if (selectedMfrs.length && colIdxMfr !== -1) {
+                            table.column(colIdxMfr).search(buildRegex(selectedMfrs), true, false);
+                        }
+                        if (selectedCountries.length) {
+                            const regex = buildRegex(selectedCountries);
+                            if (colIdxCountry !== -1) table.column(colIdxCountry).search(regex, true, false);
+                            else if (colIdxResCountry !== -1) table.column(colIdxResCountry).search(regex, true, false);
+                        }
+                        if (selectedMpnRisks.length && colIdxMpnRisk !== -1) {
+                            table.column(colIdxMpnRisk).search(selectedMpnRisks.join('|'), true, false);
+                        }
+                        if (selectedCpnRisks.length && colIdxCpnRisk !== -1) {
+                            table.column(colIdxCpnRisk).search(selectedCpnRisks.join('|'), true, false);
+                        }
+
+                        table.draw();
+                    }
+                });
+            };
+
+            window.resetFilters = function () {
+                $('.select2-multiple').val(null).trigger('change');
+                applyMasterFilters();
+            };
+
+            $(document).on('change', '.select2-multiple', applyMasterFilters);
 
             // ===== NAV TAB SWITCHING =====
             function enableAnalysisTab() {
