@@ -1620,81 +1620,9 @@
                 <!-- TAB 2: Analysis & Dashboard -->
                 <div class="tab-pane-custom" id="analysisTab">
                     <div id="resultsCard" class="row g-4" style="display: none;">
-                        <!-- High Risk Table -->
-                        <div class="col-lg-6">
-                            <div class="card h-100 card-high-risk animate-fade-in-up delay-2">
-                                <div class="card-header d-flex align-items-center bg-danger bg-opacity-25 py-3">
-                                    <h3 class="h6 text-danger mb-0 fw-bold">
-                                        <i class="bi bi-exclamation-triangle-fill me-2"></i>
-                                        High Risk Parts
-                                    </h3>
-                                </div>
-                                <div class="card-body p-4">
-                                    <div class="table-responsive">
-                                        <table id="highRiskTable" class="table data-table display" style="width:100%">
-                                            <thead>
-                                                <tr>
-                                                    <th>Part Number</th>
-                                                    <th>CPN</th>
-                                                    <th>Country</th>
-                                                </tr>
-                                            </thead>
-                                            <tbody></tbody>
-                                        </table>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-
-                        <!-- No / Low Risk Table -->
-                        <div class="col-lg-6">
-                            <div class="card h-100 card-no-risk animate-fade-in-up delay-3" id="noLowRiskCard">
-                                <div class="card-header d-flex align-items-center bg-success bg-opacity-10 py-3"
-                                    id="noLowRiskHeader">
-                                    <h3 class="h6 mb-0 fw-bold d-flex align-items-center gap-2" id="noLowRiskTitle">
-                                        <i class="bi bi-check-circle-fill text-success"></i>
-                                        <span id="riskHeaderText" class="text-success">No Risk Parts</span>
-                                    </h3>
-                                    <div class="risk-switch ms-auto">
-                                        <button class="switch-btn active" data-target="noRisk"
-                                            onclick="switchRiskView('noRisk')">No Risk</button>
-                                        <button class="switch-btn" data-target="lowRisk"
-                                            onclick="switchRiskView('lowRisk')">Low
-                                            Risk</button>
-                                    </div>
-                                </div>
-                                <div class="card-body p-4">
-                                    <div id="noRiskView" class="table-responsive">
-                                        <table id="noRiskTable" class="table data-table display" style="width:100%">
-                                            <thead>
-                                                <tr>
-                                                    <th>Part Number</th>
-                                                    <th>CPN</th>
-                                                    <th>Country</th>
-                                                </tr>
-                                            </thead>
-                                            <tbody></tbody>
-                                        </table>
-                                    </div>
-                                    <div id="lowRiskView" class="table-responsive" style="display: none;">
-                                        <table id="lowRiskTable" class="table data-table display" style="width:100%">
-                                            <thead>
-                                                <tr>
-                                                    <th>Part Number</th>
-                                                    <th>CPN</th>
-                                                    <th>Country</th>
-                                                </tr>
-                                            </thead>
-                                            <tbody></tbody>
-                                        </table>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-
                         <!-- RISK ANALYSIS DASHBOARD -->
                         <div class="col-12">
-                            <div class="dashboard-section animate-fade-in-up" style="animation-delay: 0.5s;">
+                            <div class="dashboard-section animate-fade-in-up" style="animation-delay: 0.1s;">
                                 <div class="d-flex justify-content-center align-items-center flex-column mb-4">
                                     <h3 class="mb-3 fw-bold text-primary text-center">
                                         <i class="bi bi-bar-chart-line-fill me-2"></i>Risk Analysis Dashboard
@@ -1773,6 +1701,78 @@
                                         <div class="chart-container">
                                             <canvas id="cpnBarChart"></canvas>
                                         </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- High Risk Table -->
+                        <div class="col-lg-6">
+                            <div class="card h-100 card-high-risk animate-fade-in-up delay-2">
+                                <div class="card-header d-flex align-items-center bg-danger bg-opacity-25 py-3">
+                                    <h3 class="h6 text-danger mb-0 fw-bold">
+                                        <i class="bi bi-exclamation-triangle-fill me-2"></i>
+                                        High Risk Parts
+                                    </h3>
+                                </div>
+                                <div class="card-body p-4">
+                                    <div class="table-responsive">
+                                        <table id="highRiskTable" class="table data-table display" style="width:100%">
+                                            <thead>
+                                                <tr>
+                                                    <th>Part Number</th>
+                                                    <th>CPN</th>
+                                                    <th>Country</th>
+                                                </tr>
+                                            </thead>
+                                            <tbody></tbody>
+                                        </table>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- No / Low Risk Table -->
+                        <div class="col-lg-6">
+                            <div class="card h-100 card-no-risk animate-fade-in-up delay-3" id="noLowRiskCard">
+                                <div class="card-header d-flex align-items-center bg-success bg-opacity-10 py-3"
+                                    id="noLowRiskHeader">
+                                    <h3 class="h6 mb-0 fw-bold d-flex align-items-center gap-2" id="noLowRiskTitle">
+                                        <i class="bi bi-check-circle-fill text-success"></i>
+                                        <span id="riskHeaderText" class="text-success">No Risk Parts</span>
+                                    </h3>
+                                    <div class="risk-switch ms-auto">
+                                        <button class="switch-btn active" data-target="noRisk"
+                                            onclick="switchRiskView('noRisk')">No Risk</button>
+                                        <button class="switch-btn" data-target="lowRisk"
+                                            onclick="switchRiskView('lowRisk')">Low
+                                            Risk</button>
+                                    </div>
+                                </div>
+                                <div class="card-body p-4">
+                                    <div id="noRiskView" class="table-responsive">
+                                        <table id="noRiskTable" class="table data-table display" style="width:100%">
+                                            <thead>
+                                                <tr>
+                                                    <th>Part Number</th>
+                                                    <th>CPN</th>
+                                                    <th>Country</th>
+                                                </tr>
+                                            </thead>
+                                            <tbody></tbody>
+                                        </table>
+                                    </div>
+                                    <div id="lowRiskView" class="table-responsive" style="display: none;">
+                                        <table id="lowRiskTable" class="table data-table display" style="width:100%">
+                                            <thead>
+                                                <tr>
+                                                    <th>Part Number</th>
+                                                    <th>CPN</th>
+                                                    <th>Country</th>
+                                                </tr>
+                                            </thead>
+                                            <tbody></tbody>
+                                        </table>
                                     </div>
                                 </div>
                             </div>
