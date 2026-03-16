@@ -414,7 +414,25 @@
             transition: transform 0.2s;
         }
 
-        .risk-badge:hover {
+        .badge-mismatch-pn {
+            background-color: #e9d5ff;
+            color: #581c87;
+            border: 1px solid #c084fc;
+            animation: pulse-purple 3s infinite;
+            transition: transform 0.2s;
+        }
+
+        .badge-mismatch-mfr {
+            background-color: #ccfbf1;
+            color: #134e4a;
+            border: 1px solid #2dd4bf;
+            animation: pulse-teal 3s infinite;
+            transition: transform 0.2s;
+        }
+
+        .risk-badge:hover,
+        .badge-mismatch-pn:hover,
+        .badge-mismatch-mfr:hover {
             transform: scale(1.1);
             z-index: 10;
         }
@@ -701,6 +719,34 @@
 
             100% {
                 box-shadow: 0 0 0 0 rgba(245, 158, 11, 0);
+            }
+        }
+
+        @keyframes pulse-purple {
+            0% {
+                box-shadow: 0 0 0 0 rgba(192, 132, 252, 0.4);
+            }
+
+            70% {
+                box-shadow: 0 0 0 10px rgba(192, 132, 252, 0);
+            }
+
+            100% {
+                box-shadow: 0 0 0 0 rgba(192, 132, 252, 0);
+            }
+        }
+
+        @keyframes pulse-teal {
+            0% {
+                box-shadow: 0 0 0 0 rgba(45, 212, 191, 0.4);
+            }
+
+            70% {
+                box-shadow: 0 0 0 10px rgba(45, 212, 191, 0);
+            }
+
+            100% {
+                box-shadow: 0 0 0 0 rgba(45, 212, 191, 0);
             }
         }
 
@@ -2590,7 +2636,13 @@
                                     var $cell = $('td:eq(' + mismatchIdx + ')', row);
                                     var text = $cell.text();
                                     if (text) {
-                                        $cell.html('<span class="risk-badge risk-low">' + text + '</span>');
+                                        var badgeClass = 'risk-badge risk-low';
+                                        if (text === "Part Number Mismatch") {
+                                            badgeClass = 'risk-badge badge-mismatch-pn';
+                                        } else if (text === "Manufacturer Mismatch") {
+                                            badgeClass = 'risk-badge badge-mismatch-mfr';
+                                        }
+                                        $cell.html('<span class="' + badgeClass + '">' + text + '</span>');
                                     }
                                 },
                                 pageLength: 10,
