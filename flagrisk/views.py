@@ -54,8 +54,9 @@ def index(request):
                 original_name = view_filename
 
     try:
-        if (request.method == 'POST' and request.FILES.get('excel_file')) or file_path:
-            if not file_path:
+        is_new_upload = bool(request.method == 'POST' and request.FILES.get('excel_file'))
+        if is_new_upload or file_path:
+            if is_new_upload:
                 file_obj = request.FILES['excel_file']
                 original_name = file_obj.name
                 
@@ -82,6 +83,7 @@ def index(request):
                 )
 
                 ensure_limit(reports_dir)
+                file_path = hist_path
 
             try:  
                 df_raw = pd.read_excel(file_path, header=None)
@@ -121,6 +123,11 @@ def index(request):
                         'file': entry.report_file_path,
                         'date': entry.upload_date.strftime("%Y-%m-%d %H:%M:%S")
                     })
+
+                if request.method == 'POST' and request.FILES.get('excel_file'):
+                    from django.shortcuts import redirect
+                    current_hist_name = hist_name if 'hist_name' in locals() else os.path.basename(file_path)
+                    return redirect(f'/?view_file={current_hist_name}&analyze=1')
 
                 return render(request, 'flagrisk/index.html', {
                     'data': data,

@@ -1161,480 +1161,440 @@
             </div>
         </header>
 
-        {% if not is_uploaded %}
-        <div class="row justify-content-center">
-            <div class="col-12 col-lg-10 col-xl-8">
-                <div class="card p-4 p-md-5 animate-fade-in-up">
-                    <div class="text-center mb-4">
-                        <h2 class="h4 fw-semibold text-primary mb-2">Upload Data</h2>
-                        <p class="text-muted mb-0">Select an Excel file to visualize and perform risk analysis.</p>
+        <div class="d-flex flex-column flex-lg-row gap-4 align-items-start mt-2">
+            <!-- Sidebar Navigation -->
+            <div class="sidebar flex-shrink-0" style="width: 280px; position: sticky; top: 20px;">
+                <div class="card p-2 shadow-sm animate-fade-in-up"
+                    style="border-radius: 20px; border: 2px solid var(--border-color);">
+                    <div class="nav-pills-custom flex-column gap-1" id="mainNavTabs"
+                        style="display: flex; background: transparent; border: none; box-shadow: none; padding: 0;">
+                        <button
+                            class="nav-link-custom {% if not is_uploaded %}active{% endif %} justify-content-start py-3"
+                            data-tab="uploadTab" id="navUpload"
+                            style="font-weight: 500; border-bottom: 2px solid var(--border-color); border-radius: 0;">
+                            Data Upload & Recent Files
+                        </button>
+                        <button
+                            class="nav-link-custom {% if is_uploaded %}active{% else %}disabled{% endif %} justify-content-start py-3"
+                            data-tab="dataPreviewTab" id="navDataPreview"
+                            style="font-weight: 500; border-bottom: 2px solid var(--border-color); border-radius: 0;">
+                            Data Preview/Data Analysis
+                        </button>
+                        <button class="nav-link-custom disabled justify-content-start py-3" data-tab="unmatchedTab"
+                            id="navUnmatched"
+                            style="font-weight: 500; border-bottom: 2px solid var(--border-color); border-radius: 0;">
+                            Unmatched Data
+                        </button>
+                        <button class="nav-link-custom disabled justify-content-start py-3" data-tab="analysisTab"
+                            id="navAnalysis" style="font-weight: 500;">
+                            Risk Analysis & Dashboard
+                        </button>
                     </div>
+                </div>
+            </div>
 
-                    <form id="uploadForm" method="post" enctype="multipart/form-data" action="">
-                        {% csrf_token %}
-                        <div class="upload-area" onclick="document.getElementById('fileInput').click()">
-                            <i class="bi bi-cloud-upload-fill upload-icon"></i>
-                            <h3 class="h5 mb-2">Click to upload or drag and drop</h3>
-                            <p class="text-muted mb-0">XLS, XLSX files supported</p>
-                            <input type="file" name="excel_file" id="fileInput" class="d-none" accept=".xlsx, .xls"
-                                onchange="handleFileSelect(this)">
+            <!-- Content Area -->
+            <div class="content-area flex-grow-1 card p-4 p-md-5 shadow-sm animate-fade-in-up delay-1"
+                style="min-width: 0; min-height: 80vh; border-radius: 20px; border: 2px solid var(--border-color);">
+                {% if error %}
+                <div class="alert alert-danger d-flex align-items-center" role="alert">
+                    <i class="bi bi-exclamation-circle-fill me-2"></i>
+                    {{ error }}
+                </div>
+                {% endif %}
+
+                <div class="tab-pane-custom {% if not is_uploaded %}active{% endif %}" id="uploadTab">
+                    <div class="row justify-content-center">
+                        <div class="col-12 col-lg-10 col-xl-8">
+                            <div class="card p-4 p-md-5 animate-fade-in-up">
+                                <div class="text-center mb-4">
+                                    <h2 class="h4 fw-semibold text-primary mb-2">Upload Data</h2>
+                                    <p class="text-muted mb-0">Select an Excel file to visualize and perform risk
+                                        analysis.</p>
+                                </div>
+
+                                <form id="uploadForm" method="post" enctype="multipart/form-data" action="">
+                                    {% csrf_token %}
+                                    <div class="upload-area" onclick="document.getElementById('fileInput').click()">
+                                        <i class="bi bi-cloud-upload-fill upload-icon"></i>
+                                        <h3 class="h5 mb-2">Click to upload or drag and drop</h3>
+                                        <p class="text-muted mb-0">XLS, XLSX files supported</p>
+                                        <input type="file" name="excel_file" id="fileInput" class="d-none"
+                                            accept=".xlsx, .xls" onchange="handleFileSelect(this)">
+                                    </div>
+                                    <div id="file-info" class="mt-3 text-center d-none">
+                                        <span id="filename" class="badge bg-primary me-2"></span>
+                                        <button type="submit" class="btn btn-custom btn-lg">
+                                            Process File <i class="bi bi-arrow-right"></i>
+                                        </button>
+                                    </div>
+                                </form>
+                            </div>
+
+                            <!-- Recent Uploads Card on Initial Page -->
+                            {% if recent_reports %}
+                            <div class="card card-main animate-fade-in-up shadow mt-5">
+                                <div
+                                    class="card-header d-flex justify-content-between align-items-center bg-white py-3 border-bottom">
+                                    <h3 class="h5 mb-0 fw-bold text-primary">
+                                        <i class="bi bi-clock-history me-2"></i>Recently Uploaded Files Analysis
+                                    </h3>
+                                    <div class="d-flex gap-2">
+                                        <button class="btn btn-sm btn-outline-danger rounded-pill px-3"
+                                            onclick="if(confirm('Are you sure you want to delete all history and files?')) window.location.href='/?clear=1'">
+                                            <i class="bi bi-trash-fill me-1"></i>Clear History
+                                        </button>
+                                    </div>
+                                </div>
+                                <div class="card-body p-4">
+                                    <div class="table-responsive">
+                                        <table class="table table-hover align-middle border">
+                                            <thead class="bg-light">
+                                                <tr>
+                                                    <th class="py-3 text-secondary text-uppercase small fw-bold">Date &
+                                                        Time</th>
+                                                    <th class="py-3 text-secondary text-uppercase small fw-bold">
+                                                        Filename</th>
+                                                    <th
+                                                        class="py-3 text-secondary text-uppercase small fw-bold text-center">
+                                                        Action
+                                                    </th>
+                                                </tr>
+                                            </thead>
+                                            <tbody>
+                                                {% for report in recent_reports %}
+                                                <tr>
+                                                    <td class="text-nowrap fw-medium text-dark">{{ report.date }}</td>
+                                                    <td>
+                                                        <div class="d-flex align-items-center">
+                                                            <i
+                                                                class="bi bi-file-earmark-spreadsheet text-success me-2 fs-5"></i>
+                                                            <span class="text-truncate" style="max-width: 300px;"
+                                                                title="{{ report.name }}">{{ report.name }}</span>
+                                                        </div>
+                                                    </td>
+                                                    <td class="text-center">
+                                                        <a href="?view_file={{ report.file }}&analyze=1"
+                                                            class="btn btn-sm btn-primary rounded-pill px-4 shadow-sm btn-view-analysis">
+                                                            <i class="bi bi-eye me-1"></i> View
+                                                        </a>
+                                                    </td>
+                                                </tr>
+                                                {% endfor %}
+                                            </tbody>
+                                        </table>
+                                    </div>
+                                </div>
+                            </div>
+                            {% endif %}
                         </div>
-                        <div id="file-info" class="mt-3 text-center d-none">
-                            <span id="filename" class="badge bg-primary me-2"></span>
-                            <button type="submit" class="btn btn-custom btn-lg">
-                                Process File <i class="bi bi-arrow-right"></i>
-                            </button>
-                        </div>
-                    </form>
+                    </div>
                 </div>
 
-                <!-- Recent Uploads Card on Initial Page -->
-                {% if recent_reports %}
-                <div class="card card-main animate-fade-in-up shadow mt-5">
-                    <div
-                        class="card-header d-flex justify-content-between align-items-center bg-white py-3 border-bottom">
-                        <h3 class="h5 mb-0 fw-bold text-primary">
-                            <i class="bi bi-clock-history me-2"></i>Recently Uploaded Files Analysis
-                        </h3>
+                {% if is_uploaded %}
+
+                <!-- Sticky Action Bar -->
+                <div class="sticky-action-bar" id="stickyBar">
+                    <!-- Action Buttons Row -->
+                    <div class="d-flex justify-content-between align-items-center flex-wrap gap-2 mb-2">
+                        <!-- FlagRisk branding (hidden by default, shown when main header scrolls away) -->
+                        <div class="d-flex align-items-center gap-2" id="stickyLogo"
+                            style="opacity: 0; transform: translateX(-10px); transition: all 0.3s ease; pointer-events: none;">
+                            <div class="bg-danger bg-opacity-10 p-1 px-2 rounded-3">
+                                <i class="bi bi-flag-fill text-danger"></i>
+                            </div>
+                            <span class="fw-bold text-dark" style="font-size: 0.95rem;">FlagRisk</span>
+                        </div>
                         <div class="d-flex gap-2">
-                            <button class="btn btn-sm btn-outline-danger rounded-pill px-3"
-                                onclick="if(confirm('Are you sure you want to delete all history and files?')) window.location.href='/?clear=1'">
-                                <i class="bi bi-trash-fill me-1"></i>Clear History
+                            <button type="button" id="analyzeBtn" class="btn btn-custom btn-sm shadow-sm pe-3">
+                                <i class="bi bi-graph-up-arrow"></i> Perform Risk Analysis
                             </button>
+                            <button type="button" id="exportCompleteBtn" class="btn btn-custom btn-sm shadow-sm pe-3"
+                                style="display: none;">
+                                <i class="bi bi-file-earmark-excel"></i> Export Complete Report
+                            </button>
+                            <a href="/" class="btn btn-custom btn-sm shadow-sm pe-3" id="headerUploadBtn">
+                                <i class="bi bi-cloud-upload"></i> Upload New File
+                            </a>
                         </div>
                     </div>
-                    <div class="card-body p-4">
-                        <div class="table-responsive">
-                            <table class="table table-hover align-middle border">
-                                <thead class="bg-light">
-                                    <tr>
-                                        <th class="py-3 text-secondary text-uppercase small fw-bold">Date & Time</th>
-                                        <th class="py-3 text-secondary text-uppercase small fw-bold">Filename</th>
-                                        <th class="py-3 text-secondary text-uppercase small fw-bold text-center">Action
-                                        </th>
-                                    </tr>
-                                </thead>
-                                <tbody>
-                                    {% for report in recent_reports %}
-                                    <tr>
-                                        <td class="text-nowrap fw-medium text-dark">{{ report.date }}</td>
-                                        <td>
-                                            <div class="d-flex align-items-center">
-                                                <i class="bi bi-file-earmark-spreadsheet text-success me-2 fs-5"></i>
-                                                <span class="text-truncate" style="max-width: 300px;"
-                                                    title="{{ report.name }}">{{ report.name }}</span>
-                                            </div>
-                                        </td>
-                                        <td class="text-center">
-                                            <a href="?view_file={{ report.file }}"
-                                                class="btn btn-sm btn-primary rounded-pill px-4 shadow-sm btn-view-analysis">
-                                                <i class="bi bi-eye me-1"></i> View
-                                            </a>
-                                        </td>
-                                    </tr>
-                                    {% endfor %}
-                                </tbody>
-                            </table>
+
+                    <!-- Centered Nav Tabs removed for sidebar layout -->
+                </div>
+
+
+
+                <!-- TAB 1: Data Preview -->
+                <div class="tab-pane-custom active" id="dataPreviewTab">
+                    <!-- Master Filter Panel -->
+                    <div id="masterFilterPanel" class="animate-fade-in-up" style="display: none; margin-bottom: 2rem;">
+                        <div class="card shadow-sm border-light-subtle rounded-4 bg-white p-3">
+                            <div class="row g-3 align-items-center">
+                                <div class="col-auto">
+                                    <div class="bg-primary bg-opacity-10 p-2 rounded-3">
+                                        <i class="bi bi-funnel-fill text-primary"></i>
+                                    </div>
+                                </div>
+                                <div class="col-md-2">
+                                    <label class="form-label small fw-bold text-muted mb-1">Manufacturer</label>
+                                    <select id="filterManufacturer" class="form-select select2-multiple"
+                                        multiple="multiple" data-placeholder="All Manufacturers">
+                                    </select>
+                                </div>
+                                <div class="col-md-2">
+                                    <label class="form-label small fw-bold text-muted mb-1">Country</label>
+                                    <select id="filterCountry" class="form-select select2-multiple" multiple="multiple"
+                                        data-placeholder="All Countries">
+                                    </select>
+                                </div>
+                                <div class="col-md-2">
+                                    <label class="form-label small fw-bold text-muted mb-1">MPN Risk</label>
+                                    <select id="filterMpnRisk" class="form-select select2-multiple" multiple="multiple"
+                                        data-placeholder="All MPN Risks">
+                                        <option value="High Risk">High Risk</option>
+                                        <option value="No Risk">No Risk</option>
+                                    </select>
+                                </div>
+                                <div class="col-md-2">
+                                    <label class="form-label small fw-bold text-muted mb-1">CPN Risk</label>
+                                    <select id="filterCpnRisk" class="form-select select2-multiple" multiple="multiple"
+                                        data-placeholder="All CPN Risks">
+                                        <option value="High Risk">High Risk</option>
+                                        <option value="Low Risk">Low Risk</option>
+                                        <option value="No Risk">No Risk</option>
+                                    </select>
+                                </div>
+                                <div class="col-auto ms-auto align-self-end">
+                                    <button class="btn btn-sm btn-outline-secondary rounded-pill px-3 shadow-sm mb-1"
+                                        onclick="resetFilters()">
+                                        <i class="bi bi-arrow-counterclockwise me-1"></i> Reset
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="row">
+                        <div class="col-12">
+                            <div class="card card-main animate-fade-in-up">
+                                <div class="card-body p-4">
+                                    <div class="d-flex justify-content-between align-items-center flex-wrap gap-2 mb-4">
+                                        <h3 class="h5 mb-0 fw-semibold">
+                                            <i class="bi bi-eye me-2 text-primary"></i>Data Analysis
+                                        </h3>
+                                    </div>
+                                    <div class="table-responsive">
+                                        <table id="dataTable" class="table table-striped table-hover data-table display"
+                                            style="width:100%">
+                                        </table>
+                                    </div>
+                                    {{ columns|json_script:"table-columns" }}
+                                    {{ data|json_script:"table-data" }}
+                                </div>
+                            </div>
                         </div>
                     </div>
                 </div>
+
+                <!-- TAB: Unmatched Data -->
+                <div class="tab-pane-custom" id="unmatchedTab">
+                    <div id="unmatchedCard" class="row g-4" style="display: none;">
+                        <div class="col-12">
+                            <div class="card card-unmatched animate-fade-in-up delay-1">
+                                <div class="card-header d-flex align-items-center bg-warning bg-opacity-25 py-3">
+                                    <h3 class="h6 text-warning mb-0 fw-bold">
+                                        <i class="bi bi-info-circle-fill me-2"></i>
+                                        Unmatched Uploads
+                                    </h3>
+                                </div>
+                                <div class="card-body p-4">
+                                    <div class="table-responsive">
+                                        <table id="unmatchedTable" class="table data-table display" style="width:100%">
+                                            <thead>
+                                                <tr>
+                                                    <th>Part Number</th>
+                                                    <th>Uploaded Part</th>
+                                                    <th>Manufacturer</th>
+                                                    <th>Uploaded Mfg</th>
+                                                    <th>Mismatch Type</th>
+                                                </tr>
+                                            </thead>
+                                            <tbody></tbody>
+                                        </table>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- TAB 2: Analysis & Dashboard -->
+                <div class="tab-pane-custom" id="analysisTab">
+                    <div id="resultsCard" class="row g-4" style="display: none;">
+                        <!-- High Risk Table -->
+                        <div class="col-lg-6">
+                            <div class="card h-100 card-high-risk animate-fade-in-up delay-2">
+                                <div class="card-header d-flex align-items-center bg-danger bg-opacity-25 py-3">
+                                    <h3 class="h6 text-danger mb-0 fw-bold">
+                                        <i class="bi bi-exclamation-triangle-fill me-2"></i>
+                                        High Risk Parts
+                                    </h3>
+                                </div>
+                                <div class="card-body p-4">
+                                    <div class="table-responsive">
+                                        <table id="highRiskTable" class="table data-table display" style="width:100%">
+                                            <thead>
+                                                <tr>
+                                                    <th>Part Number</th>
+                                                    <th>CPN</th>
+                                                    <th>Country</th>
+                                                </tr>
+                                            </thead>
+                                            <tbody></tbody>
+                                        </table>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- No / Low Risk Table -->
+                        <div class="col-lg-6">
+                            <div class="card h-100 card-no-risk animate-fade-in-up delay-3" id="noLowRiskCard">
+                                <div class="card-header d-flex align-items-center bg-success bg-opacity-10 py-3"
+                                    id="noLowRiskHeader">
+                                    <h3 class="h6 mb-0 fw-bold d-flex align-items-center gap-2" id="noLowRiskTitle">
+                                        <i class="bi bi-check-circle-fill text-success"></i>
+                                        <span id="riskHeaderText" class="text-success">No Risk Parts</span>
+                                    </h3>
+                                    <div class="risk-switch ms-auto">
+                                        <button class="switch-btn active" data-target="noRisk"
+                                            onclick="switchRiskView('noRisk')">No Risk</button>
+                                        <button class="switch-btn" data-target="lowRisk"
+                                            onclick="switchRiskView('lowRisk')">Low
+                                            Risk</button>
+                                    </div>
+                                </div>
+                                <div class="card-body p-4">
+                                    <div id="noRiskView" class="table-responsive">
+                                        <table id="noRiskTable" class="table data-table display" style="width:100%">
+                                            <thead>
+                                                <tr>
+                                                    <th>Part Number</th>
+                                                    <th>CPN</th>
+                                                    <th>Country</th>
+                                                </tr>
+                                            </thead>
+                                            <tbody></tbody>
+                                        </table>
+                                    </div>
+                                    <div id="lowRiskView" class="table-responsive" style="display: none;">
+                                        <table id="lowRiskTable" class="table data-table display" style="width:100%">
+                                            <thead>
+                                                <tr>
+                                                    <th>Part Number</th>
+                                                    <th>CPN</th>
+                                                    <th>Country</th>
+                                                </tr>
+                                            </thead>
+                                            <tbody></tbody>
+                                        </table>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- RISK ANALYSIS DASHBOARD -->
+                        <div class="col-12">
+                            <div class="dashboard-section animate-fade-in-up" style="animation-delay: 0.5s;">
+                                <div class="d-flex justify-content-center align-items-center flex-column mb-4">
+                                    <h3 class="mb-3 fw-bold text-primary text-center">
+                                        <i class="bi bi-bar-chart-line-fill me-2"></i>Risk Analysis Dashboard
+                                    </h3>
+                                    <div class="risk-switch">
+                                        <button class="switch-btn active" data-target="cpnDashboard"
+                                            onclick="switchDashboardView('cpnDashboard')">CPN Analysis</button>
+                                        <button class="switch-btn" data-target="mpnDashboard"
+                                            onclick="switchDashboardView('mpnDashboard')">MPN Analysis</button>
+                                    </div>
+                                </div>
+
+                                <!-- CPN Stats Grid -->
+                                <div class="stats-grid" id="cpnStatsGrid">
+                                    <div class="stat-card stat-high animate-fade-in-up" style="animation-delay: 0.1s;">
+                                        <div class="stat-number" id="highRiskCount">0</div>
+                                        <div class="text-danger fw-semibold">High Risk CPNs</div>
+                                        <div class="text-muted small">Unique customer parts with critical risk</div>
+                                    </div>
+                                    <div class="stat-card stat-low animate-fade-in-up" style="animation-delay: 0.2s;">
+                                        <div class="stat-number" id="lowRiskCount">0</div>
+                                        <div class="text-warning fw-semibold">Low Risk CPNs</div>
+                                        <div class="text-muted small">Unique customer parts with moderate risk</div>
+                                    </div>
+                                    <div class="stat-card stat-none animate-fade-in-up" style="animation-delay: 0.3s;">
+                                        <div class="stat-number" id="noRiskOnlyCount">0</div>
+                                        <div class="text-success fw-semibold">No Risk CPNs</div>
+                                        <div class="text-muted small">Unique customer parts that are safe</div>
+                                    </div>
+                                </div>
+
+                                <!-- MPN Stats Grid -->
+                                <div class="stats-grid" id="mpnStatsGrid" style="display: none;">
+                                    <div class="stat-card stat-high animate-fade-in-up" style="animation-delay: 0.1s;">
+                                        <div class="stat-number" id="mpnHighRiskCount">0</div>
+                                        <div class="text-danger fw-semibold">High Risk MPNs</div>
+                                        <div class="text-muted small">Manufacturer parts requiring attention</div>
+                                    </div>
+                                    <div class="stat-card stat-none animate-fade-in-up" style="animation-delay: 0.3s;">
+                                        <div class="stat-number" id="mpnNoRiskCount">0</div>
+                                        <div class="text-success fw-semibold">No Risk MPNs</div>
+                                        <div class="text-muted small">Safe and compliant manufacturer parts</div>
+                                    </div>
+                                </div>
+                                <div class="row mb-4">
+                                    <div class="col-md-6">
+                                        <h5 class="fw-semibold text-primary mb-3 text-center">
+                                            <i class="bi bi-pie-chart-fill me-1"></i>MPN Risk Distribution
+                                        </h5>
+                                        <div class="chart-container">
+                                            <canvas id="mpnPieChart"></canvas>
+                                        </div>
+                                    </div>
+                                    <div class="col-md-6">
+                                        <h5 class="fw-semibold text-primary mb-3 text-center">
+                                            <i class="bi bi-pie-chart-fill me-1"></i>CPN Risk Distribution
+                                        </h5>
+                                        <div class="chart-container">
+                                            <canvas id="cpnPieChart"></canvas>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="row">
+                                    <div class="col-md-6">
+                                        <h5 class="fw-semibold text-primary mb-3 text-center">
+                                            <i class="bi bi-bar-chart-fill me-1"></i>MPN Risk Volume
+                                        </h5>
+                                        <div class="chart-container">
+                                            <canvas id="mpnBarChart"></canvas>
+                                        </div>
+                                    </div>
+                                    <div class="col-md-6">
+                                        <h5 class="fw-semibold text-primary mb-3 text-center">
+                                            <i class="bi bi-bar-chart-fill me-1"></i>CPN Risk Volume
+                                        </h5>
+                                        <div class="chart-container">
+                                            <canvas id="cpnBarChart"></canvas>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Recent Uploads moved to Upload tab -->
+
                 {% endif %}
             </div>
         </div>
-        {% endif %}
-
-        {% if error %}
-        <div class="alert alert-danger d-flex align-items-center" role="alert">
-            <i class="bi bi-exclamation-circle-fill me-2"></i>
-            {{ error }}
-        </div>
-        {% endif %}
-
-        {% if is_uploaded %}
-
-        <!-- Sticky Action Bar -->
-        <div class="sticky-action-bar" id="stickyBar">
-            <!-- Action Buttons Row -->
-            <div class="d-flex justify-content-between align-items-center flex-wrap gap-2 mb-2">
-                <!-- FlagRisk branding (hidden by default, shown when main header scrolls away) -->
-                <div class="d-flex align-items-center gap-2" id="stickyLogo"
-                    style="opacity: 0; transform: translateX(-10px); transition: all 0.3s ease; pointer-events: none;">
-                    <div class="bg-danger bg-opacity-10 p-1 px-2 rounded-3">
-                        <i class="bi bi-flag-fill text-danger"></i>
-                    </div>
-                    <span class="fw-bold text-dark" style="font-size: 0.95rem;">FlagRisk</span>
-                </div>
-                <div class="d-flex gap-2">
-                    <button type="button" id="analyzeBtn" class="btn btn-custom btn-sm shadow-sm pe-3">
-                        <i class="bi bi-graph-up-arrow"></i> Perform Risk Analysis
-                    </button>
-                    <button type="button" id="exportCompleteBtn" class="btn btn-custom btn-sm shadow-sm pe-3"
-                        style="display: none;">
-                        <i class="bi bi-file-earmark-excel"></i> Export Complete Report
-                    </button>
-                    <a href="/" class="btn btn-custom btn-sm shadow-sm pe-3">
-                        <i class="bi bi-cloud-upload"></i> Upload New File
-                    </a>
-                </div>
-            </div>
-
-            <!-- Centered Nav Tabs -->
-            <div class="nav-tabs-container">
-                <div class="nav-pills-custom" id="mainNavTabs">
-                    <button class="nav-link-custom active" data-tab="dataPreviewTab" id="navDataPreview">
-                        <i class="bi bi-table"></i> Data Preview
-                    </button>
-                    <button class="nav-link-custom disabled" data-tab="analysisTab" id="navAnalysis">
-                        <i class="bi bi-graph-up-arrow"></i> Analysis & Dashboard
-                    </button>
-                    <button class="nav-link-custom {% if not recent_reports %}disabled{% endif %}"
-                        data-tab="recentFilesTab" id="navRecentFiles">
-                        <i class="bi bi-clock-history"></i> Recent Uploads
-                    </button>
-                </div>
-            </div>
-        </div>
-
-
-
-        <!-- TAB 1: Data Preview -->
-        <div class="tab-pane-custom active" id="dataPreviewTab">
-            <!-- Master Filter Panel -->
-            <div id="masterFilterPanel" class="animate-fade-in-up" style="display: none; margin-bottom: 2rem;">
-                <div class="card shadow-sm border-light-subtle rounded-4 bg-white p-3">
-                    <div class="row g-3 align-items-center">
-                        <div class="col-auto">
-                            <div class="bg-primary bg-opacity-10 p-2 rounded-3">
-                                <i class="bi bi-funnel-fill text-primary"></i>
-                            </div>
-                        </div>
-                        <div class="col-md-2">
-                            <label class="form-label small fw-bold text-muted mb-1">Manufacturer</label>
-                            <select id="filterManufacturer" class="form-select select2-multiple" multiple="multiple"
-                                data-placeholder="All Manufacturers">
-                            </select>
-                        </div>
-                        <div class="col-md-2">
-                            <label class="form-label small fw-bold text-muted mb-1">Country</label>
-                            <select id="filterCountry" class="form-select select2-multiple" multiple="multiple"
-                                data-placeholder="All Countries">
-                            </select>
-                        </div>
-                        <div class="col-md-2">
-                            <label class="form-label small fw-bold text-muted mb-1">MPN Risk</label>
-                            <select id="filterMpnRisk" class="form-select select2-multiple" multiple="multiple"
-                                data-placeholder="All MPN Risks">
-                                <option value="High Risk">High Risk</option>
-                                <option value="No Risk">No Risk</option>
-                            </select>
-                        </div>
-                        <div class="col-md-2">
-                            <label class="form-label small fw-bold text-muted mb-1">CPN Risk</label>
-                            <select id="filterCpnRisk" class="form-select select2-multiple" multiple="multiple"
-                                data-placeholder="All CPN Risks">
-                                <option value="High Risk">High Risk</option>
-                                <option value="Low Risk">Low Risk</option>
-                                <option value="No Risk">No Risk</option>
-                            </select>
-                        </div>
-                        <div class="col-auto ms-auto align-self-end">
-                            <button class="btn btn-sm btn-outline-secondary rounded-pill px-3 shadow-sm mb-1"
-                                onclick="resetFilters()">
-                                <i class="bi bi-arrow-counterclockwise me-1"></i> Reset
-                            </button>
-                        </div>
-                    </div>
-                </div>
-            </div>
-            <div class="row">
-                <div class="col-12">
-                    <div class="card card-main animate-fade-in-up">
-                        <div class="card-body p-4">
-                            <div class="d-flex justify-content-between align-items-center flex-wrap gap-2 mb-4">
-                                <h3 class="h5 mb-0 fw-semibold">
-                                    <i class="bi bi-eye me-2 text-primary"></i>Data Preview
-                                </h3>
-                            </div>
-                            <div class="table-responsive">
-                                <table id="dataTable" class="table table-striped table-hover data-table display"
-                                    style="width:100%">
-                                </table>
-                            </div>
-                            {{ columns|json_script:"table-columns" }}
-                            {{ data|json_script:"table-data" }}
-                        </div>
-                    </div>
-                </div>
-            </div>
-
-            <!-- Unmatched Table (inside Data Preview tab) -->
-            <div id="unmatchedCard" class="row mt-4 g-4" style="display: none;">
-                <div class="col-12">
-                    <div class="card card-unmatched animate-fade-in-up delay-1">
-                        <div class="card-header d-flex align-items-center bg-warning bg-opacity-25 py-3">
-                            <h3 class="h6 text-warning mb-0 fw-bold">
-                                <i class="bi bi-info-circle-fill me-2"></i>
-                                Unmatched Uploads
-                            </h3>
-                        </div>
-                        <div class="card-body p-4">
-                            <div class="table-responsive">
-                                <table id="unmatchedTable" class="table data-table display" style="width:100%">
-                                    <thead>
-                                        <tr>
-                                            <th>Part Number</th>
-                                            <th>Uploaded Part</th>
-                                            <th>Manufacturer</th>
-                                            <th>Uploaded Mfg</th>
-                                            <th>Mismatch Type</th>
-                                        </tr>
-                                    </thead>
-                                    <tbody></tbody>
-                                </table>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
-
-        <!-- TAB 2: Analysis & Dashboard -->
-        <div class="tab-pane-custom" id="analysisTab">
-            <div id="resultsCard" class="row g-4" style="display: none;">
-                <!-- High Risk Table -->
-                <div class="col-lg-6">
-                    <div class="card h-100 card-high-risk animate-fade-in-up delay-2">
-                        <div class="card-header d-flex align-items-center bg-danger bg-opacity-25 py-3">
-                            <h3 class="h6 text-danger mb-0 fw-bold">
-                                <i class="bi bi-exclamation-triangle-fill me-2"></i>
-                                High Risk Parts
-                            </h3>
-                        </div>
-                        <div class="card-body p-4">
-                            <div class="table-responsive">
-                                <table id="highRiskTable" class="table data-table display" style="width:100%">
-                                    <thead>
-                                        <tr>
-                                            <th>Part Number</th>
-                                            <th>CPN</th>
-                                            <th>Country</th>
-                                        </tr>
-                                    </thead>
-                                    <tbody></tbody>
-                                </table>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- No / Low Risk Table -->
-                <div class="col-lg-6">
-                    <div class="card h-100 card-no-risk animate-fade-in-up delay-3" id="noLowRiskCard">
-                        <div class="card-header d-flex align-items-center bg-success bg-opacity-10 py-3"
-                            id="noLowRiskHeader">
-                            <h3 class="h6 mb-0 fw-bold d-flex align-items-center gap-2" id="noLowRiskTitle">
-                                <i class="bi bi-check-circle-fill text-success"></i>
-                                <span id="riskHeaderText" class="text-success">No Risk Parts</span>
-                            </h3>
-                            <div class="risk-switch ms-auto">
-                                <button class="switch-btn active" data-target="noRisk"
-                                    onclick="switchRiskView('noRisk')">No Risk</button>
-                                <button class="switch-btn" data-target="lowRisk" onclick="switchRiskView('lowRisk')">Low
-                                    Risk</button>
-                            </div>
-                        </div>
-                        <div class="card-body p-4">
-                            <div id="noRiskView" class="table-responsive">
-                                <table id="noRiskTable" class="table data-table display" style="width:100%">
-                                    <thead>
-                                        <tr>
-                                            <th>Part Number</th>
-                                            <th>CPN</th>
-                                            <th>Country</th>
-                                        </tr>
-                                    </thead>
-                                    <tbody></tbody>
-                                </table>
-                            </div>
-                            <div id="lowRiskView" class="table-responsive" style="display: none;">
-                                <table id="lowRiskTable" class="table data-table display" style="width:100%">
-                                    <thead>
-                                        <tr>
-                                            <th>Part Number</th>
-                                            <th>CPN</th>
-                                            <th>Country</th>
-                                        </tr>
-                                    </thead>
-                                    <tbody></tbody>
-                                </table>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- RISK ANALYSIS DASHBOARD -->
-                <div class="col-12">
-                    <div class="dashboard-section animate-fade-in-up" style="animation-delay: 0.5s;">
-                        <div class="d-flex justify-content-center align-items-center flex-column mb-4">
-                            <h3 class="mb-3 fw-bold text-primary text-center">
-                                <i class="bi bi-bar-chart-line-fill me-2"></i>Risk Analysis Dashboard
-                            </h3>
-                            <div class="risk-switch">
-                                <button class="switch-btn active" data-target="cpnDashboard"
-                                    onclick="switchDashboardView('cpnDashboard')">CPN Analysis</button>
-                                <button class="switch-btn" data-target="mpnDashboard"
-                                    onclick="switchDashboardView('mpnDashboard')">MPN Analysis</button>
-                            </div>
-                        </div>
-
-                        <!-- CPN Stats Grid -->
-                        <div class="stats-grid" id="cpnStatsGrid">
-                            <div class="stat-card stat-high animate-fade-in-up" style="animation-delay: 0.1s;">
-                                <div class="stat-number" id="highRiskCount">0</div>
-                                <div class="text-danger fw-semibold">High Risk CPNs</div>
-                                <div class="text-muted small">Unique customer parts with critical risk</div>
-                            </div>
-                            <div class="stat-card stat-low animate-fade-in-up" style="animation-delay: 0.2s;">
-                                <div class="stat-number" id="lowRiskCount">0</div>
-                                <div class="text-warning fw-semibold">Low Risk CPNs</div>
-                                <div class="text-muted small">Unique customer parts with moderate risk</div>
-                            </div>
-                            <div class="stat-card stat-none animate-fade-in-up" style="animation-delay: 0.3s;">
-                                <div class="stat-number" id="noRiskOnlyCount">0</div>
-                                <div class="text-success fw-semibold">No Risk CPNs</div>
-                                <div class="text-muted small">Unique customer parts that are safe</div>
-                            </div>
-                        </div>
-
-                        <!-- MPN Stats Grid -->
-                        <div class="stats-grid" id="mpnStatsGrid" style="display: none;">
-                            <div class="stat-card stat-high animate-fade-in-up" style="animation-delay: 0.1s;">
-                                <div class="stat-number" id="mpnHighRiskCount">0</div>
-                                <div class="text-danger fw-semibold">High Risk MPNs</div>
-                                <div class="text-muted small">Manufacturer parts requiring attention</div>
-                            </div>
-                            <div class="stat-card stat-none animate-fade-in-up" style="animation-delay: 0.3s;">
-                                <div class="stat-number" id="mpnNoRiskCount">0</div>
-                                <div class="text-success fw-semibold">No Risk MPNs</div>
-                                <div class="text-muted small">Safe and compliant manufacturer parts</div>
-                            </div>
-                        </div>
-                        <div class="row mb-4">
-                            <div class="col-md-6">
-                                <h5 class="fw-semibold text-primary mb-3 text-center">
-                                    <i class="bi bi-pie-chart-fill me-1"></i>MPN Risk Distribution
-                                </h5>
-                                <div class="chart-container">
-                                    <canvas id="mpnPieChart"></canvas>
-                                </div>
-                            </div>
-                            <div class="col-md-6">
-                                <h5 class="fw-semibold text-primary mb-3 text-center">
-                                    <i class="bi bi-pie-chart-fill me-1"></i>CPN Risk Distribution
-                                </h5>
-                                <div class="chart-container">
-                                    <canvas id="cpnPieChart"></canvas>
-                                </div>
-                            </div>
-                        </div>
-                        <div class="row">
-                            <div class="col-md-6">
-                                <h5 class="fw-semibold text-primary mb-3 text-center">
-                                    <i class="bi bi-bar-chart-fill me-1"></i>MPN Risk Volume
-                                </h5>
-                                <div class="chart-container">
-                                    <canvas id="mpnBarChart"></canvas>
-                                </div>
-                            </div>
-                            <div class="col-md-6">
-                                <h5 class="fw-semibold text-primary mb-3 text-center">
-                                    <i class="bi bi-bar-chart-fill me-1"></i>CPN Risk Volume
-                                </h5>
-                                <div class="chart-container">
-                                    <canvas id="cpnBarChart"></canvas>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
-
-        <!-- TAB 3: Recent Uploads -->
-        <div class="tab-pane-custom mt-4" id="recentFilesTab">
-            <div class="row">
-                <div class="col-12">
-                    <div class="card card-main animate-fade-in-up shadow">
-                        <div
-                            class="card-header d-flex justify-content-between align-items-center bg-white py-3 border-bottom">
-                            <h3 class="h5 mb-0 fw-bold text-primary">
-                                <i class="bi bi-clock-history me-2"></i>Recently Uploaded Files Analysis
-                            </h3>
-                            <div class="d-flex gap-2">
-                                <button class="btn btn-sm btn-outline-danger rounded-pill px-3"
-                                    onclick="if(confirm('Are you sure you want to delete all history and files?')) window.location.href='/?clear=1'">
-                                    <i class="bi bi-trash-fill me-1"></i>Clear History and Files
-                                </button>
-                                <button class="btn btn-sm btn-outline-primary rounded-pill px-3"
-                                    onclick="location.reload()">
-                                    <i class="bi bi-arrow-clockwise me-1"></i>Refresh
-                                </button>
-                            </div>
-                        </div>
-                        <div class="card-body p-4">
-                            <div class="table-responsive">
-                                <table id="recentReportsTable" class="table table-hover align-middle border">
-                                    <thead class="bg-light">
-                                        <tr>
-                                            <th class="py-3 text-secondary text-uppercase small fw-bold">Upload Date &
-                                                Time</th>
-                                            <th class="py-3 text-secondary text-uppercase small fw-bold">Filename</th>
-                                            <th class="py-3 text-secondary text-uppercase small fw-bold text-center">
-                                                Action</th>
-                                        </tr>
-                                    </thead>
-                                    <tbody>
-                                        {% for report in recent_reports %}
-                                        <tr>
-                                            <td class="text-nowrap fw-medium text-dark">{{ report.date }}</td>
-                                            <td>
-                                                <div class="d-flex align-items-center">
-                                                    <i
-                                                        class="bi bi-file-earmark-spreadsheet text-success me-2 fs-5"></i>
-                                                    <span class="text-truncate" style="max-width: 400px;"
-                                                        title="{{ report.name }}">{{ report.name }}</span>
-                                                </div>
-                                            </td>
-                                            <td class="text-center">
-                                                <a href="?view_file={{ report.file }}"
-                                                    class="btn btn-sm btn-primary rounded-pill px-4 shadow-sm btn-view-analysis">
-                                                    <i class="bi bi-eye me-1"></i> View Analysis
-                                                </a>
-                                            </td>
-                                        </tr>
-                                        {% empty %}
-                                        <tr>
-                                            <td colspan="3" class="text-center py-5">
-                                                <div class="empty-state">
-                                                    <i class="bi bi-file-earmark-excel text-muted"
-                                                        style="font-size: 3rem;"></i>
-                                                    <h5 class="mt-3 text-muted">No recent analysis reports found</h5>
-                                                    <p class="text-muted small">Upload a file to see its history here.
-                                                    </p>
-                                                </div>
-                                            </td>
-                                        </tr>
-                                        {% endfor %}
-                                    </tbody>
-                                </table>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
-
-        {% endif %}
     </div>
 
     <div class="loading-overlay" id="loadingOverlay">
@@ -1730,6 +1690,10 @@
         }
 
         document.getElementById('uploadForm')?.addEventListener('submit', function () {
+            try {
+                localStorage.setItem('flagrisk.activeTab', 'uploadTab');
+                localStorage.setItem('flagrisk.analysisDone', '0');
+            } catch (e) { }
             showLoader('magnifier', 'Uploading and processing file...');
         });
 
@@ -2018,6 +1982,38 @@
 
 
         $(document).ready(function () {
+            const STORAGE_ACTIVE_TAB = 'flagrisk.activeTab';
+            const STORAGE_ANALYSIS_DONE = 'flagrisk.analysisDone';
+
+            function getSavedTab() {
+                try { return localStorage.getItem(STORAGE_ACTIVE_TAB) || ''; } catch (e) { return ''; }
+            }
+
+            function setSavedTab(tabId) {
+                try { localStorage.setItem(STORAGE_ACTIVE_TAB, tabId); } catch (e) { }
+            }
+
+            function setAnalysisDone(done) {
+                try { localStorage.setItem(STORAGE_ANALYSIS_DONE, done ? '1' : '0'); } catch (e) { }
+            }
+
+            function isAnalysisDone() {
+                try { return localStorage.getItem(STORAGE_ANALYSIS_DONE) === '1'; } catch (e) { return false; }
+            }
+
+            function enableAnalysisTab() {
+                $('#navAnalysis').removeClass('disabled');
+                $('#navUnmatched').removeClass('disabled');
+            }
+
+            function clickTab(tabId) {
+                const $btn = $(`#mainNavTabs .nav-link-custom[data-tab="${tabId}"]`);
+                if ($btn.length && !$btn.hasClass('disabled')) {
+                    $btn.trigger('click');
+                    return true;
+                }
+                return false;
+            }
             var tableColumns = [];
             if (document.getElementById('table-columns')) {
                 try { tableColumns = JSON.parse(document.getElementById('table-columns').textContent); } catch (e) { }
@@ -2028,13 +2024,43 @@
                 try { tableData = JSON.parse(document.getElementById('table-data').textContent); } catch (e) { }
             }
 
-            // Auto-trigger analysis if viewing a historical file
+            // Only restore state if we are actually viewing a file (via POST or view_file)
+            // Otherwise, we want a "fresh" start on the Data Upload tab.
             const urlParams = new URLSearchParams(window.location.search);
-            if (urlParams.has('view_file')) {
+            const isViewingFile = urlParams.has('view_file') || document.getElementById('table-data');
+
+            if (isViewingFile) {
+                const savedTab = getSavedTab();
+                if (savedTab) {
+                    if (isAnalysisDone()) {
+                        enableAnalysisTab();
+                    }
+                    if (!clickTab(savedTab)) {
+                        clickTab('dataPreviewTab');
+                    }
+                }
+            } else {
+                // Fresh login/entry - Clear old tab/analysis state
+                setAnalysisDone(false);
+                setSavedTab('uploadTab');
+                clickTab('uploadTab');
+            }
+
+            // Trigger analysis automatically:
+            // 1. If 'analyze=1' is in URL (first time viewing/uploading)
+            // 2. OR if it's a refresh AND analysis was already done previously
+            if (urlParams.get('analyze') === '1' || (isViewingFile && isAnalysisDone())) {
                 setTimeout(function () {
                     $('#analyzeBtn').click();
+                    // Just clean up the analyze flag if it exists, so history links are neat
+                    if (urlParams.get('analyze') === '1') {
+                        const newUrl = new URL(window.location);
+                        newUrl.searchParams.delete('analyze');
+                        window.history.replaceState({}, '', newUrl);
+                    }
                 }, 800);
             }
+
 
             // Show loader when clicking View Analysis in the history table
             $('.btn-view-analysis').on('click', function (e) {
@@ -2820,6 +2846,13 @@
                         $('#exportCompleteBtn').show().addClass('animate__animated animate__zoomIn');
                         bindExportCompleteBtn();
                         removeAnalyzeBtn();
+                        setAnalysisDone(true);
+
+                        // If user was on Analysis/Unmatched before refresh, take them back there now
+                        const desired = getSavedTab();
+                        if (desired === 'analysisTab' || desired === 'unmatchedTab') {
+                            setTimeout(function () { clickTab(desired); }, 50);
+                        }
 
                         // Update animated dashboard:
                         // - CPN counts use unique CPNs (final*RiskCpnCount)
@@ -2928,18 +2961,34 @@
             $(document).on('change', '.select2-multiple', applyMasterFilters);
 
             // ===== NAV TAB SWITCHING =====
-            function enableAnalysisTab() {
-                $('#navAnalysis').removeClass('disabled');
-            }
 
-            $('#mainNavTabs').on('click', '.nav-link-custom:not(.disabled)', function () {
+            $('#mainNavTabs').on('click', '.nav-link-custom:not(.disabled):not(a)', function (e) {
                 var targetTab = $(this).data('tab');
+                // Only persist the tab if it was an actual user click (avoid overwriting during programmatic restoration)
+                if (e.originalEvent) {
+                    setSavedTab(targetTab);
+                }
                 // Update active button
                 $('#mainNavTabs .nav-link-custom').removeClass('active');
                 $(this).addClass('active');
                 // Switch tab panes
                 $('.tab-pane-custom').removeClass('active');
                 $('#' + targetTab).addClass('active');
+
+                // Hide Upload/Export buttons when in Upload tab, show otherwise
+                if (targetTab === 'uploadTab') {
+                    $('#headerUploadBtn').hide();
+                    if ($('#resultsCard').is(':visible')) {
+                        // Only hide export button, but keep track that it should be shown
+                        $('#exportCompleteBtn').hide();
+                    }
+                } else {
+                    $('#headerUploadBtn').show();
+                    if ($('#resultsCard').is(':visible')) {
+                        $('#exportCompleteBtn').show();
+                    }
+                }
+
                 // After switching, readjust DataTables columns for visibility
                 setTimeout(function () {
                     $.fn.DataTable.tables({ visible: true, api: true }).columns.adjust().draw();
