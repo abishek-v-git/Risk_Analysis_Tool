@@ -1112,12 +1112,121 @@
             box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1) !important;
             overflow: hidden;
         }
+
+        /* Sidebar Stats Styling */
+        .sidebar-widget {
+            margin-top: 1.5rem;
+        }
+
+        .stat-mini-card {
+            background: white;
+            border-radius: 15px;
+            padding: 1rem;
+            border: 1px solid var(--border-color);
+            transition: all 0.3s ease;
+            margin-bottom: 0.75rem;
+        }
+
+        .stat-mini-card:hover {
+            transform: translateY(-3px);
+            box-shadow: var(--card-shadow);
+        }
+
+        .stat-mini-label {
+            font-size: 0.65rem;
+            text-transform: uppercase;
+            font-weight: 700;
+            color: var(--text-secondary);
+            letter-spacing: 0.05em;
+            margin-bottom: 0.25rem;
+            display: block;
+        }
+
+        .stat-mini-value {
+            font-size: 1.15rem;
+            font-weight: 700;
+            color: var(--text-primary);
+        }
+
+        .risk-dot {
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            display: inline-block;
+            margin-right: 6px;
+        }
+
+        .risk-dot-high {
+            background-color: var(--danger-color);
+            box-shadow: 0 0 8px var(--danger-color);
+        }
+
+        .risk-dot-low {
+            background-color: var(--warning-color);
+            box-shadow: 0 0 8px var(--warning-color);
+        }
+
+        .risk-dot-none {
+            background-color: var(--success-color);
+            box-shadow: 0 0 8px var(--success-color);
+        }
+
+        .file-info-badge {
+            background: #f1f5f9;
+            border-radius: 8px;
+            padding: 0.5rem 0.75rem;
+            font-size: 0.75rem;
+            color: var(--text-secondary);
+            border: 1px solid var(--border-color);
+            display: block;
+            margin-top: 0.5rem;
+            word-break: break-all;
+        }
+
+        /* Sticky Header */
+        header.sticky-top {
+            position: sticky;
+            top: 0;
+            z-index: 1020;
+            padding-top: 1rem;
+            padding-bottom: 0.5rem;
+            background: transparent;
+        }
+
+        header.sticky-top .bg-white {
+            backdrop-filter: blur(10px);
+            background: rgba(255, 255, 255, 0.9) !important;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.05) !important;
+        }
+
+        /* Stat Cycling */
+        .stat-cycle-container {
+            position: relative;
+            min-height: 240px;
+        }
+
+        .stat-group {
+            width: 100%;
+            transition: all 0.5s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        .stat-group.cycling-out {
+            opacity: 0;
+            transform: translateY(-20px) scale(0.95);
+            position: absolute;
+            pointer-events: none;
+        }
+
+        .stat-group.cycling-in {
+            opacity: 1;
+            transform: translateY(0) scale(1);
+        }
     </style>
 </head>
 
 <body>
     <div class="container-fluid py-4 px-3 px-md-4">
-        <header class="row mb-4">
+        <header class="row mb-4 sticky-top">
             <div class="col-12">
                 <div
                     class="d-flex align-items-center p-3 rounded-4 bg-white shadow-sm border border-light-subtle animate__animated animate__fadeInDown">
@@ -1188,6 +1297,67 @@
                         <button class="nav-link-custom disabled justify-content-start py-3" data-tab="analysisTab"
                             id="navAnalysis" style="font-weight: 500;">
                             Risk Analysis & Dashboard
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Live Analysis At a Glance Widget -->
+                <div class="sidebar-widget animate__animated animate__fadeInLeft" id="sidebarStatsWidget"
+                    style="display: {% if is_uploaded %}block{% else %}none{% endif %};">
+                    <div class="d-flex align-items-center justify-content-between mb-3 px-2">
+                        <h6 class="text-uppercase small fw-bold text-muted mb-0" id="sidebarStatsTitle">CPN Analysis
+                        </h6>
+                        <span class="badge bg-primary bg-opacity-10 text-primary smaller" id="sidebarStatsBadge"
+                            style="font-size: 0.6rem;">CPN</span>
+                    </div>
+
+                    <div class="stat-cycle-container">
+                        <!-- CPN Stats Group -->
+                        <div id="cpnSidebarStats" class="stat-group cycling-in">
+                            <div class="stat-mini-card">
+                                <span class="stat-mini-label"><span class="risk-dot risk-dot-high"></span>High
+                                    Risk</span>
+                                <div class="stat-mini-value" id="sidebarHighRisk">0</div>
+                            </div>
+                            <div class="stat-mini-card">
+                                <span class="stat-mini-label"><span class="risk-dot risk-dot-low"></span>Low Risk</span>
+                                <div class="stat-mini-value" id="sidebarLowRisk">0</div>
+                            </div>
+                            <div class="stat-mini-card">
+                                <span class="stat-mini-label"><span class="risk-dot risk-dot-none"></span>No Risk</span>
+                                <div class="stat-mini-value" id="sidebarNoRisk">0</div>
+                            </div>
+                        </div>
+
+                        <!-- MPN Stats Group (Hidden initially) -->
+                        <div id="mpnSidebarStats" class="stat-group cycling-out">
+                            <div class="stat-mini-card">
+                                <span class="stat-mini-label"><span class="risk-dot risk-dot-high"></span>High Risk
+                                    MPNs</span>
+                                <div class="stat-mini-value" id="sidebarMpnHighRisk">0</div>
+                            </div>
+                            <div class="stat-mini-card">
+                                <span class="stat-mini-label"><span class="risk-dot risk-dot-none"></span>No Risk
+                                    MPNs</span>
+                                <div class="stat-mini-value" id="sidebarMpnNoRisk">0</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Current File Info Widget -->
+                <div class="sidebar-widget animate__animated animate__fadeInLeft" id="sidebarFileWidget"
+                    style="display: {% if is_uploaded %}block{% else %}none{% endif %}; animation-delay: 0.2s;">
+                    <h6 class="text-uppercase small fw-bold text-muted mb-3 px-2">Active File</h6>
+                    <div class="stat-mini-card">
+                        <span class="stat-mini-label"><i class="bi bi-file-earmark-spreadsheet me-1"></i>Filename</span>
+                        <div class="file-info-badge" id="sidebarFilename">{{ filename|default:"No file loaded" }}</div>
+
+                        <!-- Export Button moved here -->
+                        <button type="button" id="sidebarExportBtn"
+                            class="btn btn-custom w-100 mt-3 shadow-sm justify-content-center"
+                            style="display: none; padding: 10px; font-size: 0.85rem;">
+                            <i class="bi bi-file-earmark-excel"></i> Export Report
                         </button>
                     </div>
                 </div>
@@ -1293,34 +1463,8 @@
 
                 {% if is_uploaded %}
 
-                <!-- Sticky Action Bar -->
-                <div class="sticky-action-bar" id="stickyBar">
-                    <!-- Action Buttons Row -->
-                    <div class="d-flex justify-content-between align-items-center flex-wrap gap-2 mb-2">
-                        <!-- FlagRisk branding (hidden by default, shown when main header scrolls away) -->
-                        <div class="d-flex align-items-center gap-2" id="stickyLogo"
-                            style="opacity: 0; transform: translateX(-10px); transition: all 0.3s ease; pointer-events: none;">
-                            <div class="bg-danger bg-opacity-10 p-1 px-2 rounded-3">
-                                <i class="bi bi-flag-fill text-danger"></i>
-                            </div>
-                            <span class="fw-bold text-dark" style="font-size: 0.95rem;">FlagRisk</span>
-                        </div>
-                        <div class="d-flex gap-2">
-                            <button type="button" id="analyzeBtn" class="btn btn-custom btn-sm shadow-sm pe-3">
-                                <i class="bi bi-graph-up-arrow"></i> Perform Risk Analysis
-                            </button>
-                            <button type="button" id="exportCompleteBtn" class="btn btn-custom btn-sm shadow-sm pe-3"
-                                style="display: none;">
-                                <i class="bi bi-file-earmark-excel"></i> Export Complete Report
-                            </button>
-                            <a href="/" class="btn btn-custom btn-sm shadow-sm pe-3" id="headerUploadBtn">
-                                <i class="bi bi-cloud-upload"></i> Upload New File
-                            </a>
-                        </div>
-                    </div>
-
-                    <!-- Centered Nav Tabs removed for sidebar layout -->
-                </div>
+                <!-- Removed: Sticky Action Bar -->
+                <button type="button" id="analyzeBtn" class="d-none"></button>
 
 
 
@@ -1693,6 +1837,8 @@
             try {
                 localStorage.setItem('flagrisk.activeTab', 'uploadTab');
                 localStorage.setItem('flagrisk.analysisDone', '0');
+                // Hide sidebar widgets during new upload
+                $('#sidebarStatsWidget, #sidebarFileWidget').fadeOut();
             } catch (e) { }
             showLoader('magnifier', 'Uploading and processing file...');
         });
@@ -1794,6 +1940,22 @@
         }
 
         function updateDashboard(highRiskCount, lowRiskCount, noRiskOnlyCount, mpnRiskMap, cpnRiskMap) {
+            // Update sidebar stats
+            $('#sidebarStatsWidget').fadeIn();
+            animateCounter('#sidebarHighRisk', highRiskCount, 1500);
+            animateCounter('#sidebarLowRisk', lowRiskCount, 1800);
+            animateCounter('#sidebarNoRisk', noRiskOnlyCount, 2000);
+
+            // Update sidebar MPN stats
+            const mpnHighRiskCount = Object.values(mpnRiskMap || {}).filter(r => r === 'High Risk').length;
+            const mpnNoRiskCount = Object.values(mpnRiskMap || {}).filter(r => r === 'No Risk').length;
+            animateCounter('#sidebarMpnHighRisk', mpnHighRiskCount, 1500);
+            animateCounter('#sidebarMpnNoRisk', mpnNoRiskCount, 2000);
+
+            // Update sidebar row count (total entries processed)
+            const totalEntries = highRiskCount + lowRiskCount + noRiskOnlyCount;
+            animateCounter('#sidebarRowCount', totalEntries, 1200);
+
             // Calculate MPN-specific counts
             const mpnHighRisk = Object.values(mpnRiskMap || {}).filter(r => r === 'High Risk').length;
             const mpnNoRisk = Object.values(mpnRiskMap || {}).filter(r => r === 'No Risk').length;
@@ -1978,6 +2140,43 @@
                     }
                 }
             });
+        }
+
+        let sidebarCycleInterval = null;
+        function startSidebarCycling() {
+            if (sidebarCycleInterval) clearInterval(sidebarCycleInterval);
+
+            const $sidebarWidget = $('#sidebarStatsWidget');
+            const $cpnGroup = $('#cpnSidebarStats');
+            const $mpnGroup = $('#mpnSidebarStats');
+            const $title = $('#sidebarStatsTitle');
+            const $badge = $('#sidebarStatsBadge');
+
+            let isCpn = true;
+
+            function cycle() {
+                if (isCpn) {
+                    // Switch to MPN
+                    $cpnGroup.removeClass('cycling-in').addClass('cycling-out');
+                    $mpnGroup.removeClass('cycling-out').addClass('cycling-in');
+                    $title.text('MPN Analysis');
+                    $badge.text('MPN').removeClass('bg-primary text-primary').addClass('bg-info text-info');
+                } else {
+                    // Switch to CPN
+                    $mpnGroup.removeClass('cycling-in').addClass('cycling-out');
+                    $cpnGroup.removeClass('cycling-out').addClass('cycling-in');
+                    $title.text('CPN Analysis');
+                    $badge.text('CPN').removeClass('bg-info text-info').addClass('bg-primary text-primary');
+                }
+                isCpn = !isCpn;
+            }
+
+            // Start cycling if widget becomes visible
+            sidebarCycleInterval = setInterval(() => {
+                if ($sidebarWidget.is(':visible')) {
+                    cycle();
+                }
+            }, 6000); // Cycle every 6 seconds for better readability
         }
 
 
@@ -2421,7 +2620,7 @@
                         }
 
                         function bindExportCompleteBtn() {
-                            $('#exportCompleteBtn').off('click').on('click', function () {
+                            $('#sidebarExportBtn').off('click').on('click', function () {
                                 showLoader('download', 'Generating complete report...');
                                 setTimeout(function () {
                                     try {
@@ -2601,7 +2800,7 @@
                         var cpnRiskMap = {};
                         Object.keys(cpnToMpns).forEach(function (cpn) {
                             var associatedMpns = Array.from(cpnToMpns[cpn]);
-                            var risks = associatedMpns.map(function (pn) { return mpnRiskMap[pn]; });
+                            var risks = associatedMpns.map(function (r) { return mpnRiskMap[r]; });
                             var allNoRisk = risks.every(function (r) { return r === "No Risk"; });
                             var allHighRisk = risks.every(function (r) { return r === "High Risk"; });
                             var someHighRisk = risks.some(function (r) { return r === "High Risk"; });
@@ -2843,7 +3042,7 @@
                         $('#unmatchedCard').show().addClass('animate__animated animate__fadeInUp');
                         $('#resultsCard').show().addClass('animate__animated animate__fadeInUp');
                         enableAnalysisTab();
-                        $('#exportCompleteBtn').show().addClass('animate__animated animate__zoomIn');
+                        $('#sidebarExportBtn').show().addClass('animate__animated animate__zoomIn');
                         bindExportCompleteBtn();
                         removeAnalyzeBtn();
                         setAnalysisDone(true);
@@ -2975,17 +3174,14 @@
                 $('.tab-pane-custom').removeClass('active');
                 $('#' + targetTab).addClass('active');
 
-                // Hide Upload/Export buttons when in Upload tab, show otherwise
+                // Hide Export buttons when in Upload tab, show otherwise
                 if (targetTab === 'uploadTab') {
-                    $('#headerUploadBtn').hide();
                     if ($('#resultsCard').is(':visible')) {
-                        // Only hide export button, but keep track that it should be shown
-                        $('#exportCompleteBtn').hide();
+                        $('#sidebarExportBtn').hide();
                     }
                 } else {
-                    $('#headerUploadBtn').show();
                     if ($('#resultsCard').is(':visible')) {
-                        $('#exportCompleteBtn').show();
+                        $('#sidebarExportBtn').show();
                     }
                 }
 
@@ -2995,52 +3191,8 @@
                 }, 150);
             });
 
-            // ===== STICKY BAR SHADOW + LOGO DETECTION =====
-            var stickyBar = document.getElementById('stickyBar');
-            var mainHeader = document.querySelector('header');
-            var stickyLogo = document.getElementById('stickyLogo');
-
-            if (stickyBar) {
-                var sentinel = document.createElement('div');
-                sentinel.style.height = '1px';
-                sentinel.style.width = '100%';
-                sentinel.style.position = 'absolute';
-                sentinel.style.top = '0';
-                sentinel.style.left = '0';
-                sentinel.style.pointerEvents = 'none';
-                stickyBar.parentElement.insertBefore(sentinel, stickyBar);
-
-                var observer = new IntersectionObserver(function (entries) {
-                    entries.forEach(function (entry) {
-                        if (!entry.isIntersecting) {
-                            stickyBar.classList.add('is-stuck');
-                        } else {
-                            stickyBar.classList.remove('is-stuck');
-                        }
-                    });
-                }, { threshold: 0 });
-                observer.observe(sentinel);
-            }
-
-            // Show/hide sticky logo based on main header visibility
-            if (mainHeader && stickyLogo) {
-                var headerObserver = new IntersectionObserver(function (entries) {
-                    entries.forEach(function (entry) {
-                        if (!entry.isIntersecting) {
-                            // Header scrolled out — show sticky logo
-                            stickyLogo.style.opacity = '1';
-                            stickyLogo.style.transform = 'translateX(0)';
-                            stickyLogo.style.pointerEvents = 'auto';
-                        } else {
-                            // Header visible — hide sticky logo
-                            stickyLogo.style.opacity = '0';
-                            stickyLogo.style.transform = 'translateX(-10px)';
-                            stickyLogo.style.pointerEvents = 'none';
-                        }
-                    });
-                }, { threshold: 0 });
-                headerObserver.observe(mainHeader);
-            }
+            // Start sidebar cycling
+            startSidebarCycling();
         });
     </script>
 </body>
