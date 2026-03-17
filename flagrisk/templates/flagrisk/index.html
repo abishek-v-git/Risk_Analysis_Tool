@@ -1267,6 +1267,61 @@
             opacity: 1;
             transform: translateY(0) scale(1);
         }
+
+        /* Sidebar Toggle Improvements */
+        .sidebar {
+            transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+            width: 280px;
+            overflow: hidden;
+            flex-shrink: 0;
+        }
+
+        .sidebar.hidden {
+            width: 0 !important;
+            opacity: 0 !important;
+            margin-right: 0 !important;
+            pointer-events: none !important;
+        }
+
+        #layoutContainer {
+            transition: gap 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        #layoutContainer.sidebar-hidden {
+            gap: 0 !important;
+        }
+
+        #toggleSidebar {
+            transition: all 0.3s ease;
+            width: 36px;
+            height: 36px;
+            padding: 0;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 50%;
+            background: white;
+            border: 1px solid var(--border-color);
+            color: var(--text-secondary);
+            cursor: pointer;
+        }
+
+        #toggleSidebar:hover {
+            background: #f1f5f9;
+            color: var(--primary-color);
+            transform: scale(1.05);
+        }
+
+        #toggleSidebar.active {
+            background: var(--primary-color);
+            color: white;
+            border-color: var(--primary-color);
+            box-shadow: 0 0 10px rgba(13, 148, 136, 0.3);
+        }
+
+        .content-area {
+            transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+        }
     </style>
 </head>
 
@@ -1285,6 +1340,9 @@
                             <h1 class="h4 mb-0 fw-bold text-dark">FlagRisk</h1>
                             <p class="text-muted small mb-0">Risk Analysis Tool</p>
                         </div>
+                        <button id="toggleSidebar" class="ms-3 shadow-sm d-none d-lg-flex" title="Toggle Sidebar">
+                            <i class="bi bi-layout-sidebar-inset"></i>
+                        </button>
                     </div>
 
                     <div class="ms-auto d-flex align-items-center gap-3 animate__animated animate__fadeInRight">
@@ -1316,9 +1374,9 @@
             </div>
         </header>
 
-        <div class="d-flex flex-column flex-lg-row gap-4 align-items-start mt-2">
+        <div class="d-flex flex-column flex-lg-row gap-4 align-items-start mt-2" id="layoutContainer">
             <!-- Sidebar Navigation -->
-            <div class="sidebar flex-shrink-0" style="width: 280px; position: sticky; top: 20px;">
+            <div class="sidebar" style="position: sticky; top: 20px;">
                 <div class="card p-2 shadow-sm animate-fade-in-up"
                     style="border-radius: 20px; border: 2px solid var(--border-color);">
                     <div class="nav-pills-custom flex-column gap-1" id="mainNavTabs"
@@ -1421,7 +1479,7 @@
 
                 <div class="tab-pane-custom {% if not is_uploaded %}active{% endif %}" id="uploadTab">
                     <div class="row justify-content-center">
-                        <div class="col-12 col-lg-10 col-xl-8">
+                        <div>
                             <div class="card p-4 p-md-5 animate-fade-in-up">
                                 <div class="text-center mb-4">
                                     <h2 class="h4 fw-semibold text-primary mb-2">Upload Data</h2>
@@ -3245,6 +3303,30 @@
 
             // Start sidebar cycling
             startSidebarCycling();
+
+            // ===== SIDEBAR TOGGLE =====
+            $('#toggleSidebar').on('click', function () {
+                const $sidebar = $('.sidebar');
+                const $layout = $('#layoutContainer');
+                $(this).toggleClass('active');
+                $sidebar.toggleClass('hidden');
+                $layout.toggleClass('sidebar-hidden');
+
+                // Update icon based on state
+                const $icon = $(this).find('i');
+                if ($sidebar.hasClass('hidden')) {
+                    $icon.removeClass('bi-layout-sidebar-inset').addClass('bi-layout-sidebar');
+                } else {
+                    $icon.removeClass('bi-layout-sidebar').addClass('bi-layout-sidebar-inset');
+                }
+
+                // Readjust DataTables after animation completes
+                setTimeout(function () {
+                    if ($.fn.DataTable) {
+                        $.fn.DataTable.tables({ visible: true, api: true }).columns.adjust().draw();
+                    }
+                }, 450);
+            });
         });
     </script>
 </body>
