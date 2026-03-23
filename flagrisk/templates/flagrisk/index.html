@@ -1406,8 +1406,7 @@
                 </div>
 
                 <!-- Live Analysis At a Glance Widget -->
-                <div class="sidebar-widget animate__animated animate__fadeInLeft" id="sidebarStatsWidget"
-                    style="display: {% if is_uploaded %}block{% else %}none{% endif %};">
+                <div class="sidebar-widget animate__animated animate__fadeInLeft {% if not is_uploaded %}d-none{% endif %}" id="sidebarStatsWidget">
                     <div class="d-flex align-items-center justify-content-between mb-3 px-2">
                         <h6 class="text-uppercase small fw-bold text-muted mb-0" id="sidebarStatsTitle">CPN Analysis
                         </h6>
@@ -1450,8 +1449,8 @@
                 </div>
 
                 <!-- Current File Info Widget -->
-                <div class="sidebar-widget animate__animated animate__fadeInLeft" id="sidebarFileWidget"
-                    style="display: {% if is_uploaded %}block{% else %}none{% endif %}; animation-delay: 0.2s;">
+                <div class="sidebar-widget animate__animated animate__fadeInLeft {% if not is_uploaded %}d-none{% endif %}" id="sidebarFileWidget"
+                    style="animation-delay: 0.2s;">
                     <h6 class="text-uppercase small fw-bold text-muted mb-3 px-2">Active File</h6>
                     <div class="stat-mini-card">
                         <span class="stat-mini-label"><i class="bi bi-file-earmark-spreadsheet me-1"></i>Filename</span>
