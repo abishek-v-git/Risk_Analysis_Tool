@@ -23,6 +23,16 @@ def index(request):
     if not os.path.exists(reports_dir):
         os.makedirs(reports_dir)
 
+    # 1a. Handle Delete Single File request
+    if request.GET.get('delete_file'):
+        file_to_delete = request.GET.get('delete_file')
+        ReportAnalysis.objects.filter(user=request.user, report_file_path=file_to_delete).delete()
+        file_full_path = os.path.join(reports_dir, file_to_delete)
+        if os.path.isfile(file_full_path):
+            os.remove(file_full_path)
+        from django.shortcuts import redirect
+        return redirect('/')
+
     # 1. Handle Clear History request
     if request.GET.get('clear') == '1':
         # Clear database records
