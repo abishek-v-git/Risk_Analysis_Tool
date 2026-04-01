@@ -53,7 +53,7 @@
             border-radius: 16px;
             box-shadow: var(--card-shadow);
             border: 1px solid var(--border-color);
-            transition: transform 0.2s, box-shadow 0.2s;
+            transition: transform 0.2s, box-shadow 0.2s;    
             overflow: hidden;
         }
 
@@ -437,17 +437,35 @@
             z-index: 10;
         }
 
-        .dtfc-fixed-left {
+        .dtfc-fixed-left,
+        .dtfc-fixed-right {
             background-color: var(--surface-color) !important;
-            box-shadow: 2px 0 5px rgba(0, 0, 0, 0.05);
+            box-shadow: 2px 0 10px rgba(0, 0, 0, 0.08);
             z-index: 5;
         }
 
-        .data-table thead th.dtfc-fixed-left {
+        .data-table thead th.dtfc-fixed-left,
+        .data-table thead th.dtfc-fixed-right {
             background-color: #096de5 !important;
             color: white !important;
-            box-shadow: 2px 0 5px rgba(0, 0, 0, 0.1);
+            box-shadow: 2px 0 10px rgba(0, 0, 0, 0.12);
             z-index: 6;
+        }
+
+        /* High and No Risk table headers for fixed columns */
+        #highRiskTable_wrapper thead th.dtfc-fixed-left,
+        #highRiskTable_wrapper thead th.dtfc-fixed-right {
+            background-color: #dc3545 !important;
+        }
+        
+        #noRiskTable_wrapper thead th.dtfc-fixed-left,
+        #noRiskTable_wrapper thead th.dtfc-fixed-right {
+            background-color: #198754 !important;
+        }
+
+        #lowRiskTable_wrapper thead th.dtfc-fixed-left,
+        #lowRiskTable_wrapper thead th.dtfc-fixed-right {
+            background-color: #f59e0b !important;
         }
 
         .card-main {
@@ -3152,7 +3170,7 @@
                             var sliceIdx = (idxMpnRisk > -1) ? idxMpnRisk : row.length;
                             var baseRow = row.slice(0, sliceIdx);
 
-                            newData.push([...baseRow, mpnRisk, cpnRisk, remark]);
+                            newData.push([...baseRow, remark, mpnRisk, cpnRisk]);
 
                             var splitRow = [
                                 row[idxPN],
@@ -3176,25 +3194,24 @@
                         originalColumns.forEach(function (col) {
                             $('#dataTable thead tr').append('<th>' + col + '</th>');
                         });
-                        $('#dataTable thead tr').append('<th>MPN Risk</th><th>CPN Risk</th><th>Remarks</th>');
-
+                        $('#dataTable thead tr').append('<th>Remarks</th><th>MPN Risk</th><th>CPN Risk</th>');
                         $('#dataTable').DataTable({
                             data: newData,
                             columns: [
                                 ...originalColumns.map(function (c) { return { title: c }; }),
-                                { title: "MPN Risk" },
-                                { title: "CPN Risk" },
                                 {
                                     title: "Remarks",
                                     render: function (data) { return data; }
-                                }
+                                },
+                                { title: "MPN Risk" },
+                                { title: "CPN Risk" }
                             ],
                             createdRow: function (row, data) {
-                                var mpnRisk = data[data.length - 3];
-                                var cpnRisk = data[data.length - 2];
+                                var mpnRisk = data[data.length - 2];
+                                var cpnRisk = data[data.length - 1];
 
-                                var mpnRiskIdx = data.length - 3;
-                                var cpnRiskIdx = data.length - 2;
+                                var mpnRiskIdx = data.length - 2;
+                                var cpnRiskIdx = data.length - 1;
 
                                 function applyRiskStyle(idx, risk) {
                                     var $cell = $('td:eq(' + idx + ')', row);
@@ -3221,10 +3238,8 @@
                             info: true,
                             autoWidth: false,
                             deferRender: true,
-                            scrollY: "60vh",
-                            scrollCollapse: true,
                             scrollX: true,
-                            fixedColumns: { left: 2 },
+                            fixedColumns: { left: 2, right: 2 },
                             dom: 'Blfrtip',
                             buttons: [{
                                 extend: 'excel',
@@ -3269,7 +3284,7 @@
                             const pnKeyDash = superNormalize(pnVal);
                             if (!pnKeyDash) continue;
 
-                            const mpnRiskVal = rowND[rowND.length - 3]; // "MPN Risk" column in newData
+                            const mpnRiskVal = rowND[rowND.length - 2]; // "MPN Risk" column in newData
 
                             if (mpnRiskVal === 'High Risk') {
                                 uniqueHighRiskMpns.add(pnKeyDash);
@@ -3306,9 +3321,9 @@
                         updateDashboard(finalHighRiskCpnCount, finalLowRiskCpnCount, finalNoRiskCpnCount, mpnDashboardRiskMap, cpnRiskMap);
 
                         // Update quick-filter chip counts (row counts in the main table)
-                        var chipHigh = newData.filter(function(r) { return r[r.length - 2] === 'High Risk'; }).length;
-                        var chipLow  = newData.filter(function(r) { return r[r.length - 2] === 'Low Risk';  }).length;
-                        var chipNone = newData.filter(function(r) { return r[r.length - 2] === 'No Risk';   }).length;
+                        var chipHigh = newData.filter(function(r) { return r[r.length - 1] === 'High Risk'; }).length;
+                        var chipLow  = newData.filter(function(r) { return r[r.length - 1] === 'Low Risk';  }).length;
+                        var chipNone = newData.filter(function(r) { return r[r.length - 1] === 'No Risk';   }).length;
                         updateChipCounts(chipHigh, chipLow, chipNone);
 
                         // Populate Master Filters
