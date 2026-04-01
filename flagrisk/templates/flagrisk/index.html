@@ -2584,7 +2584,7 @@
                             data: tableData,
                             columns: columnsDef,
                             paging: true,
-                            pageLength: 50,
+                            pageLength: 10,
                             lengthMenu: [[10, 25, 50, 100, 500, 1000], [10, 25, 50, 100, 500, 1000]],
                             pagingType: "full_numbers",
                             searching: true,
@@ -3230,7 +3230,7 @@
                                 applyRiskStyle(cpnRiskIdx, cpnRisk);
                             },
                             paging: true,
-                            pageLength: 50,
+                            pageLength: 10,
                             lengthMenu: [[10, 25, 50, 100, 500, 1000], [10, 25, 50, 100, 500, 1000]],
                             pagingType: "full_numbers",
                             searching: true,
@@ -3433,6 +3433,15 @@
 
             $('#mainNavTabs').on('click', '.nav-link-custom:not(.disabled):not(a)', function (e) {
                 var targetTab = $(this).data('tab');
+                
+                // Reset filters if leaving the Data Preview/Analysis tab to avoid affecting other table views
+                const currentTab = $('.tab-pane-custom.active').attr('id');
+                if (currentTab === 'dataPreviewTab' && targetTab !== 'dataPreviewTab') {
+                    if (typeof resetFilters === 'function') {
+                        resetFilters();
+                    }
+                }
+
                 // Only persist the tab if it was an actual user click (avoid overwriting during programmatic restoration)
                 if (e.originalEvent) {
                     setSavedTab(targetTab);
