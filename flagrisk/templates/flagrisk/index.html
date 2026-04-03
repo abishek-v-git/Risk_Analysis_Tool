@@ -1627,7 +1627,7 @@
                                             </thead>
                                             <tbody>
                                                 {% for report in recent_reports %}
-                                                <tr>
+                                                <tr {% if report.file == current_file %}class="table-primary"{% endif %}>
                                                     <td class="text-nowrap fw-medium text-dark">{{ report.date }}</td>
                                                     <td>
                                                         <div class="d-flex align-items-center">
@@ -1635,12 +1635,15 @@
                                                                 class="bi bi-file-earmark-spreadsheet text-success me-2 fs-5"></i>
                                                             <span class="text-truncate" style="max-width: 300px;"
                                                                 title="{{ report.name }}">{{ report.name }}</span>
+                                                            {% if report.file == current_file %}
+                                                            <span class="badge bg-primary ms-2 rounded-pill" style="font-size:0.7rem;">Viewing</span>
+                                                            {% endif %}
                                                         </div>
                                                     </td>
                                                     <td class="text-center">
                                                         <a href="?view_file={{ report.file }}&analyze=1"
-                                                            class="btn btn-sm btn-primary rounded-pill px-4 shadow-sm btn-view-analysis">
-                                                            <i class="bi bi-eye me-1"></i> View
+                                                            class="btn btn-sm {% if report.file == current_file %}btn-success{% else %}btn-primary{% endif %} rounded-pill px-4 shadow-sm btn-view-analysis">
+                                                            <i class="bi bi-eye me-1"></i> {% if report.file == current_file %}Viewing{% else %}View{% endif %}
                                                         </a>
                                                         <a href="?delete_file={{ report.file }}"
                                                             class="btn btn-sm btn-outline-danger rounded-pill px-3 ms-1 shadow-sm"

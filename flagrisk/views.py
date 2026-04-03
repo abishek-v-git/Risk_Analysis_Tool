@@ -144,7 +144,8 @@ def index(request):
                     'columns': columns,
                     'is_uploaded': True,
                     'filename': original_name,
-                    'recent_reports': recent_list
+                    'recent_reports': recent_list,
+                    'current_file': view_filename or (hist_name if 'hist_name' in locals() else None)
                 })
             except Exception as e:
                 return render(request, 'flagrisk/index.html', {'error': f"Error parsing Excel: {str(e)}"})
