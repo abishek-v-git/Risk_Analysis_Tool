@@ -949,7 +949,7 @@
             }
         }
 
-        /* NAV TABS */
+        /* SIDEBAR NAV OVERHAUL - MATCHING TARGET DESIGN */
         .nav-tabs-container {
             display: flex;
             justify-content: center;
@@ -957,66 +957,56 @@
         }
 
         .nav-pills-custom {
-            display: inline-flex;
-            background: white;
-            border-radius: 14px;
-            padding: 5px;
-            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.08);
-            border: 1px solid var(--border-color);
+            display: flex;
+            background: #f8fafc !important; 
+            border-radius: 20px !important;
+            padding: 10px !important;
+            box-shadow: none !important;
+            border: 1px solid #e2e8f0 !important;
             position: relative;
-            gap: 4px;
+            gap: 6px !important;
+            width: 100%;
         }
 
         .nav-pills-custom .nav-link-custom {
             position: relative;
             z-index: 1;
-            padding: 10px 28px;
-            border-radius: 10px;
-            border: none;
-            background: transparent;
-            color: var(--text-secondary);
+            padding: 14px 18px !important;
+            border-radius: 12px !important;
+            border: none !important;
+            background: transparent !important;
+            color: #64748b !important;
             font-weight: 600;
-            font-size: 0.9rem;
+            font-size: 0.95rem;
             cursor: pointer;
-            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-            display: inline-flex;
+            transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+            display: flex;
             align-items: center;
-            gap: 8px;
+            gap: 14px !important;
             white-space: nowrap;
             outline: none;
+            width: 100%;
+            justify-content: start;
         }
 
         .nav-pills-custom .nav-link-custom:hover:not(.active) {
-            color: var(--primary-color);
-            background: rgba(13, 148, 136, 0.06);
+            color: #475569 !important;
+            background: rgba(0, 0, 0, 0.04) !important;
         }
 
         .nav-pills-custom .nav-link-custom.active {
-            background: var(--gradient);
-            color: white;
-            box-shadow: 0 4px 12px rgba(13, 148, 136, 0.35);
+            background: #ffffff !important;
+            color: #6366f1 !important;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.07), 0 2px 4px -1px rgba(0, 0, 0, 0.04) !important;
         }
 
-        .nav-pills-custom .nav-link-custom.active i {
-            animation: none;
-        }
-
-        .nav-pills-custom .nav-link-custom .badge-count {
-            background: rgba(255, 255, 255, 0.25);
-            color: white;
-            font-size: 0.7rem;
-            padding: 2px 8px;
-            border-radius: 50px;
-            font-weight: 700;
-            display: none;
-        }
-
-        .nav-pills-custom .nav-link-custom.active .badge-count {
-            display: inline-block;
+        .nav-pills-custom .nav-link-custom i {
+            font-size: 1.2rem;
+            color: inherit;
         }
 
         .nav-pills-custom .nav-link-custom.disabled {
-            opacity: 0.45;
+            opacity: 0.4;
             cursor: not-allowed;
             pointer-events: none;
         }
@@ -1436,30 +1426,49 @@
                         </button>
                     </div>
 
-                    <div class="ms-auto d-flex align-items-center gap-3 animate__animated animate__fadeInRight">
-                        <div class="d-flex align-items-center gap-2">
+                    <div class="ms-auto d-flex align-items-center gap-4 animate__animated animate__fadeInRight">
+                        <!-- Partner Logos Section -->
+                        <div class="d-flex align-items-center gap-3 pe-4 border-end border-light-subtle">
+                            <img src="https://www.ametek.com/-/media/project/oneweb/oneweb/oneweb/logos/default-logo.png"
+                                alt="Ametek" class="logo-small" style="height: 28px !important;">
+                            <div class="vr opacity-25" style="height: 24px; background-color: #cbd5e1;"></div>
+                            <div class="d-flex align-items-center gap-3">
+                                <img src="https://inesssolutions.com/inesslogo.png" alt="Iness" class="logo-small" style="height: 28px !important;">
+                                <h6 class="mb-0 fw-bold text-muted small" style="letter-spacing: 0.05em; text-transform: uppercase;">Iness Solutions</h6>
+                            </div>
+                        </div>
+
+                        <!-- User Profile Dropdown -->
+                        <div class="dropdown">
                             {% if request.user.is_authenticated %}
-                            <form method="post" action="{% url 'logout' %}" class="m-0">
-                                {% csrf_token %}
-                                <button type="submit" class="btn btn-sm btn-outline-secondary rounded-pill px-3">
-                                    <i class="bi bi-box-arrow-right me-1"></i>Logout
-                                </button>
-                            </form>
+                            <button class="btn btn-link text-decoration-none dropdown-toggle d-flex align-items-center gap-2 border-0 bg-light p-1 pe-3 rounded-pill" 
+                                    type="button" id="userProfileDropdown" data-bs-toggle="dropdown" aria-expanded="false">
+                                <div class="bg-primary bg-opacity-10 p-1 rounded-circle d-flex align-items-center justify-content-center" style="width: 34px; height: 34px;">
+                                    <i class="bi bi-person-fill text-primary"></i>
+                                </div>
+                                <span class="fw-bold small text-dark">{{ request.user.username }}</span>
+                            </button>
+                            <ul class="dropdown-menu dropdown-menu-end shadow-lg border-0 rounded-4 mt-2 p-2 animate__animated animate__fadeIn animate__faster" 
+                                aria-labelledby="userProfileDropdown" style="min-width: 200px;">
+                                <li class="px-3 py-3 border-bottom mb-2">
+                                    <div class="fw-bold text-dark">{{ request.user.username }}</div>
+                                    <div class="text-muted smaller">{{ request.user.email|default:"User Account" }}</div>
+                                </li>
+                                <li>
+                                    <form method="post" action="{% url 'logout' %}" class="m-0">
+                                        {% csrf_token %}
+                                        <button type="submit" class="dropdown-item d-flex align-items-center gap-2 py-2 text-danger rounded-3">
+                                            <i class="bi bi-box-arrow-right"></i> Logout
+                                        </button>
+                                    </form>
+                                </li>
+                            </ul>
                             {% else %}
-                            <a href="{% url 'login' %}" class="btn btn-sm btn-outline-primary rounded-pill px-3">
+                            <a href="{% url 'login' %}" class="btn btn-sm btn-primary rounded-pill px-4 shadow-sm">
                                 <i class="bi bi-person-circle me-1"></i>Login
                             </a>
                             {% endif %}
                         </div>
-                        <div class="d-flex align-items-center gap-2 pe-3 border-end border-light-subtle">
-                            <img src="https://www.ametek.com/-/media/project/oneweb/oneweb/oneweb/logos/default-logo.png"
-                                alt="Ametek" class="logo-small">
-                        </div>
-                        <img src="https://inesssolutions.com/inesslogo.png" alt="Iness"
-                            class="logo-small animate__delay-1s">
-                        <h1
-                            class="h6 mb-0 fw-semibold text-muted animate__animated animate__fadeInRight animate__delay-1s">
-                            Iness Solutions</h1>
                     </div>
                 </div>
             </div>
@@ -1468,30 +1477,26 @@
         <div class="d-flex flex-column flex-lg-row gap-4 align-items-start mt-2" id="layoutContainer">
             <!-- Sidebar Navigation -->
             <div class="sidebar" style="position: sticky; top: 20px;">
-                <div class="card p-2 shadow-sm animate-fade-in-up"
-                    style="border-radius: 20px; border: 2px solid var(--border-color);">
-                    <div class="nav-pills-custom flex-column gap-1" id="mainNavTabs"
-                        style="display: flex; background: transparent; border: none; box-shadow: none; padding: 0;">
-                        <button
-                            class="nav-link-custom {% if not is_uploaded %}active{% endif %} justify-content-start py-3"
-                            data-tab="uploadTab" id="navUpload"
-                            style="font-weight: 500; border-bottom: 2px solid var(--border-color); border-radius: 0;">
-                            Data Upload & Recent Files
+                <div class="card p-3 shadow-sm animate-fade-in-up" 
+                    style="border-radius: 24px; border: 1px solid #e2e8f0; background: #ffffff;">
+                    <div class="nav-pills-custom flex-column" id="mainNavTabs">
+                        <button class="nav-link-custom {% if not is_uploaded %}active{% endif %}" 
+                            data-tab="uploadTab" id="navUpload">
+                            <i class="bi bi-cloud-arrow-up"></i> 
+                            <span>Data Upload</span>
                         </button>
-                        <button
-                            class="nav-link-custom {% if is_uploaded %}active{% else %}disabled{% endif %} justify-content-start py-3"
-                            data-tab="dataPreviewTab" id="navDataPreview"
-                            style="font-weight: 500; border-bottom: 2px solid var(--border-color); border-radius: 0;">
-                            Data Preview/Data Analysis
+                        <button class="nav-link-custom {% if is_uploaded %}active{% else %}disabled{% endif %}" 
+                            data-tab="dataPreviewTab" id="navDataPreview">
+                            <i class="bi bi-grid-3x3-gap-fill"></i>
+                            <span>Data Analysis</span>
                         </button>
-                        <button class="nav-link-custom disabled justify-content-start py-3" data-tab="unmatchedTab"
-                            id="navUnmatched"
-                            style="font-weight: 500; border-bottom: 2px solid var(--border-color); border-radius: 0;">
-                            Unmatched Data
+                        <button class="nav-link-custom disabled" data-tab="unmatchedTab" id="navUnmatched">
+                            <i class="bi bi-exclamation-circle"></i>
+                            <span>Unmatched</span>
                         </button>
-                        <button class="nav-link-custom disabled justify-content-start py-3" data-tab="analysisTab"
-                            id="navAnalysis" style="font-weight: 500;">
-                            Risk Analysis & Dashboard
+                        <button class="nav-link-custom disabled" data-tab="analysisTab" id="navAnalysis">
+                            <i class="bi bi-speedometer2"></i>
+                            <span>Dashboard</span>
                         </button>
                     </div>
                 </div>
