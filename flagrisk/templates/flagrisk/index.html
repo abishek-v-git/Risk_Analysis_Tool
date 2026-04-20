@@ -66,7 +66,7 @@
         .upload-area {
             border: 2px dashed #cbd5e1;
             border-radius: 12px;
-            padding: 3rem;
+            padding: 1.4rem 3rem;
             text-align: center;
             background: #f1f5f9;
             cursor: pointer;
@@ -1495,7 +1495,7 @@
                             <span>Unmatched</span>
                         </button>
                         <button class="nav-link-custom disabled" data-tab="analysisTab" id="navAnalysis">
-                            <i class="bi bi-speedometer2"></i>
+                            <i class="bi bi-bar-chart-fill"></i>
                             <span>Dashboard</span>
                         </button>
                     </div>
@@ -1575,7 +1575,7 @@
                 <div class="tab-pane-custom {% if not is_uploaded %}active{% endif %}" id="uploadTab">
                     <div class="row justify-content-center">
                         <div>
-                            <div class="card p-4 p-md-5 animate-fade-in-up">
+                            <div class="card p-3 p-md-4 animate-fade-in-up">
                                 <div class="text-center mb-4">
                                     <h2 class="h4 fw-semibold text-primary mb-2">Upload Data</h2>
                                     <p class="text-muted mb-0">Select an Excel file to visualize and perform risk
@@ -1610,7 +1610,7 @@
                                     </h3>
                                     <div class="d-flex gap-2">
                                         <button class="btn btn-sm btn-outline-danger rounded-pill px-3"
-                                            onclick="if(confirm('Are you sure you want to delete all history and files?')) window.location.href='/?clear=1'">
+                                            data-bs-toggle="modal" data-bs-target="#clearHistoryModal">
                                             <i class="bi bi-trash-fill me-1"></i>Clear History
                                         </button>
                                     </div>
@@ -1624,6 +1624,9 @@
                                                         Time</th>
                                                     <th class="py-3 text-secondary text-uppercase small fw-bold">
                                                         Filename</th>
+                                                    <th class="py-3 text-secondary text-uppercase small fw-bold text-center">
+                                                        Status
+                                                    </th>
                                                     <th
                                                         class="py-3 text-secondary text-uppercase small fw-bold text-center">
                                                         Action
@@ -1646,6 +1649,17 @@
                                                         </div>
                                                     </td>
                                                     <td class="text-center">
+                                                        {% if report.status == 'complete' %}
+                                                        <span class="badge rounded-pill px-3 py-2" style="background-color:#d1fae5; color:#065f46; font-size:0.75rem;">
+                                                            <i class="bi bi-check-circle-fill me-1"></i>Complete
+                                                        </span>
+                                                        {% else %}
+                                                        <span class="badge rounded-pill px-3 py-2" style="background-color:#fee2e2; color:#991b1b; font-size:0.75rem;">
+                                                            <i class="bi bi-exclamation-circle-fill me-1"></i>Missing
+                                                        </span>
+                                                        {% endif %}
+                                                    </td>
+                                                    <td class="text-center">
                                                         <a href="?view_file={{ report.file }}&analyze=1"
                                                             class="btn btn-sm {% if report.file == current_file %}btn-success{% else %}btn-primary{% endif %} rounded-pill px-4 shadow-sm btn-view-analysis">
                                                             <i class="bi bi-eye me-1"></i> {% if report.file == current_file %}Viewing{% else %}View{% endif %}
@@ -1660,6 +1674,35 @@
                                                 {% endfor %}
                                             </tbody>
                                         </table>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Clear History Confirmation Modal -->
+                            <div class="modal fade" id="clearHistoryModal" tabindex="-1" aria-labelledby="clearHistoryModalLabel" aria-hidden="true">
+                                <div class="modal-dialog modal-dialog-centered">
+                                    <div class="modal-content rounded-4 border-0 shadow-lg">
+                                        <div class="modal-header border-0 pb-0">
+                                            <div class="d-flex align-items-center gap-2">
+                                                <div class="bg-danger bg-opacity-10 p-2 rounded-3">
+                                                    <i class="bi bi-exclamation-triangle-fill text-danger"></i>
+                                                </div>
+                                                <h5 class="modal-title fw-bold text-dark" id="clearHistoryModalLabel">Clear All History?</h5>
+                                            </div>
+                                            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                                        </div>
+                                        <div class="modal-body pt-3">
+                                            <p class="text-muted mb-1">This will permanently delete <strong>all uploaded files</strong> and their analysis history.</p>
+                                            <p class="text-danger small mb-0"><i class="bi bi-info-circle me-1"></i>This action cannot be undone.</p>
+                                        </div>
+                                        <div class="modal-footer border-0 pt-0">
+                                            <button type="button" class="btn btn-outline-secondary rounded-pill px-4" data-bs-dismiss="modal">
+                                                <i class="bi bi-x-circle me-1"></i>Cancel
+                                            </button>
+                                            <a href="/?clear=1" class="btn btn-danger rounded-pill px-4">
+                                                <i class="bi bi-trash-fill me-1"></i>Yes, Clear All
+                                            </a>
+                                        </div>
                                     </div>
                                 </div>
                             </div>
@@ -2606,6 +2649,7 @@
                             fixedColumns: { left: 2 },
                             language: {
                                 search: "Search:",
+                                searchPlaceholder: "Search by part number, manufacturer...",
                                 lengthMenu: "Show _MENU_ rows",
                                 info: "Showing _START_ to _END_ of _TOTAL_ entries",
                                 paginate: { first: "First", last: "Last", next: "Next", previous: "Previous" }
@@ -2728,8 +2772,11 @@
                         var allData = table.rows().data().toArray();
                         var matchedRows = [];
                         var highRiskResults = [];
+                        var highRiskSeen = new Set();
                         var noRiskResults = [];
+                        var noRiskSeen = new Set();
                         var lowRiskResults = [];
+                        var lowRiskSeen = new Set();
                         var uploadSummary = {};
 
                         function uploadKey(upPart, upMfg) {
@@ -3188,11 +3235,25 @@
 
                             if (isMatched2) {
                                 if (cpnRisk === "High Risk") {
-                                    highRiskResults.push(splitRow);
+                                    var highRiskKey = (splitRow[0] || '') + '|' + (splitRow[1] || '') + '|' + (splitRow[2] || '');
+                                    if (!highRiskSeen.has(highRiskKey)) {
+                                        highRiskSeen.add(highRiskKey);
+                                        highRiskResults.push(splitRow);
+                                    }
                                 } else if (cpnRisk === "Low Risk") {
-                                    lowRiskResults.push(splitRow);
+                                    var lowRiskKey = (splitRow[0] || '') + '|' + (splitRow[1] || '') + '|' + (splitRow[2] || '');
+                                    if (!lowRiskSeen.has(lowRiskKey)) {
+                                        lowRiskSeen.add(lowRiskKey);
+                                        lowRiskResults.push(splitRow);
+                                    }
                                 } else {
-                                    noRiskResults.push(splitRow);
+                                    if (!isRisky(country)) {
+                                        var noRiskKey = (splitRow[0] || '') + '|' + (splitRow[1] || '') + '|' + (splitRow[2] || '');
+                                        if (!noRiskSeen.has(noRiskKey)) {
+                                            noRiskSeen.add(noRiskKey);
+                                            noRiskResults.push(splitRow);
+                                        }
+                                    }
                                 }
                             }
                         }
@@ -3257,6 +3318,7 @@
                             }],
                             language: {
                                 search: "Search:",
+                                searchPlaceholder: "Search by part number, manufacturer...",
                                 lengthMenu: "Show _MENU_ rows"
                             }
                         });
@@ -3265,6 +3327,31 @@
                             var t = $('#dataTable').DataTable();
                             t.columns.adjust().draw();
                         }, 200);
+
+                        // Add jump-to-page input for main data table
+                        setTimeout(function() {
+                            var $wrapper = $('#dataTable_wrapper');
+                            if ($wrapper.length && !$wrapper.find('.dt-jump-page').length) {
+                                var $paginate = $wrapper.find('.dataTables_paginate');
+                                var jumpHtml = '<div class="dt-jump-page d-inline-flex align-items-center gap-2 ms-3" style="vertical-align:middle;">' +
+                                    '<span class="small text-muted">Go to page:</span>' +
+                                    '<input type="number" min="1" class="form-control form-control-sm" id="dtJumpPageInput" style="width:65px; display:inline-block; border-radius:8px; border:1px solid #cbd5e1;">' +
+                                    '<button class="btn btn-sm btn-outline-primary rounded-2 px-2" id="dtJumpPageBtn" style="font-size:0.8rem;">Go</button>' +
+                                    '</div>';
+                                $paginate.append(jumpHtml);
+                                $('#dtJumpPageBtn').on('click', function() {
+                                    var page = parseInt($('#dtJumpPageInput').val(), 10);
+                                    var dt = $('#dataTable').DataTable();
+                                    var totalPages = dt.page.info().pages;
+                                    if (page >= 1 && page <= totalPages) {
+                                        dt.page(page - 1).draw('page');
+                                    }
+                                });
+                                $('#dtJumpPageInput').on('keypress', function(e) {
+                                    if (e.which === 13) $('#dtJumpPageBtn').click();
+                                });
+                            }
+                        }, 500);
 
                         initResultTable('#highRiskTable', highRiskResults, 'No High Risk parts found.');
                         initResultTable('#noRiskTable', noRiskResults, 'No matched parts in this category.');

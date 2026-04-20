@@ -128,10 +128,13 @@ def index(request):
                 db_recent = ReportAnalysis.objects.filter(user=request.user)[:5]
                 recent_list = []
                 for entry in db_recent:
+                    file_full_path = os.path.join(reports_dir, entry.report_file_path)
+                    file_exists = os.path.isfile(file_full_path)
                     recent_list.append({
                         'name': entry.filename,
                         'file': entry.report_file_path,
-                        'date': entry.upload_date.strftime("%Y-%m-%d %H:%M:%S")
+                        'date': entry.upload_date.strftime("%Y-%m-%d %H:%M:%S"),
+                        'status': 'complete' if file_exists else 'missing'
                     })
 
                 if request.method == 'POST' and request.FILES.get('excel_file'):
@@ -154,10 +157,13 @@ def index(request):
         db_recent = ReportAnalysis.objects.filter(user=request.user)[:5]
         recent_list = []
         for entry in db_recent:
+            file_full_path = os.path.join(reports_dir, entry.report_file_path)
+            file_exists = os.path.isfile(file_full_path)
             recent_list.append({
                 'name': entry.filename,
                 'file': entry.report_file_path,
-                'date': entry.upload_date.strftime("%Y-%m-%d %H:%M:%S")
+                'date': entry.upload_date.strftime("%Y-%m-%d %H:%M:%S"),
+                'status': 'complete' if file_exists else 'missing'
             })
 
         return render(request, 'flagrisk/index.html', {'recent_reports': recent_list})
