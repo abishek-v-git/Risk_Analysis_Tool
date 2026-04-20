@@ -1451,7 +1451,6 @@
                                 aria-labelledby="userProfileDropdown" style="min-width: 200px;">
                                 <li class="px-3 py-3 border-bottom mb-2">
                                     <div class="fw-bold text-dark">{{ request.user.username }}</div>
-                                    <div class="text-muted smaller">{{ request.user.email|default:"User Account" }}</div>
                                 </li>
                                 <li>
                                     <form method="post" action="{% url 'logout' %}" class="m-0">
