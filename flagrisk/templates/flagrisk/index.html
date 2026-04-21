@@ -2324,10 +2324,14 @@
                 }]
             });
 
+            requestAnimationFrame(function() {
+                mpnPieChart.resize(); cpnPieChart.resize();
+                mpnBarChart.resize(); cpnBarChart.resize();
+            });
             setTimeout(function() {
                 mpnPieChart.resize(); cpnPieChart.resize();
                 mpnBarChart.resize(); cpnBarChart.resize();
-            }, 100);
+            }, 400);
 
             window.addEventListener('resize', function() {
                 mpnPieChart.resize(); cpnPieChart.resize();
@@ -3470,6 +3474,16 @@
                 // Switch tab panes
                 $('.tab-pane-custom').removeClass('active');
                 $('#' + targetTab).addClass('active');
+
+                // Resize ECharts instances when analysis tab becomes visible
+                if (targetTab === 'analysisTab') {
+                    requestAnimationFrame(function() {
+                        ['mpnPieChart', 'cpnPieChart', 'mpnBarChart', 'cpnBarChart'].forEach(function(id) {
+                            var inst = echarts.getInstanceByDom(document.getElementById(id));
+                            if (inst) inst.resize();
+                        });
+                    });
+                }
 
                 // Hide Export buttons when in Upload tab, show otherwise
                 if (targetTab === 'uploadTab') {
