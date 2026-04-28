@@ -86,7 +86,7 @@ DATABASES = {
         'ENGINE': 'django.db.backends.postgresql_psycopg2',
         'NAME': 'Flag_riskapril28',
         'USER': 'iness',
-        'HOST': 'postgres.coussk3bjb0m.us-west-2.rds.amazonaws.com',
+        'HOST': os.environ.get('DB_HOST','postgres.coussk3bjb0m.us-west-2.rds.amazonaws.com'),
         'PASSWORD':'Iness*123',
         'PORT': '5432',
     }
