@@ -651,25 +651,13 @@
         .loading-overlay {
             display: none;
             position: fixed;
-            top: 0;
-            left: 0;
-            width: 100vw;
-            height: 100vh;
-            background-color: #f8fafc !important;
-            opacity: 1 !important;
+            inset: 0;
+            background: rgba(248, 250, 252, 0.96);
+            backdrop-filter: blur(6px);
+            -webkit-backdrop-filter: blur(6px);
             z-index: 999999;
             justify-content: center;
             align-items: center;
-            flex-direction: column;
-        }
-
-        .spinner {
-            width: 48px;
-            height: 48px;
-            border: 4px solid #f1f5f9;
-            border-top: 4px solid var(--primary-color);
-            border-radius: 50%;
-            animation: spin 1s linear infinite;
         }
 
         @keyframes fadeInUpCustom {
@@ -835,118 +823,120 @@
             transform: scale(1.02);
         }
 
-        .loading-content {
+        /* ===== Loader Card ===== */
+        .loader-card {
+            background: #fff;
+            border-radius: 24px;
+            padding: 2.5rem 3rem 2rem;
+            box-shadow: 0 24px 64px rgba(0,0,0,0.10), 0 4px 16px rgba(0,0,0,0.06);
             text-align: center;
-            position: relative;
-            padding: 40px;
-            background-color: #ffffff !important;
-            border-radius: 30px;
-            box-shadow: 0 40px 100px rgba(13, 148, 136, 0.15);
-            border: 1px solid #e2e8f0;
-            min-width: 350px;
+            width: 380px;
+            max-width: 90vw;
+            animation: loaderCardIn 0.28s cubic-bezier(0.34, 1.56, 0.64, 1) both;
+        }
+        @keyframes loaderCardIn {
+            from { transform: scale(0.88) translateY(14px); opacity: 0; }
+            to   { transform: scale(1)    translateY(0);    opacity: 1; }
         }
 
-        .scanner-container {
-            width: 80px;
-            height: 80px;
-            border: 4px solid var(--border-color);
-            border-radius: 12px;
+        /* Icon ring area */
+        .loader-icon-area {
             position: relative;
-            margin: 0 auto 20px;
-            overflow: hidden;
+            width: 90px;
+            height: 90px;
+            margin: 0 auto 1.6rem;
         }
-
-        .scanner-line {
+        .loader-ring {
             position: absolute;
-            width: 100%;
+            inset: 0;
+            border-radius: 50%;
+            border: 2px solid #0d9488;
+            opacity: 0;
+            animation: ringPulse 2.4s ease-out infinite;
+        }
+        .loader-ring.r2 { animation-delay: 0.8s; }
+        .loader-ring.r3 { animation-delay: 1.6s; }
+        @keyframes ringPulse {
+            0%   { transform: scale(0.9);  opacity: 0.55; }
+            100% { transform: scale(1.75); opacity: 0; }
+        }
+        .loader-icon-inner {
+            position: absolute;
+            inset: 0;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: linear-gradient(135deg, #0d9488, #14b8a6);
+            border-radius: 50%;
+            font-size: 2rem;
+            color: #fff;
+            box-shadow: 0 8px 24px rgba(13,148,136,0.35);
+            transition: background 0.35s ease, box-shadow 0.35s ease;
+        }
+
+        /* Title */
+        .loader-title {
+            font-size: 1rem;
+            font-weight: 600;
+            color: #1e293b;
+            margin-bottom: 1.2rem;
+            letter-spacing: -0.01em;
+        }
+
+        /* Indeterminate progress bar */
+        .loader-progress-track {
             height: 4px;
-            background: var(--primary-color);
-            box-shadow: 0 0 15px var(--primary-color);
-            animation: scan 2s linear infinite;
-        }
-
-        .loading-text {
-            background: linear-gradient(90deg, var(--primary-color), var(--accent-color), var(--primary-color));
-            background-size: 200% auto;
-            background-clip: text;
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
-            animation: shimmer 2s linear infinite;
-            font-size: 1.2rem;
-            font-weight: 700;
-        }
-
-        .loader-section {
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            min-height: 140px;
-            background: #ffffff;
-            border-radius: 16px;
-            margin-bottom: 20px;
-            box-shadow: inset 0 2px 10px rgba(0, 0, 0, 0.05);
-            border: 1px solid #f1f5f9;
-        }
-
-        .flag-animation-container {
+            background: #e2e8f0;
+            border-radius: 99px;
+            overflow: hidden;
+            margin-bottom: 0.85rem;
             position: relative;
-            animation: flagPlant 1.2s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards;
         }
-
-        @keyframes flagPlant {
-            0% {
-                transform: translateY(-100px) rotate(-15deg);
-                opacity: 0;
-            }
-
-            60% {
-                transform: translateY(20px) rotate(5deg);
-                opacity: 1;
-            }
-
-            100% {
-                transform: translateY(0) rotate(0);
-            }
-        }
-
-        .download-animation-container {
-            position: relative;
-            width: 100px;
-            height: 100px;
-            margin: 0 auto;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-        }
-
-        .download-arrow {
+        .loader-progress-bar {
             position: absolute;
-            top: -30px;
-            animation: arrowDownload 1.5s ease-in-out infinite;
-            font-size: 3rem;
-            z-index: 10;
+            top: 0; left: 0;
+            height: 100%;
+            width: 45%;
+            border-radius: 99px;
+            background: linear-gradient(90deg, #0d9488, #14b8a6, #5eead4, #14b8a6, #0d9488);
+            background-size: 300% 100%;
+            animation: barSlide 1.9s ease-in-out infinite, barShimmer 2s linear infinite;
+        }
+        @keyframes barSlide {
+            0%   { left: -50%; width: 40%; }
+            60%  { left:  80%; width: 65%; }
+            100% { left: 120%; width: 40%; }
+        }
+        @keyframes barShimmer {
+            0%   { background-position: 100% 0; }
+            100% { background-position: -100% 0; }
         }
 
-        @keyframes arrowDownload {
-            0% {
-                transform: translateY(-40px);
-                opacity: 0;
-            }
+        /* Sub-text */
+        .loader-sub {
+            font-size: 0.78rem;
+            color: #94a3b8;
+            margin-bottom: 1.25rem;
+        }
 
-            40% {
-                transform: translateY(0);
-                opacity: 1;
-            }
-
-            70% {
-                transform: translateY(40px);
-                opacity: 0;
-            }
-
-            100% {
-                transform: translateY(40px);
-                opacity: 0;
-            }
+        /* Bouncing dots */
+        .loader-dots {
+            display: flex;
+            gap: 7px;
+            justify-content: center;
+        }
+        .loader-dots span {
+            width: 7px;
+            height: 7px;
+            border-radius: 50%;
+            background: #e2e8f0;
+            animation: dotPulse 1.5s ease-in-out infinite;
+        }
+        .loader-dots span:nth-child(2) { animation-delay: 0.25s; }
+        .loader-dots span:nth-child(3) { animation-delay: 0.5s; }
+        @keyframes dotPulse {
+            0%, 100% { transform: scale(0.65); background: #e2e8f0; }
+            50%       { transform: scale(1.1);  background: #0d9488; }
         }
 
         /* SIDEBAR NAV OVERHAUL - MATCHING TARGET DESIGN */
@@ -1800,7 +1790,6 @@
                                         </table>
                                     </div>
                                     {{ columns|json_script:"table-columns" }}
-                                    {{ data|json_script:"table-data" }}
                                 </div>
                             </div>
                         </div>
@@ -2010,34 +1999,23 @@
     </div>
 
     <div class="loading-overlay" id="loadingOverlay">
-        <div class="loading-content animate__animated animate__zoomIn">
-            <div id="loader-magnifier" class="loader-section">
-                <div class="scanner-container">
-                    <div class="scanner-line"></div>
-                    <i class="bi bi-search text-primary"
-                        style="font-size: 2.5rem; position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); opacity: 0.3;"></i>
+        <div class="loader-card">
+            <div class="loader-icon-area">
+                <div class="loader-ring r1"></div>
+                <div class="loader-ring r2"></div>
+                <div class="loader-ring r3"></div>
+                <div class="loader-icon-inner" id="loaderIconInner">
+                    <i id="loaderIcon" class="bi bi-search"></i>
                 </div>
             </div>
-
-            <div id="loader-flag" class="loader-section d-none">
-                <div class="flag-animation-container">
-                    <i class="bi bi-flag-fill text-danger" style="font-size: 4rem;"></i>
-                </div>
+            <p class="loader-title" id="loadingStatusText">Processing data...</p>
+            <div class="loader-progress-track">
+                <div class="loader-progress-bar"></div>
             </div>
-
-            <div id="loader-download" class="loader-section d-none">
-                <div class="download-animation-container">
-                    <i class="bi bi-file-earmark-excel-fill text-success" style="font-size: 4rem;"></i>
-                    <div class="download-arrow">
-                        <i class="bi bi-arrow-down text-success"></i>
-                    </div>
-                </div>
+            <p class="loader-sub" id="loaderSubText">Please wait...</p>
+            <div class="loader-dots">
+                <span></span><span></span><span></span>
             </div>
-
-            <div class="spinner-border text-primary d-none" role="status">
-                <span class="visually-hidden">Loading...</span>
-            </div>
-            <p class="mt-3 loading-text mb-0" id="loadingStatusText">Processing data...</p>
         </div>
     </div>
 
@@ -2056,21 +2034,30 @@
     <script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
 
     <script>
-        function showLoader(type, text) {
-            $('.loader-section').addClass('d-none');
-            $('#loadingStatusText').text(text || 'Processing data...');
+        function showLoader(type, text, sub) {
+            var iconClass = 'bi-search';
+            var bg      = 'linear-gradient(135deg, #0d9488, #14b8a6)';
+            var shadow  = '0 8px 24px rgba(13,148,136,0.35)';
+            var ring    = '#0d9488';
 
-            if (type === 'magnifier') {
-                $('#loader-magnifier').removeClass('d-none');
-            } else if (type === 'flag') {
-                $('#loader-flag').removeClass('d-none');
+            if (type === 'flag') {
+                iconClass = 'bi-flag-fill';
+                bg     = 'linear-gradient(135deg, #ef4444, #f87171)';
+                shadow = '0 8px 24px rgba(239,68,68,0.35)';
+                ring   = '#ef4444';
             } else if (type === 'download') {
-                $('#loader-download').removeClass('d-none');
-            } else {
-                $('#loader-magnifier').removeClass('d-none');
+                iconClass = 'bi-file-earmark-excel-fill';
+                bg     = 'linear-gradient(135deg, #10b981, #34d399)';
+                shadow = '0 8px 24px rgba(16,185,129,0.35)';
+                ring   = '#10b981';
             }
 
-            $('#loadingOverlay').css('display', 'flex').hide().fadeIn(200);
+            $('#loaderIcon').attr('class', 'bi ' + iconClass);
+            $('#loaderIconInner').css({ background: bg, boxShadow: shadow });
+            $('.loader-ring').css('border-color', ring);
+            $('#loadingStatusText').text(text || 'Processing data...');
+            $('#loaderSubText').text(sub || 'Please wait...');
+            $('#loadingOverlay').css('display', 'flex');
         }
 
         function handleFileSelect(input) {
@@ -2108,7 +2095,7 @@
                 // Hide sidebar widgets during new upload
                 $('#sidebarStatsWidget, #sidebarFileWidget').fadeOut();
             } catch (e) { }
-            showLoader('magnifier', 'Uploading and processing file...');
+            showLoader('magnifier', 'Uploading & processing file...', 'Reading and indexing your data');
         });
 
         function switchRiskView(type) {
@@ -2482,25 +2469,12 @@
                 clickTab('uploadTab');
             }
 
-            // Trigger analysis automatically:
-            // 1. If 'analyze=1' is in URL (first time viewing/uploading)
-            // 2. OR if it's a refresh AND analysis was already done previously
-            if (urlParams.get('analyze') === '1' || (isViewingFile && isAnalysisDone())) {
-                setTimeout(function () {
-                    $('#analyzeBtn').click();
-                    // Just clean up the analyze flag if it exists, so history links are neat
-                    if (urlParams.get('analyze') === '1') {
-                        const newUrl = new URL(window.location);
-                        newUrl.searchParams.delete('analyze');
-                        window.history.replaceState({}, '', newUrl);
-                    }
-                }, 800);
-            }
+            // Analysis auto-trigger is handled inside the DataTable init block below
 
 
             // Show loader when clicking View Analysis in the history table
             $('.btn-view-analysis').on('click', function (e) {
-                showLoader('magnifier', 'Retrieving file from history...');
+                showLoader('magnifier', 'Retrieving file from history...', 'Loading your previous report');
             });
 
             var colLower = tableColumns.map(function (c) { return String(c).toLowerCase().trim(); });
@@ -2555,40 +2529,89 @@
 
             if ($('#dataTable').length) {
                 try {
-                    showLoader('magnifier', 'Initializing table...');
-                    setTimeout(function () {
+                    var _goToAnalyze = urlParams.get('analyze') === '1' || (isViewingFile && isAnalysisDone());
+
+                    if (_goToAnalyze) {
+                        // Skip table preview — initialize column headers only, go straight to analysis
                         var columnsDef = tableColumns.map(function (c) { return { title: c }; });
-                        var table = $('#dataTable').DataTable({
-                            data: tableData,
+                        $('#dataTable').DataTable({
                             columns: columnsDef,
-                            paging: true,
-                            pageLength: 10,
-                            lengthMenu: [[10, 25, 50, 100, 500, 1000], [10, 25, 50, 100, 500, 1000]],
-                            pagingType: "full_numbers",
-                            searching: true,
-                            ordering: true,
-                            info: true,
-                            autoWidth: false,
-                            deferRender: true,
-                            scrollY: "60vh",
-                            scrollCollapse: true,
-                            scrollX: true,
-                            fixedColumns: { left: 2 },
-                            language: {
-                                search: "Search:",
-                                searchPlaceholder: "Search by part number, manufacturer...",
-                                lengthMenu: "Show _MENU_ rows",
-                                info: "Showing _START_ to _END_ of _TOTAL_ entries",
-                                paginate: { first: "First", last: "Last", next: "Next", previous: "Previous" }
-                            },
-                            createdRow: function (row, data, dataIndex) {
-                                const delayClass = 'row-delay-' + ((dataIndex % 5) + 1);
-                                $(row).addClass(delayClass);
-                            }
+                            data: [],
+                            paging: false, searching: false, info: false, ordering: false,
+                            scrollX: true
                         });
-                        $('#loadingOverlay').fadeOut(400);
-                        setTimeout(function () { table.columns.adjust().draw(); }, 200);
-                    }, 50);
+                        if (urlParams.get('analyze') === '1') {
+                            const newUrl = new URL(window.location);
+                            newUrl.searchParams.delete('analyze');
+                            window.history.replaceState({}, '', newUrl);
+                        }
+                        setTimeout(function () { $('#analyzeBtn').click(); }, 50);
+
+                    } else {
+                        // Normal view — full server-side paginated table
+                        showLoader('magnifier', 'Initializing table...', 'Connecting to data server');
+                        setTimeout(function () {
+                            var columnsDef = tableColumns.map(function (c) { return { title: c }; });
+                            var _viewFile = urlParams.get('view_file');
+                            var _dtReady = false;
+                            var _dtOverlayTimer = null;
+                            var table = $('#dataTable').DataTable({
+                                serverSide: true,
+                                processing: false,
+                                ajax: {
+                                    url: '/api/table-data/',
+                                    data: function (d) { d.file = _viewFile; }
+                                },
+                                columns: columnsDef,
+                                paging: true,
+                                pageLength: 50,
+                                lengthMenu: [[25, 50, 100, 500], [25, 50, 100, 500]],
+                                pagingType: "full_numbers",
+                                searching: true,
+                                searchDelay: 500,
+                                ordering: true,
+                                info: true,
+                                autoWidth: false,
+                                scrollY: "60vh",
+                                scrollCollapse: true,
+                                scrollX: true,
+                                fixedColumns: { left: 2 },
+                                language: {
+                                    search: "Search:",
+                                    searchPlaceholder: "Search by part number, manufacturer...",
+                                    lengthMenu: "Show _MENU_ rows",
+                                    info: "Showing _START_ to _END_ of _TOTAL_ entries",
+                                    paginate: { first: "First", last: "Last", next: "Next", previous: "Previous" }
+                                },
+                                createdRow: function (row, data, dataIndex) {
+                                    const delayClass = 'row-delay-' + ((dataIndex % 5) + 1);
+                                    $(row).addClass(delayClass);
+                                },
+                                initComplete: function () {
+                                    _dtReady = true;
+                                    this.api().columns.adjust();
+                                    $('#loadingOverlay').fadeOut(300);
+                                }
+                            });
+
+                            // Show overlay only if a page-change/search AJAX takes > 200ms
+                            table.on('preXhr.dt', function () {
+                                if (!_dtReady) return;
+                                clearTimeout(_dtOverlayTimer);
+                                _dtOverlayTimer = setTimeout(function () {
+                                    showLoader('magnifier', 'Loading rows...', 'Fetching from server');
+                                }, 200);
+                            });
+                            table.on('draw.dt', function () {
+                                if (!_dtReady) return;
+                                clearTimeout(_dtOverlayTimer);
+                                if ($('#loadingOverlay').is(':visible')) {
+                                    $('#loadingOverlay').fadeOut(200);
+                                }
+                            });
+
+                        }, 50);
+                    }
                 } catch (error) {
                     $('#loadingOverlay').css('display', 'none');
                 }
@@ -2597,183 +2620,45 @@
             var originalColumns = tableColumns.slice();
 
             $('#analyzeBtn').on('click', function () {
-                showLoader('flag', 'Analyzing table...');
+                showLoader('flag', 'Analyzing data...', 'Starting risk assessment');
 
                 const statuses = [
-                    'Analyzing table...',
-                    'Processing manufacturer data...',
-                    'Calculating country risks...',
-                    'Applying fuzzy matching...',
-                    'Finalizing risk assessment...'
+                    ['Analyzing data...',                'Matching part numbers and manufacturers'],
+                    ['Processing manufacturer data...', 'Normalizing manufacturer names'],
+                    ['Calculating country risks...',     'Applying geo-risk classifications'],
+                    ['Applying fuzzy matching...',       'Running Levenshtein distance checks'],
+                    ['Finalizing risk assessment...',    'Classifying high, low and no-risk parts']
                 ];
                 let sIdx = 0;
-                $('#loadingStatusText').text(statuses[0]);
                 const statusInterval = setInterval(() => {
                     sIdx = (sIdx + 1) % statuses.length;
-                    $('#loadingStatusText').fadeOut(200, function () {
-                        $(this).text(statuses[sIdx]).fadeIn(200);
-                    });
-                }, 1500);
+                    $('#loadingStatusText').text(statuses[sIdx][0]);
+                    $('#loaderSubText').text(statuses[sIdx][1]);
+                }, 2000);
 
                 setTimeout(function () {
                     clearInterval(statusInterval);
+                    var _analyzeFile = urlParams.get('view_file');
+                    $.ajax({
+                        url: '/api/analyze/',
+                        data: { file: _analyzeFile },
+                        success: function (response) {
                     try {
-                        var table = $('#dataTable').DataTable();
-                        var headers = [];
-                        $('#dataTable thead th').each(function () {
-                            headers.push($(this).text().trim().toLowerCase());
-                        });
-
-                        var idxPN = headers.indexOf('part number');
-                        var idxMfr = headers.indexOf('manufacturer');
-                        var idxCPN = headers.indexOf('cpn');
-                        var idxSite = headers.indexOf('site status');
-                        var idxCountry = headers.indexOf('country');
-                        var idxUpPart = headers.indexOf('uploaded part');
-                        var idxUpMfg = headers.indexOf('uploaded mfg');
-                        var idxMfgStep = headers.indexOf('manufacturing step');
-
-                        if (idxPN === -1 || idxMfr === -1 || idxUpPart === -1 || idxUpMfg === -1) {
-                            alert('Error: Could not find required columns (Part Number, Manufacturer, Uploaded Part, Uploaded Mfg).');
+                        if (response.error) {
+                            alert('Error: ' + response.error);
                             $('#loadingOverlay').hide();
                             return;
                         }
 
-                        function superNormalize(val) {
-                            if (!val) return '';
-                            let s = String(val).toLowerCase();
-                            s = s.replace(/\(obs\)/g, '')
-                                .replace(/\(strip\)/g, '')
-                                .replace(/\(lf\)\(sn\)/g, '')
-                                .replace(/lead free/g, '')
-                                .replace(/leadfree/g, '')
-                                .replace(/pbfree/g, '')
-                                .replace(/pbf/g, '')
-                                .replace(/nopb/g, '')
-                                .replace(/tr/g, '');
-                            s = s.replace(/[^a-z0-9]/g, '');
-                            s = s.replace(/0+([1-9])/g, '$1');
-                            return s.trim();
-                        }
-
-                        function levenshtein(s, t) {
-                            if (s === t) return 0;
-                            if (s.length === 0) return t.length;
-                            if (t.length === 0) return s.length;
-                            let v0 = new Array(t.length + 1), v1 = new Array(t.length + 1);
-                            for (let i = 0; i <= t.length; i++) v0[i] = i;
-                            for (let i = 0; i < s.length; i++) {
-                                v1[0] = i + 1;
-                                for (let j = 0; j < t.length; j++) {
-                                    let cost = (s[i] === t[j]) ? 0 : 1;
-                                    v1[j + 1] = Math.min(v1[j] + 1, v0[j + 1] + 1, v0[j] + cost);
-                                }
-                                for (let j = 0; j <= t.length; j++) v0[j] = v1[j];
-                            }
-                            return v0[t.length];
-                        }
-
-                        function isFuzzyMatch(s1, s2, threshold = 0.85) {
-                            let n1 = superNormalize(s1);
-                            let n2 = superNormalize(s2);
-                            if (!n1 || !n2) return false;
-                            if (n1 === n2) return true;
-                            if (n1.length > 5 && n2.length > 5 && (n1.indexOf(n2) !== -1 || n2.indexOf(n1) !== -1)) return true;
-                            let dist = levenshtein(n1, n2);
-                            let maxLen = Math.max(n1.length, n2.length);
-                            return (maxLen - dist) / maxLen >= threshold;
-                        }
-
-                        function similarityScore(s1, s2) {
-                            let n1 = superNormalize(s1);
-                            let n2 = superNormalize(s2);
-                            if (!n1 || !n2) return 0;
-                            if (n1 === n2) return 1;
-                            if (n1.length > 5 && n2.length > 5 && (n1.indexOf(n2) !== -1 || n2.indexOf(n1) !== -1)) return 0.99;
-                            let dist = levenshtein(n1, n2);
-                            let maxLen = Math.max(n1.length, n2.length);
-                            if (!maxLen) return 0;
-                            return (maxLen - dist) / maxLen;
-                        }
-
-                        var allData = table.rows().data().toArray();
-                        var matchedRows = [];
-                        var highRiskResults = [];
-                        var highRiskSeen = new Set();
-                        var noRiskResults = [];
-                        var noRiskSeen = new Set();
-                        var lowRiskResults = [];
-                        var lowRiskSeen = new Set();
-                        var uploadSummary = {};
-
-                        function uploadKey(upPart, upMfg) {
-                            var p = String(upPart || '').trim();
-                            var m = String(upMfg || '').trim();
-                            if (!p && !m) return '';
-                            return (p + '||' + m).toLowerCase();
-                        }
-
-                        function ensureUploadSummary(key, upPart, upMfg) {
-                            if (!key) return;
-                            if (!uploadSummary[key]) {
-                                uploadSummary[key] = {
-                                    upPart: String(upPart || '').trim(),
-                                    upMfg: String(upMfg || '').trim(),
-                                    matched: false,
-                                    bestPn: '',
-                                    bestMfr: '',
-                                    bestScore: -1
-                                };
-                            }
-                        }
-
-                        function updateBestCandidate(key, pn, mfr, score) {
-                            if (!key || !uploadSummary[key]) return;
-                            if (score > uploadSummary[key].bestScore) {
-                                uploadSummary[key].bestScore = score;
-                                uploadSummary[key].bestPn = String(pn || '').trim();
-                                uploadSummary[key].bestMfr = String(mfr || '').trim();
-                            }
-                        }
-
-                        for (var i = 0; i < allData.length; i++) {
-                            var row = allData[i];
-                            var sysPnRaw = String(row[idxPN] || "").trim();
-                            var upPnRaw = String(row[idxUpPart] || "").trim();
-                            var sysMfrRaw = String(row[idxMfr] || "").trim();
-                            var upMfrRaw = String(row[idxUpMfg] || "").trim();
-
-                            var key = uploadKey(upPnRaw, upMfrRaw);
-                            ensureUploadSummary(key, upPnRaw, upMfrRaw);
-
-                            var pnScore = similarityScore(sysPnRaw, upPnRaw);
-                            var mfrScore = similarityScore(sysMfrRaw, upMfrRaw);
-                            var combinedScore = (pnScore + mfrScore) / 2;
-                            updateBestCandidate(key, row[idxPN], row[idxMfr], combinedScore);
-
-                            var isPnMatch = isFuzzyMatch(sysPnRaw, upPnRaw);
-                            var isMfrMatch = isFuzzyMatch(sysMfrRaw, upMfrRaw);
-
-                            if (sysPnRaw && sysMfrRaw && upPnRaw && upMfrRaw && isPnMatch && isMfrMatch) {
-                                matchedRows.push(row);
-                                if (key && uploadSummary[key]) uploadSummary[key].matched = true;
-                            }
-                        }
-
-                        var unmatchedUploads = Object.keys(uploadSummary)
-                            .filter(function (k) { return uploadSummary[k] && !uploadSummary[k].matched; })
-                            .map(function (k) {
-                                var u = uploadSummary[k];
-                                var labels = [];
-                                if (!isFuzzyMatch(u.bestPn, u.upPart)) labels.push("Part Number Mismatch");
-                                if (!isFuzzyMatch(u.bestMfr, u.upMfg)) labels.push("Manufacturer Mismatch");
-
-                                // Do not show rows where both part number and manufacturer are mismatched
-                                if (labels.length === 2) return null;
-
-                                return [u.bestPn, u.upPart, u.bestMfr, u.upMfg, labels.join(' & ')];
-                            })
-                            .filter(function (row) { return row !== null; });
+                        var newData          = response.newData;
+                        var highRiskResults  = response.highRiskResults;
+                        var noRiskResults    = response.noRiskResults;
+                        var lowRiskResults   = response.lowRiskResults;
+                        var unmatchedUploads = response.unmatchedUploads;
+                        var cpnRiskMap       = response.cpnRiskMap;
+                        var dashboard        = response.dashboard;
+                        var chipCounts       = response.chip_counts;
+                        var respColumns      = response.columns;
 
                         function initResultTable(id, data, emptyMsg) {
                             if ($.fn.DataTable.isDataTable(id)) {
@@ -2868,7 +2753,7 @@
 
                         function bindExportCompleteBtn() {
                             $('#sidebarExportBtn').off('click').on('click', function () {
-                                showLoader('download', 'Generating complete report...');
+                                showLoader('download', 'Generating complete report...', 'Preparing your Excel export');
                                 setTimeout(function () {
                                     try {
                                         var mainTable = $('#dataTable').DataTable();
@@ -2989,7 +2874,7 @@
                             }
                         }
 
-                        if (matchedRows.length === 0) {
+                        if (newData.length === 0) {
                             initResultTable('#highRiskTable', [], 'No High Risk parts found.');
                             initResultTable('#noRiskTable', [], 'No matched parts in this category.');
                             initUnmatchedTable(unmatchedUploads, 'No unmatched uploads found.');
@@ -3003,198 +2888,17 @@
                             return;
                         }
 
-                        var mpnMap = {};
-                        var cpnToMpns = {};
-                        var mpnSiteMap = {};
-
-                        var isRisky = function (c) { return c.includes('china') || c.includes('taiwan'); };
-
-                        for (var i = 0; i < matchedRows.length; i++) {
-                            var rowM = matchedRows[i];
-                            var pnRawM = String(rowM[idxPN] || '').trim();
-                            var pnNormM = superNormalize(pnRawM); // normalized MPN key (for de-duplicated counting)
-                            var cpnM = idxCPN > -1 ? String(rowM[idxCPN] || '').trim().toLowerCase() : '';
-                            var countryM = idxCountry > -1 ? String(rowM[idxCountry] || '').trim().toLowerCase() : '';
-                            var mfgStepM = idxMfgStep > -1 ? String(rowM[idxMfgStep] || '').trim() : '';
-
-                            if (pnNormM) {
-                                if (!mpnMap[pnNormM]) mpnMap[pnNormM] = [];
-                                mpnMap[pnNormM].push(countryM);
-                                if (isRisky(countryM)) {
-                                    if (!mpnSiteMap[pnNormM]) mpnSiteMap[pnNormM] = [];
-                                    if (mfgStepM && mpnSiteMap[pnNormM].indexOf(mfgStepM) === -1) {
-                                        mpnSiteMap[pnNormM].push(mfgStepM);
-                                    }
-                                }
-                            }
-                            if (cpnM && pnNormM) {
-                                if (!cpnToMpns[cpnM]) cpnToMpns[cpnM] = new Set();
-                                cpnToMpns[cpnM].add(pnNormM);
-                            }
-                        }
-
-                        var getRawLevelFromCountries = function (countries) {
-                            if (!countries || countries.length === 0) return "No Risk";
-                            var allRisky = countries.every(function (c) { return isRisky(c); });
-                            return allRisky ? "High Risk" : "No Risk";
-                        };
-
-                        var mpnRiskMap = {};
-                        Object.keys(mpnMap).forEach(function (pnKey) {
-                            mpnRiskMap[pnKey] = getRawLevelFromCountries(mpnMap[pnKey]);
-                        });
-
-                        var cpnRiskMap = {};
-                        Object.keys(cpnToMpns).forEach(function (cpn) {
-                            var associatedMpns = Array.from(cpnToMpns[cpn]);
-                            var risks = associatedMpns.map(function (r) { return mpnRiskMap[r]; });
-                            var allNoRisk = risks.every(function (r) { return r === "No Risk"; });
-                            var allHighRisk = risks.every(function (r) { return r === "High Risk"; });
-                            var someHighRisk = risks.some(function (r) { return r === "High Risk"; });
-
-                            if (allNoRisk) cpnRiskMap[cpn] = "No Risk";
-                            else if (allHighRisk) cpnRiskMap[cpn] = "High Risk";
-                            else if (someHighRisk) cpnRiskMap[cpn] = "Low Risk";
-                            else cpnRiskMap[cpn] = "No Risk";
-                        });
-
-                        var newData = [];
-
-                        for (var i = 0; i < allData.length; i++) {
-                            var row = allData[i];
-                            var sysPnRaw2 = String(row[idxPN] || "").trim();
-                            var upPnRaw2 = String(row[idxUpPart] || "").trim();
-                            var sysMfrRaw2 = String(row[idxMfr] || "").trim();
-                            var upMfrRaw2 = String(row[idxUpMfg] || "").trim();
-                            var isPnMatch2 = isFuzzyMatch(sysPnRaw2, upPnRaw2);
-                            var isMfrMatch2 = isFuzzyMatch(sysMfrRaw2, upMfrRaw2);
-                            var isMatched2 = (sysPnRaw2 && sysMfrRaw2 && upPnRaw2 && upMfrRaw2 && isPnMatch2 && isMfrMatch2);
-                            if (!isMatched2) continue;
-
-                            var pnKey = superNormalize(sysPnRaw2); // use normalized MPN key to align with mpnRiskMap
-                            var cpn = idxCPN > -1 ? String(row[idxCPN] || '').trim().toLowerCase() : '';
-                            var country = idxCountry > -1 ? String(row[idxCountry] || '').trim().toLowerCase() : '';
-
-                            var mpnRisk = mpnRiskMap[pnKey] || "No Risk";
-                            var cpnRisk = cpnRiskMap[cpn] || "No Risk";
-
-                            var remark = '';
-                            switch (mpnRisk + '|' + cpnRisk) {
-                                case 'No Risk|No Risk':
-                                    remark = 'The CPN is completely safe from all risks.';
-                                    break;
-                                case 'No Risk|Low Risk':
-                                    remark = 'The CPN has non preferred countries but the MPN has atleast one preferred country, so low risk';
-                                    break;
-                                case 'High Risk|Low Risk':
-                                    var allSteps = '';
-                                    if (mpnSiteMap[pnKey]) {
-                                        allSteps = mpnSiteMap[pnKey].map(function (step) {
-                                            var lower = step.toLowerCase();
-
-                                            if (lower.includes('assembly')) {
-                                                return '<span class="assembly">' + step + '</span>';
-                                            }
-                                            if (lower.includes('origin')) {
-                                                return '<span class="origin">' + step + '</span>';
-                                            }
-                                            if (lower.includes('fabrication')) {
-                                                return '<span class="fabrication">' + step + '</span>';
-                                            }
-                                            if (lower.includes('final')) {
-                                                return '<span class="final-test">' + step + '</span>';
-                                            }
-                                            if (lower.includes('wafer')) {
-                                                return '<span class="wafer-test">' + step + '</span>';
-                                            }
-
-                                            return step;
-                                        }).join(', ');
-                                    } else {
-                                        allSteps = 'no steps found';
-                                    }
-                                    remark = `The CPN has non preferred country for ${row[idxPN]} (${allSteps})`;
-                                    break;
-                                case 'High Risk|High Risk':
-                                    var allSteps = '';
-                                    if (mpnSiteMap[pnKey]) {
-                                        allSteps = mpnSiteMap[pnKey].map(function (step) {
-                                            var lower = step.toLowerCase();
-
-                                            if (lower.includes('assembly')) {
-                                                return '<span class="assembly">' + step + '</span>';
-                                            }
-                                            if (lower.includes('origin')) {
-                                                return '<span class="origin">' + step + '</span>';
-                                            }
-                                            if (lower.includes('fabrication')) {
-                                                return '<span class="fabrication">' + step + '</span>';
-                                            }
-                                            if (lower.includes('final')) {
-                                                return '<span class="final-test">' + step + '</span>';
-                                            }
-                                            if (lower.includes('wafer')) {
-                                                return '<span class="wafer-test">' + step + '</span>';
-                                            }
-
-                                            return step;
-                                        }).join(', ');
-                                    } else {
-                                        allSteps = 'no steps found';
-                                    }
-                                    remark = `The CPN has non preferred country for ${row[idxPN]} in all sites (${allSteps})`;
-                                    break;
-                                default:
-                                    remark = `CPN ${cpnRisk.toLowerCase()} | MPN ${mpnRisk.toLowerCase()}`;
-                            }
-
-                            var idxMpnRisk = headers.indexOf('mpn risk');
-                            var sliceIdx = (idxMpnRisk > -1) ? idxMpnRisk : row.length;
-                            var baseRow = row.slice(0, sliceIdx);
-
-                            newData.push([...baseRow, remark, mpnRisk, cpnRisk]);
-
-                            var splitRow = [
-                                row[idxPN],
-                                idxCPN > -1 ? row[idxCPN] : '',
-                                idxCountry > -1 ? row[idxCountry] : ''
-                            ];
-
-                            if (isMatched2) {
-                                if (cpnRisk === "High Risk") {
-                                    var highRiskKey = (splitRow[0] || '') + '|' + (splitRow[1] || '') + '|' + (splitRow[2] || '');
-                                    if (!highRiskSeen.has(highRiskKey)) {
-                                        highRiskSeen.add(highRiskKey);
-                                        highRiskResults.push(splitRow);
-                                    }
-                                } else if (cpnRisk === "Low Risk") {
-                                    var lowRiskKey = (splitRow[0] || '') + '|' + (splitRow[1] || '') + '|' + (splitRow[2] || '');
-                                    if (!lowRiskSeen.has(lowRiskKey)) {
-                                        lowRiskSeen.add(lowRiskKey);
-                                        lowRiskResults.push(splitRow);
-                                    }
-                                } else {
-                                    if (!isRisky(country)) {
-                                        var noRiskKey = (splitRow[0] || '') + '|' + (splitRow[1] || '') + '|' + (splitRow[2] || '');
-                                        if (!noRiskSeen.has(noRiskKey)) {
-                                            noRiskSeen.add(noRiskKey);
-                                            noRiskResults.push(splitRow);
-                                        }
-                                    }
-                                }
-                            }
-                        }
-
+                        var table = $('#dataTable').DataTable();
                         table.clear().destroy();
                         $('#dataTable thead tr').empty();
-                        originalColumns.forEach(function (col) {
+                        respColumns.forEach(function (col) {
                             $('#dataTable thead tr').append('<th>' + col + '</th>');
                         });
                         $('#dataTable thead tr').append('<th>Remarks</th><th>MPN Risk</th><th>CPN Risk</th>');
                         $('#dataTable').DataTable({
                             data: newData,
                             columns: [
-                                ...originalColumns.map(function (c) { return { title: c }; }),
+                                ...respColumns.map(function (c) { return { title: c }; }),
                                 {
                                     title: "Remarks",
                                     render: function (data) { return data; }
@@ -3247,13 +2951,12 @@
                                 search: "Search:",
                                 searchPlaceholder: "Search by part number, manufacturer...",
                                 lengthMenu: "Show _MENU_ rows"
+                            },
+                            initComplete: function () {
+                                this.api().columns.adjust();
+                                $('#loadingOverlay').fadeOut(300);
                             }
                         });
-
-                        setTimeout(function () {
-                            var t = $('#dataTable').DataTable();
-                            t.columns.adjust().draw();
-                        }, 200);
 
                         // Add jump-to-page input for main data table
                         setTimeout(function() {
@@ -3285,44 +2988,6 @@
                         initResultTable('#lowRiskTable', lowRiskResults, 'No Low Risk parts found.');
                         initUnmatchedTable(unmatchedUploads, 'No unmatched uploads found.');
 
-                        // Compute unique CPN counts for dashboard (already accurate)
-                        let finalHighRiskCpnCount = 0;
-                        let finalLowRiskCpnCount = 0;
-                        let finalNoRiskCpnCount = 0;
-
-                        Object.values(cpnRiskMap).forEach(risk => {
-                            if (risk === 'High Risk') finalHighRiskCpnCount++;
-                            else if (risk === 'Low Risk') finalLowRiskCpnCount++;
-                            else if (risk === 'No Risk') finalNoRiskCpnCount++;
-                        });
-
-                        // Compute unique MPN counts for dashboard by de-duplicating part numbers
-                        const uniqueHighRiskMpns = new Set();
-                        const uniqueNoRiskMpns = new Set();
-
-                        for (let i = 0; i < newData.length; i++) {
-                            const rowND = newData[i];
-                            const pnVal = String(rowND[idxPN] || '').trim();
-                            const pnKeyDash = superNormalize(pnVal);
-                            if (!pnKeyDash) continue;
-
-                            const mpnRiskVal = rowND[rowND.length - 2]; // "MPN Risk" column in newData
-
-                            if (mpnRiskVal === 'High Risk') {
-                                uniqueHighRiskMpns.add(pnKeyDash);
-                                // ensure any "No Risk" classification for same MPN does not double-count
-                                uniqueNoRiskMpns.delete(pnKeyDash);
-                            } else if (mpnRiskVal === 'No Risk') {
-                                if (!uniqueHighRiskMpns.has(pnKeyDash)) {
-                                    uniqueNoRiskMpns.add(pnKeyDash);
-                                }
-                            }
-                        }
-
-                        const mpnDashboardRiskMap = {};
-                        uniqueHighRiskMpns.forEach(function (k) { mpnDashboardRiskMap[k] = 'High Risk'; });
-                        uniqueNoRiskMpns.forEach(function (k) { if (!mpnDashboardRiskMap[k]) mpnDashboardRiskMap[k] = 'No Risk'; });
-
                         $('#unmatchedCard').show().addClass('animate__animated animate__fadeInUp');
                         $('#resultsCard').show().addClass('animate__animated animate__fadeInUp');
                         enableAnalysisTab();
@@ -3337,25 +3002,23 @@
                             setTimeout(function () { clickTab(desired); }, 50);
                         }
 
-                        // Update animated dashboard:
-                        // - CPN counts use unique CPNs (final*RiskCpnCount)
-                        // - MPN counts use unique MPNs after de-duplicating (mpnDashboardRiskMap)
-                        updateDashboard(finalHighRiskCpnCount, finalLowRiskCpnCount, finalNoRiskCpnCount, mpnDashboardRiskMap, cpnRiskMap);
-
-                        // Update quick-filter chip counts (row counts in the main table)
-                        var chipHigh = newData.filter(function(r) { return r[r.length - 1] === 'High Risk'; }).length;
-                        var chipLow  = newData.filter(function(r) { return r[r.length - 1] === 'Low Risk';  }).length;
-                        var chipNone = newData.filter(function(r) { return r[r.length - 1] === 'No Risk';   }).length;
-                        updateChipCounts(chipHigh, chipLow, chipNone);
+                        // Dashboard and chip counts come pre-computed from the server
+                        updateDashboard(dashboard.cpn_high, dashboard.cpn_low, dashboard.cpn_no, dashboard.mpn_risk_map, cpnRiskMap);
+                        updateChipCounts(chipCounts.high, chipCounts.low, chipCounts.none);
 
                         // Populate Master Filters
-                        populateFilters(newData, [...originalColumns.map(c => c.toLowerCase().trim()), 'mpn risk', 'cpn risk', 'remarks']);
+                        populateFilters(newData, [...respColumns.map(c => c.toLowerCase().trim()), 'remarks', 'mpn risk', 'cpn risk']);
 
                     } catch (e) {
                         alert('An error occurred during analysis: ' + e.message);
-                    } finally {
                         $('#loadingOverlay').hide();
                     }
+                        }, // end success
+                        error: function () {
+                            alert('Failed to load data for analysis. Please try again.');
+                            $('#loadingOverlay').hide();
+                        }
+                    }); // end $.ajax
                 }, 100);
             });
 
