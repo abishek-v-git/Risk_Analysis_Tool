@@ -14,6 +14,7 @@ class ReportAnalysis(models.Model):
     high_risk_count = models.IntegerField(default=0)
     low_risk_count = models.IntegerField(default=0)
     no_risk_count = models.IntegerField(default=0)
+    is_analyzed = models.BooleanField(default=False)
 
     class Meta:
         ordering = ['-upload_date']

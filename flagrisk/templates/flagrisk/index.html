@@ -1666,34 +1666,6 @@
                                 </div>
                             </div>
 
-                            <!-- Clear History Confirmation Modal -->
-                            <div class="modal fade" id="clearHistoryModal" tabindex="-1" aria-labelledby="clearHistoryModalLabel" aria-hidden="true">
-                                <div class="modal-dialog modal-dialog-centered">
-                                    <div class="modal-content rounded-4 border-0 shadow-lg">
-                                        <div class="modal-header border-0 pb-0">
-                                            <div class="d-flex align-items-center gap-2">
-                                                <div class="bg-danger bg-opacity-10 p-2 rounded-3">
-                                                    <i class="bi bi-exclamation-triangle-fill text-danger"></i>
-                                                </div>
-                                                <h5 class="modal-title fw-bold text-dark" id="clearHistoryModalLabel">Clear All History?</h5>
-                                            </div>
-                                            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-                                        </div>
-                                        <div class="modal-body pt-3">
-                                            <p class="text-muted mb-1">This will permanently delete <strong>all uploaded files</strong> and their analysis history.</p>
-                                            <p class="text-danger small mb-0"><i class="bi bi-info-circle me-1"></i>This action cannot be undone.</p>
-                                        </div>
-                                        <div class="modal-footer border-0 pt-0">
-                                            <button type="button" class="btn btn-outline-secondary rounded-pill px-4" data-bs-dismiss="modal">
-                                                <i class="bi bi-x-circle me-1"></i>Cancel
-                                            </button>
-                                            <a href="/?clear=1" class="btn btn-danger rounded-pill px-4">
-                                                <i class="bi bi-trash-fill me-1"></i>Yes, Clear All
-                                            </a>
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
                             {% endif %}
                         </div>
                     </div>
@@ -2032,6 +2004,35 @@
     <script src="https://cdn.datatables.net/fixedcolumns/4.3.0/js/dataTables.fixedColumns.min.js"></script>
     <!-- Select2 JS -->
     <script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
+
+    <!-- Clear History Confirmation Modal (Moved to root for better z-index handling) -->
+    <div class="modal fade" id="clearHistoryModal" tabindex="-1" aria-labelledby="clearHistoryModalLabel" aria-hidden="true" style="z-index: 1060;">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content rounded-4 border-0 shadow-lg">
+                <div class="modal-header border-0 pb-0">
+                    <div class="d-flex align-items-center gap-2">
+                        <div class="bg-danger bg-opacity-10 p-2 rounded-3">
+                            <i class="bi bi-exclamation-triangle-fill text-danger"></i>
+                        </div>
+                        <h5 class="modal-title fw-bold text-dark" id="clearHistoryModalLabel">Clear All History?</h5>
+                    </div>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body pt-3">
+                    <p class="text-muted mb-1">This will permanently delete <strong>all uploaded files</strong> and their analysis history.</p>
+                    <p class="text-danger small mb-0"><i class="bi bi-info-circle me-1"></i>This action cannot be undone.</p>
+                </div>
+                <div class="modal-footer border-0 pt-0">
+                    <button type="button" class="btn btn-outline-secondary rounded-pill px-4" data-bs-dismiss="modal">
+                        <i class="bi bi-x-circle me-1"></i>Cancel
+                    </button>
+                    <a href="/?clear=1" class="btn btn-danger rounded-pill px-4" onclick="showLoader('flag', 'Clearing all history...', 'Removing files and database records')">
+                        <i class="bi bi-trash-fill me-1"></i>Yes, Clear All
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
 
     <script>
         function showLoader(type, text, sub) {

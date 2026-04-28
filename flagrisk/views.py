@@ -177,11 +177,12 @@ def index(request):
         return redirect('/')
 
     if request.GET.get('clear') == '1':
-        ReportAnalysis.objects.filter(user=request.user).delete()
-        files = glob.glob(os.path.join(reports_dir, "*"))
-        for f in files:
-            if os.path.isfile(f):
-                os.remove(f)
+        user_reports = ReportAnalysis.objects.filter(user=request.user)
+        for report in user_reports:
+            file_full_path = os.path.join(reports_dir, report.report_file_path)
+            if os.path.isfile(file_full_path):
+                os.remove(file_full_path)
+        user_reports.delete()
         from django.shortcuts import redirect
         return redirect('/')
 
@@ -248,7 +249,7 @@ def index(request):
                         'name': entry.filename,
                         'file': entry.report_file_path,
                         'date': entry.upload_date.strftime("%Y-%m-%d %H:%M:%S"),
-                        'status': 'complete' if file_exists else 'missing'
+                        'status': 'Analyzed' if entry.is_analyzed else 'Pending'
                     })
 
                 if request.method == 'POST' and request.FILES.get('excel_file'):
@@ -275,7 +276,7 @@ def index(request):
                 'name': entry.filename,
                 'file': entry.report_file_path,
                 'date': entry.upload_date.strftime("%Y-%m-%d %H:%M:%S"),
-                'status': 'complete' if file_exists else 'missing'
+                'status': 'Analyzed' if entry.is_analyzed else 'Pending'
             })
 
         return render(request, 'flagrisk/index.html', {'recent_reports': recent_list})
@@ -354,11 +355,7 @@ def table_data_api(request):
 
 @login_required
 def analyze_api(request):
-    """Run fuzzy matching and risk classification server-side.
-
-    Returns pre-computed newData, risk result tables, dashboard counts, and
-    chip counts so the browser only has to render — no heavy JS loops needed.
-    """
+    """Run optimized fuzzy matching and risk classification server-side."""
     file_name = request.GET.get('file', '').strip()
     if not file_name:
         return JsonResponse({'error': 'No file specified'}, status=400)
@@ -377,90 +374,96 @@ def analyze_api(request):
         except Exception as e:
             return JsonResponse({'error': str(e)}, status=500)
 
+    # Pre-calculate column indices
     headers = [str(c).lower().strip() for c in df.columns]
-
     def find_col(names, partial=False):
         for name in names:
             for i, h in enumerate(headers):
-                if partial and name in h:
-                    return i
-                elif not partial and h == name:
+                if (partial and name in h) or (not partial and h == name):
                     return i
         return -1
 
-    idx_pn = find_col(['part number'])
-    idx_mfr = find_col(['manufacturer'])
-    idx_cpn = find_col(['cpn', 'internal part', 'customer part'], partial=True)
-    idx_country = find_col(['country'])
-    idx_up_part = find_col(['uploaded part'])
-    idx_up_mfg = find_col(['uploaded mfg'])
-    idx_mfg_step = find_col(['manufacturing step'])
-    idx_mpn_risk = find_col(['mpn risk'])
+    cols = {
+        'pn': find_col(['part number']),
+        'mfr': find_col(['manufacturer']),
+        'cpn': find_col(['cpn', 'internal part', 'customer part'], partial=True),
+        'country': find_col(['country']),
+        'up_part': find_col(['uploaded part']),
+        'up_mfg': find_col(['uploaded mfg']),
+        'mfg_step': find_col(['manufacturing step']),
+        'mpn_risk': find_col(['mpn risk'])
+    }
 
-    if idx_pn == -1 or idx_mfr == -1 or idx_up_part == -1 or idx_up_mfg == -1:
-        return JsonResponse({'error': 'Required columns (Part Number, Manufacturer, Uploaded Part, Uploaded Mfg) not found'}, status=400)
+    if any(cols[k] == -1 for k in ['pn', 'mfr', 'up_part', 'up_mfg']):
+        return JsonResponse({'error': 'Required columns missing (Part Number, Manufacturer, Uploaded Part/Mfg)'}, status=400)
 
-    # Columns before any previously appended risk columns
-    slice_idx = idx_mpn_risk if idx_mpn_risk > -1 else len(df.columns)
+    slice_idx = cols['mpn_risk'] if cols['mpn_risk'] > -1 else len(df.columns)
     original_columns = list(df.columns[:slice_idx])
 
+    # --- Optimization: Pre-normalize columns in bulk ---
+    norm_cache = {}
+    def fast_norm(v):
+        if v not in norm_cache:
+            norm_cache[v] = super_normalize(v)
+        return norm_cache[v]
+
+    df_norm = pd.DataFrame()
+    df_norm['pn'] = df.iloc[:, cols['pn']].astype(str).map(fast_norm)
+    df_norm['up_pn'] = df.iloc[:, cols['up_part']].astype(str).map(fast_norm)
+    df_norm['mfr'] = df.iloc[:, cols['mfr']].astype(str).map(fast_norm)
+    df_norm['up_mfr'] = df.iloc[:, cols['up_mfg']].astype(str).map(fast_norm)
+
+    # --- Optimized Matching ---
     all_data = df.astype(str).replace({'nan': '', 'None': ''}).values.tolist()
-
-    # ── Phase 1: fuzzy matching ────────────────────────────────────────────────
-    def upload_key(up_part, up_mfg):
-        p = str(up_part or '').strip()
-        m = str(up_mfg or '').strip()
-        if not p and not m:
-            return ''
-        return (p + '||' + m).lower()
-
     upload_summary = {}
-    matched_rows = []
+    matched_rows_indices = []
 
-    for row in all_data:
-        sys_pn = str(row[idx_pn]).strip() if idx_pn < len(row) else ''
-        up_pn = str(row[idx_up_part]).strip() if idx_up_part < len(row) else ''
-        sys_mfr = str(row[idx_mfr]).strip() if idx_mfr < len(row) else ''
-        up_mfr = str(row[idx_up_mfg]).strip() if idx_up_mfg < len(row) else ''
+    for i in range(len(df)):
+        sys_pn_n = df_norm.iat[i, 0]
+        up_pn_n = df_norm.iat[i, 1]
+        sys_mfr_n = df_norm.iat[i, 2]
+        up_mfr_n = df_norm.iat[i, 3]
 
-        key = upload_key(up_pn, up_mfr)
-        if key and key not in upload_summary:
-            upload_summary[key] = {
-                'upPart': up_pn, 'upMfg': up_mfr,
-                'matched': False, 'bestPn': '', 'bestMfr': '', 'bestScore': -1
-            }
+        if not up_pn_n and not up_mfr_n:
+            continue
 
-        if key:
-            score = (similarity_score(sys_pn, up_pn) + similarity_score(sys_mfr, up_mfr)) / 2
-            u = upload_summary[key]
-            if score > u['bestScore']:
-                u['bestScore'] = score
-                u['bestPn'] = str(row[idx_pn]).strip()
-                u['bestMfr'] = str(row[idx_mfr]).strip()
+        ukey = f"{up_pn_n}||{up_mfr_n}"
+        u = upload_summary.setdefault(ukey, {
+            'upPart': all_data[i][cols['up_part']], 'upMfg': all_data[i][cols['up_mfg']],
+            'matched': False, 'bestPn': '', 'bestMfr': '', 'bestScore': -1
+        })
 
-        is_pn_match = fuzzy_match(sys_pn, up_pn)
-        is_mfr_match = fuzzy_match(sys_mfr, up_mfr)
+        # Score calculation with exact match short-circuit
+        if sys_pn_n == up_pn_n and sys_mfr_n == up_mfr_n:
+            score = 1.0
+            is_match = True
+        else:
+            # Re-use normalized strings to avoid overhead
+            s_pn = 1.0 if sys_pn_n == up_pn_n else (0.99 if (len(sys_pn_n) > 5 and (sys_pn_n in up_pn_n or up_pn_n in sys_pn_n)) else _lev_ratio(sys_pn_n, up_pn_n))
+            s_mfr = 1.0 if sys_mfr_n == up_mfr_n else (0.99 if (len(sys_mfr_n) > 5 and (sys_mfr_n in up_mfr_n or up_mfr_n in sys_mfr_n)) else _lev_ratio(sys_mfr_n, up_mfr_n))
+            score = (s_pn + s_mfr) / 2
+            is_match = (s_pn >= 0.85 and s_mfr >= 0.85)
 
-        if sys_pn and sys_mfr and up_pn and up_mfr and is_pn_match and is_mfr_match:
-            matched_rows.append(row)
-            if key:
-                upload_summary[key]['matched'] = True
+        if score > u['bestScore']:
+            u['bestScore'] = score
+            u['bestPn'] = all_data[i][cols['pn']]
+            u['bestMfr'] = all_data[i][cols['mfr']]
 
-    # Unmatched uploads (only partial mismatches — skip rows where BOTH are wrong)
+        if is_match:
+            u['matched'] = True
+            matched_rows_indices.append(i)
+
+    # --- Unmatched Uploads ---
     unmatched_uploads = []
     for u in upload_summary.values():
-        if u['matched']:
-            continue
-        labels = []
-        if not fuzzy_match(u['bestPn'], u['upPart']):
-            labels.append('Part Number Mismatch')
-        if not fuzzy_match(u['bestMfr'], u['upMfg']):
-            labels.append('Manufacturer Mismatch')
-        if len(labels) == 2:
-            continue
-        unmatched_uploads.append([u['bestPn'], u['upPart'], u['bestMfr'], u['upMfg'], ' & '.join(labels)])
+        if not u['matched']:
+            labels = []
+            if not fuzzy_match(u['bestPn'], u['upPart']): labels.append('Part Number Mismatch')
+            if not fuzzy_match(u['bestMfr'], u['upMfg']): labels.append('Manufacturer Mismatch')
+            if len(labels) < 2:
+                unmatched_uploads.append([u['bestPn'], u['upPart'], u['bestMfr'], u['upMfg'], ' & '.join(labels)])
 
-    if not matched_rows:
+    if not matched_rows_indices:
         return JsonResponse({
             'newData': [], 'columns': original_columns,
             'highRiskResults': [], 'noRiskResults': [], 'lowRiskResults': [],
@@ -469,146 +472,108 @@ def analyze_api(request):
             'chip_counts': {'high': 0, 'low': 0, 'none': 0},
         })
 
-    # ── Phase 2: risk classification ──────────────────────────────────────────
-    mpn_map = {}       # pn_norm  -> [countries]
-    cpn_to_mpns = {}   # cpn      -> set of pn_norm
-    mpn_site_map = {}  # pn_norm  -> [mfg_steps for risky countries]
+    # --- Risk Classification ---
+    mpn_map = {}      # pn_norm -> [countries]
+    cpn_to_mpns = {}  # cpn -> {pn_norm}
+    mpn_site_map = {} # pn_norm -> [mfg_steps]
 
-    for row in matched_rows:
-        pn_norm = super_normalize(str(row[idx_pn]).strip())
-        cpn = str(row[idx_cpn]).strip().lower() if idx_cpn > -1 and idx_cpn < len(row) else ''
-        country = str(row[idx_country]).strip().lower() if idx_country > -1 and idx_country < len(row) else ''
-        mfg_step = str(row[idx_mfg_step]).strip() if idx_mfg_step > -1 and idx_mfg_step < len(row) else ''
+    for idx in matched_rows_indices:
+        row = all_data[idx]
+        pn_n = df_norm.iat[idx, 0]
+        cpn = row[cols['cpn']].strip().lower() if cols['cpn'] > -1 else ''
+        country = row[cols['country']].strip().lower() if cols['country'] > -1 else ''
+        step = row[cols['mfg_step']].strip() if cols['mfg_step'] > -1 else ''
 
-        if pn_norm:
-            mpn_map.setdefault(pn_norm, []).append(country)
+        if pn_n:
+            mpn_map.setdefault(pn_n, []).append(country)
             if _is_risky(country):
-                steps = mpn_site_map.setdefault(pn_norm, [])
-                if mfg_step and mfg_step not in steps:
-                    steps.append(mfg_step)
+                s_list = mpn_site_map.setdefault(pn_n, [])
+                if step and step not in s_list: s_list.append(step)
+            if cpn:
+                cpn_to_mpns.setdefault(cpn, set()).add(pn_n)
 
-        if cpn and pn_norm:
-            cpn_to_mpns.setdefault(cpn, set()).add(pn_norm)
-
-    mpn_risk_map = {
-        pn: ('High Risk' if all(_is_risky(c) for c in countries) else 'No Risk')
-        for pn, countries in mpn_map.items()
-    }
-
+    mpn_risk_map = {pn: ('High Risk' if all(_is_risky(c) for c in countries) else 'No Risk') for pn, countries in mpn_map.items()}
     cpn_risk_map = {}
     for cpn, mpns in cpn_to_mpns.items():
         risks = [mpn_risk_map.get(m, 'No Risk') for m in mpns]
-        if all(r == 'No Risk' for r in risks):
-            cpn_risk_map[cpn] = 'No Risk'
-        elif all(r == 'High Risk' for r in risks):
-            cpn_risk_map[cpn] = 'High Risk'
-        elif any(r == 'High Risk' for r in risks):
-            cpn_risk_map[cpn] = 'Low Risk'
-        else:
-            cpn_risk_map[cpn] = 'No Risk'
+        if all(r == 'No Risk' for r in risks): cpn_risk_map[cpn] = 'No Risk'
+        elif all(r == 'High Risk' for r in risks): cpn_risk_map[cpn] = 'High Risk'
+        elif any(r == 'High Risk' for r in risks): cpn_risk_map[cpn] = 'Low Risk'
+        else: cpn_risk_map[cpn] = 'No Risk'
 
-    # ── Phase 3: build newData and risk result lists ───────────────────────────
+    # --- Build Results ---
     new_data = []
-    high_risk_results, high_risk_seen = [], set()
-    no_risk_results, no_risk_seen = [], set()
-    low_risk_results, low_risk_seen = [], set()
+    hr_res, lr_res, nr_res = [], [], []
+    seen_hr, seen_lr, seen_nr = set(), set(), set()
 
-    for row in all_data:
-        sys_pn = str(row[idx_pn]).strip()
-        up_pn = str(row[idx_up_part]).strip()
-        sys_mfr = str(row[idx_mfr]).strip()
-        up_mfr = str(row[idx_up_mfg]).strip()
+    for i in matched_rows_indices:
+        row = all_data[i]
+        pn_n = df_norm.iat[i, 0]
+        cpn = row[cols['cpn']].strip().lower() if cols['cpn'] > -1 else ''
+        country = row[cols['country']].strip().lower() if cols['country'] > -1 else ''
 
-        if not (sys_pn and sys_mfr and up_pn and up_mfr
-                and fuzzy_match(sys_pn, up_pn)
-                and fuzzy_match(sys_mfr, up_mfr)):
-            continue
+        m_risk = mpn_risk_map.get(pn_n, 'No Risk')
+        c_risk = cpn_risk_map.get(cpn, 'No Risk')
 
-        pn_key = super_normalize(sys_pn)
-        cpn = str(row[idx_cpn]).strip().lower() if idx_cpn > -1 and idx_cpn < len(row) else ''
-        country = str(row[idx_country]).strip().lower() if idx_country > -1 and idx_country < len(row) else ''
+        if m_risk == 'No Risk' and c_risk == 'No Risk': remark = 'The CPN is completely safe from all risks.'
+        elif m_risk == 'No Risk' and c_risk == 'Low Risk': remark = 'The CPN has non preferred countries but the MPN has atleast one preferred country, so low risk'
+        elif m_risk == 'High Risk':
+            steps_h = _make_step_spans(mpn_site_map.get(pn_n, []))
+            remark = f'The CPN has non preferred country for {row[cols["pn"]]} ({steps_h})'
+            if c_risk == 'High Risk': remark += ' in all sites'
+        else: remark = f'CPN {c_risk.lower()} | MPN {m_risk.lower()}'
 
-        mpn_risk = mpn_risk_map.get(pn_key, 'No Risk')
-        cpn_risk = cpn_risk_map.get(cpn, 'No Risk')
+        new_data.append(list(row[:slice_idx]) + [remark, m_risk, c_risk])
 
-        key_pair = mpn_risk + '|' + cpn_risk
-        if key_pair == 'No Risk|No Risk':
-            remark = 'The CPN is completely safe from all risks.'
-        elif key_pair == 'No Risk|Low Risk':
-            remark = 'The CPN has non preferred countries but the MPN has atleast one preferred country, so low risk'
-        elif key_pair == 'High Risk|Low Risk':
-            steps_html = _make_step_spans(mpn_site_map.get(pn_key, []))
-            remark = f'The CPN has non preferred country for {sys_pn} ({steps_html})'
-        elif key_pair == 'High Risk|High Risk':
-            steps_html = _make_step_spans(mpn_site_map.get(pn_key, []))
-            remark = f'The CPN has non preferred country for {sys_pn} in all sites ({steps_html})'
-        else:
-            remark = f'CPN {cpn_risk.lower()} | MPN {mpn_risk.lower()}'
+        r_key = f"{row[cols['pn']]}|{cpn}|{country}"
+        split_row = [row[cols['pn']], row[cols['cpn']] if cols['cpn'] > -1 else '', row[cols['country']] if cols['country'] > -1 else '']
+        
+        if c_risk == 'High Risk' and r_key not in seen_hr:
+            seen_hr.add(r_key); hr_res.append(split_row)
+        elif c_risk == 'Low Risk' and r_key not in seen_lr:
+            seen_lr.add(r_key); lr_res.append(split_row)
+        elif c_risk == 'No Risk' and not _is_risky(country) and r_key not in seen_nr:
+            seen_nr.add(r_key); nr_res.append(split_row)
 
-        base_row = list(row[:slice_idx])
-        new_data.append(base_row + [remark, mpn_risk, cpn_risk])
+    # Dashboard Counts
+    dashboard = {
+        'cpn_high': sum(1 for r in cpn_risk_map.values() if r == 'High Risk'),
+        'cpn_low': sum(1 for r in cpn_risk_map.values() if r == 'Low Risk'),
+        'cpn_no': sum(1 for r in cpn_risk_map.values() if r == 'No Risk'),
+        'mpn_risk_map': {k: v for k, v in mpn_risk_map.items()}
+    }
 
-        split_row = [
-            row[idx_pn],
-            row[idx_cpn] if idx_cpn > -1 and idx_cpn < len(row) else '',
-            row[idx_country] if idx_country > -1 and idx_country < len(row) else '',
-        ]
-        risk_key = f"{split_row[0]}|{split_row[1]}|{split_row[2]}"
-
-        if cpn_risk == 'High Risk':
-            if risk_key not in high_risk_seen:
-                high_risk_seen.add(risk_key)
-                high_risk_results.append(split_row)
-        elif cpn_risk == 'Low Risk':
-            if risk_key not in low_risk_seen:
-                low_risk_seen.add(risk_key)
-                low_risk_results.append(split_row)
-        else:
-            if not _is_risky(country) and risk_key not in no_risk_seen:
-                no_risk_seen.add(risk_key)
-                no_risk_results.append(split_row)
-
-    # ── Phase 4: dashboard counts ──────────────────────────────────────────────
-    cpn_high = sum(1 for r in cpn_risk_map.values() if r == 'High Risk')
-    cpn_low = sum(1 for r in cpn_risk_map.values() if r == 'Low Risk')
-    cpn_no = sum(1 for r in cpn_risk_map.values() if r == 'No Risk')
-
-    # MPN counts: de-duplicate by normalized PN, High Risk takes priority
-    unique_high_mpns = set()
-    unique_no_mpns = set()
-    mpn_risk_col = slice_idx + 1  # position of MPN Risk in new_data rows
-
-    for row in new_data:
-        pn_key_d = super_normalize(str(row[idx_pn]).strip())
-        if not pn_key_d:
-            continue
-        mpn_risk_val = row[mpn_risk_col]
-        if mpn_risk_val == 'High Risk':
-            unique_high_mpns.add(pn_key_d)
-            unique_no_mpns.discard(pn_key_d)
-        elif mpn_risk_val == 'No Risk' and pn_key_d not in unique_high_mpns:
-            unique_no_mpns.add(pn_key_d)
-
-    mpn_dashboard_risk_map = {k: 'High Risk' for k in unique_high_mpns}
-    mpn_dashboard_risk_map.update({k: 'No Risk' for k in unique_no_mpns if k not in mpn_dashboard_risk_map})
-
-    chip_high = sum(1 for r in new_data if r[-1] == 'High Risk')
-    chip_low = sum(1 for r in new_data if r[-1] == 'Low Risk')
-    chip_none = sum(1 for r in new_data if r[-1] == 'No Risk')
-
+    # --- Persist Results to Database ---
+    try:
+        report = ReportAnalysis.objects.filter(user=request.user, report_file_path=file_name).first()
+        if report:
+            report.analysis_results = {
+                'newData': new_data,
+                'cpnRiskMap': cpn_risk_map,
+                'dashboard': dashboard,
+                'chip_counts': {
+                    'high': sum(1 for r in new_data if r[-1] == 'High Risk'),
+                    'low': sum(1 for r in new_data if r[-1] == 'Low Risk'),
+                    'none': sum(1 for r in new_data if r[-1] == 'No Risk')
+                },
+                'columns': original_columns
+            }
+            report.high_risk_count = dashboard['cpn_high']
+            report.low_risk_count = dashboard['cpn_low']
+            report.no_risk_count = dashboard['cpn_no']
+            report.is_analyzed = True
+            report.save()
+    except Exception as e:
+        print(f"Error saving analysis to DB: {e}")
+    
     return JsonResponse({
-        'newData': new_data,
-        'columns': original_columns,
-        'highRiskResults': high_risk_results,
-        'noRiskResults': no_risk_results,
-        'lowRiskResults': low_risk_results,
-        'unmatchedUploads': unmatched_uploads,
-        'cpnRiskMap': cpn_risk_map,
-        'dashboard': {
-            'cpn_high': cpn_high,
-            'cpn_low': cpn_low,
-            'cpn_no': cpn_no,
-            'mpn_risk_map': mpn_dashboard_risk_map,
+        'newData': new_data, 'columns': original_columns,
+        'highRiskResults': hr_res, 'noRiskResults': nr_res, 'lowRiskResults': lr_res,
+        'unmatchedUploads': unmatched_uploads, 'cpnRiskMap': cpn_risk_map,
+        'dashboard': dashboard,
+        'chip_counts': {
+            'high': sum(1 for r in new_data if r[-1] == 'High Risk'),
+            'low': sum(1 for r in new_data if r[-1] == 'Low Risk'),
+            'none': sum(1 for r in new_data if r[-1] == 'No Risk')
         },
-        'chip_counts': {'high': chip_high, 'low': chip_low, 'none': chip_none},
     })
