@@ -83,8 +83,12 @@ LOGOUT_REDIRECT_URL = '/login/'
 
 DATABASES = {
     'default': {
-        'ENGINE': 'django.db.backends.sqlite3',
-        'NAME': BASE_DIR / 'db.sqlite3',
+        'ENGINE': 'django.db.backends.postgresql_psycopg2',
+        'NAME': 'Flag_riskapril28',
+        'USER': 'iness',
+        'HOST': 'postgres.coussk3bjb0m.us-west-2.rds.amazonaws.com',
+        'PASSWORD':'Iness*123',
+        'PORT': '5432',
     }
 }
 
